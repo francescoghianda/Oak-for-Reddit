@@ -9,9 +9,24 @@ import SwiftUI
 
 @main
 struct Oak_for_RedditApp: App {
+    //@StateObject var redditApi = RedditApi()
+    @StateObject var oauth: OAuthManager = OAuthManager.shared
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                //.environmentObject(redditApi)
+                .environmentObject(oauth)
+                .onOpenURL{url in
+                    
+                    let urlScheme = url.scheme
+                    let redirectUrlScheme = OAuthManager.CALLBACK_URL_SCHEME
+                    
+                    guard urlScheme?.caseInsensitiveCompare(redirectUrlScheme) == .orderedSame
+                    else { return }
+                                        
+                    oauth.onCallbackUrl(url: url)
+                }
         }
     }
 }
