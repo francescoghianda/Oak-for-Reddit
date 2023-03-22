@@ -24,7 +24,7 @@ struct ContentView: View {
                         Image(systemName: "star.fill")
                         Text("Favourites")
                     }
-            SubredditsView()
+            SubredditListView()
                     .tabItem {
                         Image(systemName: "list.dash")
                         Text("Subreddits")

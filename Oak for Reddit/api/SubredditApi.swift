@@ -7,31 +7,35 @@
 
 import Foundation
 
-enum SubredditListingOrder: Hashable{
-    case DEFAULT, POPULAR, NEW
+enum SubredditListingOrder: String, Hashable, CaseIterable, Identifiable, Equatable{
+    case normal, popular, latest
+        
+    var id: String {
+        return self.rawValue
+    }
 }
 
 class SubrettitApi: ObservableObject {
     
     private let redditApi: RedditApi
     
-    private let apiPath = "/subreddits/default"
-    private let apiMethod = "GET"
-    private let apiScope = "read"
+    //private let apiPath = "/subreddits/default"
+    //private let apiMethod = "GET"
+    //private let apiScope = "read"
     
     @Published var isUpdating = false
     var subreddits: Listing<Subreddit> {
         get {
             switch order {
-            case .DEFAULT:
+            case .normal:
                 return defaultSubreddits
-            case .POPULAR:
+            case .popular:
                 return popularSubreddits
-            case .NEW:
+            case .latest:
                 return newSubreddits
             }
         }
-        set {
+        /*set {
             switch order {
             case .DEFAULT:
                 defaultSubreddits = newValue
@@ -40,7 +44,7 @@ class SubrettitApi: ObservableObject {
             case .NEW:
                 newSubreddits = newValue
             }
-        }
+        }*/
     }
     
     private var defaultSubreddits: Listing<Subreddit> = Listing.empty()
@@ -51,33 +55,34 @@ class SubrettitApi: ObservableObject {
     private let popularEndpoint = ApiEndpoint(scope: "read", path: "/subreddits/popular", method: "GET", parameters: [:])
     private let newEndpoint = ApiEndpoint(scope: "read", path: "/subreddits/new", method: "GET", parameters: [:])
     
-    @Published public var order: SubredditListingOrder = .DEFAULT
+    @Published public var order: SubredditListingOrder = .normal
     
     init(redditApi: RedditApi){
         self.redditApi = redditApi
     }
     
-    private func fetch(parameters: [String : Any], order: SubredditListingOrder, onSuccess: @escaping (Listing<Subreddit>) -> Void) {
+    private func fetch(parameters: [String : Any], order: SubredditListingOrder, onSuccess: @escaping (Listing<Subreddit>, SubredditListingOrder) -> Void) {
         if(isUpdating){
             return
         }
         
         isUpdating = true
         
+        
         let endpoint: ApiEndpoint = {
             switch order {
-            case .DEFAULT:
+            case .normal:
                 return defaultEndpoint.withParameters(parameters)
-            case .POPULAR:
+            case .popular:
                 return popularEndpoint.withParameters(parameters)
-            case .NEW:
+            case .latest:
                 return newEndpoint.withParameters(parameters)
             }
         }()
         
         redditApi.callApi(endpoint: endpoint) { result in
             let newSubreddits: Listing<Subreddit> = Listing.build(from: result)
-            onSuccess(newSubreddits)
+            onSuccess(newSubreddits, order)
             self.isUpdating = false
         }
     }
@@ -86,8 +91,9 @@ class SubrettitApi: ObservableObject {
         
         let parameters = ["limit": 10]
         
-        fetch(parameters: parameters, order: order) { newSubreddits in
-            self.subreddits = newSubreddits
+        fetch(parameters: parameters, order: order) { newSubreddits, order in
+            //self.subreddits = newSubreddits
+            self.setSubreddits(newSubreddits, order: order)
         }
     }
     
@@ -97,12 +103,34 @@ class SubrettitApi: ObservableObject {
                                           "after": subreddits.after ?? "",
                                           "count": subreddits.count]
         
-        fetch(parameters: parameters, order: order) { newSubreddits in
-            self.subreddits = self.subreddits ++ newSubreddits
+        fetch(parameters: parameters, order: order) { newSubreddits, order in
+            //self.subreddits = self.subreddits ++ newSubreddits
+            self.appendSubreddits(newSubreddits, order: order)
         }
         
     }
     
+    private func setSubreddits(_ subreddits: Listing<Subreddit>, order: SubredditListingOrder){
+        switch order {
+        case .normal:
+            defaultSubreddits = subreddits
+        case .popular:
+            popularSubreddits = subreddits
+        case .latest:
+            newSubreddits = subreddits
+        }
+    }
+    
+    private func appendSubreddits(_ subreddits: Listing<Subreddit>, order: SubredditListingOrder){
+        switch order {
+        case .normal:
+            defaultSubreddits += subreddits
+        case .popular:
+            popularSubreddits += subreddits
+        case .latest:
+            newSubreddits += subreddits
+        }
+    }
     
     
 }

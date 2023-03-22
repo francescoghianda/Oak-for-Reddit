@@ -60,11 +60,23 @@ struct SubredditScrollView<Content: View>: UIViewRepresentable{
     }
 }
 
-struct SubredditsView: View {
+struct SubredditListView: View {
     
     @StateObject var api = SubrettitApi(redditApi: RedditApi.shared)
     
+    func orderToText(_ order: SubredditListingOrder) -> String {
+        switch order {
+        case .normal:
+            return "Default"
+        case .popular:
+            return "Popular"
+        case .latest:
+            return "New"
+        }
+    }
+    
     var body: some View {
+        
         NavigationView{
             
             GeometryReader{ geometry in
@@ -73,10 +85,17 @@ struct SubredditsView: View {
 
                     LazyVStack {
                         ForEach(api.subreddits) { subreddit in
-                            SubredditItemView(subreddit: subreddit)
+                            NavigationLink {
+                                PostListView(subreddit: subreddit)
+                            } label: {
+                                SubredditItemView(subreddit: subreddit)
+                            }
+
                         }
-                        Button("Load more") {
-                            api.loadMore()
+                        if !api.subreddits.isEmpty {
+                            Button("Load more") {
+                                api.loadMore()
+                            }
                         }
 
                         /*ForEach(1..<20) { index in
@@ -94,22 +113,49 @@ struct SubredditsView: View {
 
                 }
             }
-            .navigationTitle("Subreddits")
+            .navigationTitle("\(orderToText(api.order)) subreddits")
+            .onAppear(perform: {
+                if api.subreddits.isEmpty {
+                    api.load()
+                }
+            })
+            .onChange(of: api.order, perform: { newValue in
+                if api.subreddits.isEmpty {
+                    api.load()
+                }
+            })
             .toolbar {
-                HStack{
-                    Button {
-                        api.load()
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    
-                    Picker("Order", selection: $api.order) {
-                        Label("Default", systemImage: "suit.club.fill").tag(SubredditListingOrder.DEFAULT)
-                        Label("Popular", systemImage: "flame").tag(SubredditListingOrder.POPULAR)
-                        Label("New", systemImage: "bolt.fill").tag(SubredditListingOrder.NEW)
-                    }
+                ToolbarItem {
+                    Menu {
+                        
+                        ForEach(SubredditListingOrder.allCases, id: \.id) { item in
+                            
+                            let text: String = orderToText(item)
+                            
+                            let (symbol, color): (String, Color) = {
+                                switch item {
+                                case .normal:
+                                    return ("suit.club.fill", .green)
+                                case .popular:
+                                    return ("flame", .red)
+                                case .latest:
+                                    return ("bolt.fill", .yellow)
+                                }
+                            }()
+                            
+                            Button {
+                                api.order = item
+                            } label: {
+                                Label(text, systemImage: symbol)
+                                    .foregroundColor(color)
+                            }
+                            
+                        }
 
-                    
+                    } label: {
+                        Label("Order", systemImage: "arrow.up.arrow.down")
+                            //.labelStyle(.titleAndIcon)
+                    }
                 }
             }
             
@@ -129,6 +175,6 @@ class ScrollViewOffsetPreferenceKey: PreferenceKey{
 
 struct Subreddits_Previews: PreviewProvider {
     static var previews: some View {
-        SubredditsView()
+        SubredditListView()
     }
 }

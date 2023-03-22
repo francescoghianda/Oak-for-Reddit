@@ -8,6 +8,7 @@
 import Foundation
 
 infix operator ++ : AdditionPrecedence
+infix operator += : AdditionPrecedence
 final class Listing<T: Thing>: Sequence, RandomAccessCollection {
     typealias BaseCollection = [T]
     
@@ -46,6 +47,10 @@ final class Listing<T: Thing>: Sequence, RandomAccessCollection {
     static func ++<T: Thing>(left: Listing<T>, right: Listing<T>) -> Listing<T> {
         let children = left.children + right.children
         return Listing<T>(before: left.before, after: right.after, children: children)
+    }
+    
+    static func +=<T: Thing>(left: inout Listing<T>, right: Listing<T>) {
+        left = left ++ right
     }
     
     public static func empty<T: Thing>() -> Listing<T> {

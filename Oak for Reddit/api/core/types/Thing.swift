@@ -9,7 +9,7 @@ import Foundation
 
 protocol Votable {
     var ups: Int { get }
-    var down: Int { get }
+    var downs: Int { get }
     var likes: Bool? { get }
 }
 
@@ -51,5 +51,15 @@ class Thing: Identifiable, Equatable {
     
     static func == (left: Thing, right: Thing) -> Bool {
         left.uuid == right.uuid
+    }
+}
+
+extension Thing {
+    static func extractUrl(data: [String : Any], key: String) -> URL? {
+        
+        if let path = data[key] as? String {
+            return URL(string: path)
+        }
+        return nil
     }
 }
