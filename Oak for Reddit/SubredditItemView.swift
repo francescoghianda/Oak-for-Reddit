@@ -103,7 +103,7 @@ struct SubredditItemView: View {
                     }
                     Spacer()
                 }
-                Image(systemName: "chevron.forward")
+                //Image(systemName: "chevron.forward")
                 
             }
             

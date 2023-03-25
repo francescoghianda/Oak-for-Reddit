@@ -7,7 +7,7 @@
 
 import Foundation
 
-class Subreddit: Thing {
+class Subreddit: Thing{
     
     let displayName: String
     let displayNamePrefixed: String
@@ -42,9 +42,10 @@ class Subreddit: Thing {
     
     public static let previewSubreddit: Subreddit = {
         let data: [String : Any] = [
-            "display_name": "preview subreddit",
+            "display_name": "subreddit",
+            "display_name_prefixed": "r/subreddit",
             "id": "000000",
-            "name": "preview",
+            "name": "subreddit",
             "icon_img": "",
             "over18": 1,
             "primary_color": "#ef6351",

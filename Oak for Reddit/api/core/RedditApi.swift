@@ -22,6 +22,10 @@ class RedditApi: NSObject, ObservableObject{
     
     public let oauth: OAuthManager = OAuthManager.shared
     
+    private var xRateLimitUsed: Int = 0
+    private var xRateLimitRemainig: Int = .max
+    private var xRateLimitReset: Int = 0
+    
     private override init(){
         super.init()
     }
@@ -41,7 +45,7 @@ class RedditApi: NSObject, ObservableObject{
         
         guard let url = URL(string: urlString)
         else{
-            print("Error: Invalid API path")
+            print("Error: Invalid API path: \(urlString)")
             return nil
         }
         
@@ -59,6 +63,19 @@ class RedditApi: NSObject, ObservableObject{
         return request
     }
     
+    func callApi(endpoint: ApiEndpoint) async throws -> [String : Any] {
+        
+        let result = try await withCheckedThrowingContinuation({ continuation in
+            callApi(endpoint: endpoint) { result in
+                continuation.resume(returning: result)
+            } onFail: { failCause in
+                continuation.resume(throwing: ApiFetchError(cause: failCause))
+            }
+        })
+        
+        return result
+    }
+    
     func callApi(endpoint: ApiEndpoint, onSuccess: @escaping ([String : Any]) -> Void, onFail: ((ApiFetchFailCause) -> Void)? = nil) {
         
 
@@ -69,10 +86,10 @@ class RedditApi: NSObject, ObservableObject{
                 return
             }
             
+            print("Making API request to: \(request.url!)")
+            
             
             request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-            
-            print("Making API request to: \(request.url!)")
             
             self.makeApiRequest(request: request, onSuccess: onSuccess) { failCause in
                 switch failCause {
@@ -101,8 +118,20 @@ class RedditApi: NSObject, ObservableObject{
         
     }
     
-    private func makeApiRequest(request: URLRequest, onSuccess: @escaping ([String : Any]) -> Void, onFail: @escaping (ApiFetchFailCause) -> Void)  {
+    private func updateRateLimits(response: HTTPURLResponse) {
+        let xRateLimitUsed: String? = response.value(forHTTPHeaderField: "x-ratelimit-used")
+        let xRateLimitRemainig: String? = response.value(forHTTPHeaderField: "x-ratelimit-remaining")
+        let xRateLimitReset: String? = response.value(forHTTPHeaderField: "x-ratelimit-reset")
         
+        self.xRateLimitUsed = Int(xRateLimitUsed ?? "0")!
+        self.xRateLimitRemainig = Int(xRateLimitRemainig ?? "300")!
+        self.xRateLimitReset = Int(xRateLimitReset ?? "600")!
+        
+        //print("xRateLimitUsed: \(self.xRateLimitUsed), xRateLimitRemaining: \(self.xRateLimitRemainig), xRateLimitReset:\(self.xRateLimitReset)")
+    }
+    
+    private func makeApiRequest(request: URLRequest, onSuccess: @escaping ([String : Any]) -> Void, onFail: @escaping (ApiFetchFailCause) -> Void)  {
+                
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             
             guard
@@ -121,6 +150,8 @@ class RedditApi: NSObject, ObservableObject{
                 return
             }
             
+            self.updateRateLimits(response: response)
+            
             do {
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any] {
                     onSuccess(json)
@@ -135,8 +166,17 @@ class RedditApi: NSObject, ObservableObject{
         }
         
         task.resume()
+        
     }
     
+}
+
+class ApiFetchError: Error {
+    let cause: ApiFetchFailCause
+    
+    init(cause: ApiFetchFailCause){
+        self.cause = cause
+    }
 }
 
 enum ApiFetchFailCause{

@@ -14,13 +14,17 @@ protocol Votable {
 }
 
 protocol Created {
-    var created: TimeInterval { get }
-    var created_utc: TimeInterval { get }
+    var created: Date { get }
+    var createdUtc: Date { get }
 }
 
 protocol ThingFactory{
     associatedtype T
     func build<T: Thing>(from: [String : Any]) -> T
+}
+
+enum ThingKind {
+    case comment, account, link, message, subreddit, award // t1, t2, t3, t4, t5, t6
 }
 
 class Thing: Identifiable, Equatable {
@@ -60,6 +64,23 @@ extension Thing {
         if let path = data[key] as? String {
             return URL(string: path)
         }
+        return nil
+    }
+    
+    static func extractHtmlEcodedString(data: [String : Any], key: String, encoding: String.Encoding = .utf16) -> String? {
+        
+        let encodedString = data[key] as? String
+        
+        if let data = encodedString?.data(using: encoding) {
+            do {
+                let attrStr = try NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil)
+                return attrStr.string
+            }
+            catch {
+                return nil
+            }
+        }
+        
         return nil
     }
 }

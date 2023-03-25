@@ -7,55 +7,46 @@
 
 import SwiftUI
 
-struct SubredditScrollView<Content: View>: UIViewRepresentable{
+private struct OrderSelectorView: View {
     
-    //var width : CGFloat
-    //var height : CGFloat
+    //let api: SubrettitApi
+    let toText: (SubredditListingOrder) -> String
+    let order: Binding<SubredditListingOrder>
+    //let bindListing: Binding<Listing<Subreddit>>
     
-    @ViewBuilder let content: () -> Content
+    var body: some View{
         
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-        
-    func makeUIView(context: Context) -> UIScrollView {
-        
-        let control = UIScrollView()
-        control.delegate = context.coordinator
-        let childView = UIHostingController(rootView: content())
-        control.addSubview(childView.view)
-        
-        /*control.refreshControl = UIRefreshControl()
-        control.refreshControl?.addTarget(context.coordinator, action: #selector(Coordinator.handleRefreshControl), for: .valueChanged)
-        control.delegate = context.coordinator
-        
-        let childView = UIHostingController(rootView: content())
-        //childView.view.frame = CGRect(x: 0, y: 0, width: width, height: height)
-        
-        control.addSubview(childView.view)*/
-        return control
-        
-    }
-    
-    func updateUIView(_ uiView: UIScrollView, context: Context) {
-        
-    }
-    
-    class Coordinator: NSObject, UIScrollViewDelegate {
-    
-        var control: SubredditScrollView<Content>
-        init(_ control: SubredditScrollView) {
-            self.control = control
-        }
-        
-        func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-            if (scrollView.contentOffset.y + 1) >= (scrollView.contentSize.height - scrollView.frame.size.height) {
-                print("bottom reached")
+        Menu {
+            
+            ForEach(SubredditListingOrder.allCases, id: \.id) { item in
+                
+                let text: String = toText(item)
+                
+                let (symbol, color): (String, Color) = {
+                    switch item {
+                    case .normal:
+                        return ("suit.club.fill", .green)
+                    case .popular:
+                        return ("flame", .red)
+                    case .new:
+                        return ("bolt.fill", .yellow)
+                    }
+                }()
+                
+                Button {
+                    order.wrappedValue = item
+                    //bindListing.wrappedValue = api.getListing(order: item)
+                    
+                } label: {
+                    Label(text, systemImage: symbol)
+                        .foregroundColor(color)
+                }
+                
             }
-        }
-        
-        @objc func handleRefreshControl(sender: UIRefreshControl) {
-            sender.endRefreshing()
+
+        } label: {
+            Label("Order", systemImage: "arrow.up.arrow.down")
+                //.labelStyle(.titleAndIcon)
         }
     }
 }
@@ -64,102 +55,82 @@ struct SubredditListView: View {
     
     @StateObject var api = SubrettitApi(redditApi: RedditApi.shared)
     
+    @State var order: SubredditListingOrder = .normal
+    
+    
     func orderToText(_ order: SubredditListingOrder) -> String {
         switch order {
         case .normal:
             return "Default"
         case .popular:
             return "Popular"
-        case .latest:
+        case .new:
             return "New"
         }
     }
     
     var body: some View {
         
-        NavigationView{
+        let subreddits = api.getListing(order: order)
+        
+        ZStack{
             
-            GeometryReader{ geometry in
+            NavigationView{
                 
-                ScrollView{
-
-                    LazyVStack {
-                        ForEach(api.subreddits) { subreddit in
-                            NavigationLink {
-                                PostListView(subreddit: subreddit)
-                            } label: {
-                                SubredditItemView(subreddit: subreddit)
-                            }
-
-                        }
-                        if !api.subreddits.isEmpty {
-                            Button("Load more") {
-                                api.loadMore()
-                            }
-                        }
-
-                        /*ForEach(1..<20) { index in
-                            Rectangle()
-                                .frame(width: .infinity, height: 100)
-                                .foregroundColor(Color.blue)
-                                .onAppear {
-                                    
-                                        print(geometry.safeAreaInsets.top)
-                                    
+                GeometryReader{ geometry in
+                        List {
+                            ForEach(subreddits) { subreddit in
+                                NavigationLink {
+                                    PostListView(subreddit: subreddit)
+                                } label: {
+                                    SubredditItemView(subreddit: subreddit)
                                 }
-                        }*/
-                    }
-                    .padding()
 
-                }
-            }
-            .navigationTitle("\(orderToText(api.order)) subreddits")
-            .onAppear(perform: {
-                if api.subreddits.isEmpty {
-                    api.load()
-                }
-            })
-            .onChange(of: api.order, perform: { newValue in
-                if api.subreddits.isEmpty {
-                    api.load()
-                }
-            })
-            .toolbar {
-                ToolbarItem {
-                    Menu {
-                        
-                        ForEach(SubredditListingOrder.allCases, id: \.id) { item in
+                            }
                             
-                            let text: String = orderToText(item)
-                            
-                            let (symbol, color): (String, Color) = {
-                                switch item {
-                                case .normal:
-                                    return ("suit.club.fill", .green)
-                                case .popular:
-                                    return ("flame", .red)
-                                case .latest:
-                                    return ("bolt.fill", .yellow)
+                            if(!subreddits.isEmpty){
+                                HStack{
+                                    Spacer()
+                                    if(subreddits.hasThingsAfter){
+                                        ProgressView()
+                                            .task {
+                                                await api.loadMore(order: order)
+                                            }
+                                    }
+                                    else{
+                                        Text("You have reached the end")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.gray)
+                                            .padding()
+                                    }
+                                    Spacer()
                                 }
-                            }()
-                            
-                            Button {
-                                api.order = item
-                            } label: {
-                                Label(text, systemImage: symbol)
-                                    .foregroundColor(color)
                             }
                             
                         }
-
-                    } label: {
-                        Label("Order", systemImage: "arrow.up.arrow.down")
-                            //.labelStyle(.titleAndIcon)
+                        .listStyle(.plain)
+                        .refreshable{
+                            await api.load(order: order)
+                        }
+                }
+                .navigationTitle("\(orderToText(order)) subreddits")
+                .toolbar {
+                    ToolbarItem {
+                        OrderSelectorView(toText: orderToText, order: $order)
                     }
                 }
+                
             }
             
+            if(subreddits.isEmpty){
+                ProgressView()
+                    .task{
+                        await api.load(order: order)
+                    }
+            }
         }
+        
+        
     }
 }
 
@@ -174,6 +145,7 @@ class ScrollViewOffsetPreferenceKey: PreferenceKey{
 }
 
 struct Subreddits_Previews: PreviewProvider {
+        
     static var previews: some View {
         SubredditListView()
     }

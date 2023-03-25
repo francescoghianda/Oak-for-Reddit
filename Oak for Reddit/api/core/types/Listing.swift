@@ -79,10 +79,21 @@ final class Listing<T: Thing>: Sequence, RandomAccessCollection {
         let childrenArray: NSArray = data["children"] as! NSArray
         
         let children: [T] = childrenArray.map { child in
-            let childDict = child as! [String : Any]
+            let childDict = child as! [String : Any]        // TODO: gestire caso kind = more
             return Thing.build(from: childDict)
         }
         
         return Listing<T>(before: before, after: after, children: children)
+    }
+}
+
+extension Listing{
+    
+    var hasThingsBefore: Bool {
+        !(before?.isEmpty ?? true)
+    }
+    
+    var hasThingsAfter: Bool {
+        !(after?.isEmpty ?? true)
     }
 }
