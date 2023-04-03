@@ -122,6 +122,7 @@ struct SubredditListView: View {
                 
             }
             
+            
             if(subreddits.isEmpty){
                 ProgressView()
                     .task{
@@ -145,7 +146,8 @@ class ScrollViewOffsetPreferenceKey: PreferenceKey{
 }
 
 struct Subreddits_Previews: PreviewProvider {
-        
+    
+    
     static var previews: some View {
         SubredditListView()
     }

@@ -7,34 +7,115 @@
 
 import SwiftUI
 
+class NamespaceWrapper: ObservableObject {
+    
+    var namespace: Namespace.ID
+
+    init(_ namespace: Namespace.ID) {
+        self.namespace = namespace
+    }
+    
+}
+
 struct ContentView: View {
     
     //@EnvironmentObject var redditApi: RedditApi
     //@EnvironmentObject var oauth: OAuthManager
     
+    @State var showMedia: Bool = false
+    @Namespace var namespace
     
+    @StateObject var mediaViewerModel = MediaViewerModel()
     
     var body: some View {
         
         //let subreddits = SubrettitList(redditApi: redditApi)
         
-        TabView{
-            Text("Favourites")
-                    .tabItem {
-                        Image(systemName: "star.fill")
-                        Text("Favourites")
+        ZStack {
+            
+            TabView{
+                Text("Favourites")
+                        .tabItem {
+                            Image(systemName: "star.fill")
+                            Text("Favourites")
+                        }
+                SubredditListView()
+                        .tabItem {
+                            Image(systemName: "list.dash")
+                            Text("Subreddits")
+                        }
+                Text("Account")
+                        .tabItem {
+                            Image(systemName: "person.fill")
+                            Text("Account")
+                        }
+            }
+            .environmentObject(NamespaceWrapper(namespace))
+            .environmentObject(mediaViewerModel)
+            //.namespace(namespace)
+            
+            
+            if let post = mediaViewerModel.post {
+                
+                ZStack {
+                    
+                    Color.black
+                        .ignoresSafeArea()
+                    
+                    VStack{
+                        
+                        /*RoundedRectangle(cornerRadius: 10)
+                            .matchedGeometryEffect(id: post.uuid, in: namespace, properties: .position)
+                            .foregroundColor(.gray)
+                            .frame(width: 300, height: 180)
+                            .overlay {
+                                
+                            }*/
+                        
+                        
+                        AsyncUIImage(url: post.url) { image, error in
+                            
+                            if let image = image {
+                                
+                                Image(uiImage: image)
+                                    .resizable()
+                                
+                            }
+                            else if error != nil {
+                                Text("Error")
+                            }
+                            else {
+                                ProgressView()
+                            }
+                            
+                        }
+                        .matchedGeometryEffect(id: post.uuid, in: namespace, properties: .position)
+                        .scaledToFit()
+                        
+                            
+                        
+                        Button {
+                            withAnimation(.spring()) {
+                                //mediaViewerModel.mediaIsPresented.toggle()
+                                mediaViewerModel.post = nil
+                            }
+                            
+                        } label: {
+                            Text("Close viewer")
+                        }
+                        .padding()
+
                     }
-            SubredditListView()
-                    .tabItem {
-                        Image(systemName: "list.dash")
-                        Text("Subreddits")
-                    }
-            Text("Account")
-                    .tabItem {
-                        Image(systemName: "person.fill")
-                        Text("Account")
-                    }
+                    
+                }
+                .zIndex(1)
+                
+                
+                
+            }
+            
         }
+        //.environmentObject(mediaDataModel)
         
         /*VStack{
             
@@ -69,5 +150,23 @@ struct ContentView_Previews: PreviewProvider {
     
     static var previews: some View {
         ContentView()
+    }
+}
+
+
+struct NamespaceEnvironmentKey: EnvironmentKey {
+    static var defaultValue: Namespace.ID = Namespace().wrappedValue
+}
+
+extension EnvironmentValues {
+    var namespace: Namespace.ID {
+        get { self[NamespaceEnvironmentKey.self] }
+        set { self[NamespaceEnvironmentKey.self] = newValue }
+    }
+}
+
+extension View {
+    func namespace(_ value: Namespace.ID) -> some View {
+        environment(\.namespace, value)
     }
 }

@@ -9,7 +9,7 @@ import Foundation
 
 infix operator ++ : AdditionPrecedence
 infix operator += : AdditionPrecedence
-final class Listing<T: Thing>: Sequence, RandomAccessCollection {
+final class Listing<T: Thing>: Sequence, RandomAccessCollection, Equatable {
     typealias BaseCollection = [T]
     
     typealias Element = T
@@ -84,6 +84,10 @@ final class Listing<T: Thing>: Sequence, RandomAccessCollection {
         }
         
         return Listing<T>(before: before, after: after, children: children)
+    }
+    
+    static func == (lhs: Listing<T>, rhs: Listing<T>) -> Bool {
+        return lhs.children == rhs.children
     }
 }
 

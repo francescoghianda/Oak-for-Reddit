@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Post List Controller-->
+        <scene sceneID="s0d-6b-0kx">
+            <objects>
+                <viewController storyboardIdentifier="PostList" id="Y6W-OH-hqX" customClass="SPostListController" customModule="Oak_for_Reddit" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="5EZ-qb-Rvc">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Tot-Pz-ANL">
+                                <rect key="frame" x="0.0" y="44" width="414" height="818"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FDG-n8-9ZU">
+                                        <rect key="frame" x="0.0" y="0.0" width="414" height="818"/>
+                                        <subviews>
+                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="zxm-wS-yTQ">
+                                                <rect key="frame" x="0.0" y="0.0" width="414" height="818"/>
+                                            </stackView>
+                                        </subviews>
+                                        <color key="backgroundColor" systemColor="systemYellowColor"/>
+                                        <constraints>
+                                            <constraint firstAttribute="trailing" secondItem="zxm-wS-yTQ" secondAttribute="trailing" id="7DP-GQ-zWn"/>
+                                            <constraint firstItem="zxm-wS-yTQ" firstAttribute="top" secondItem="FDG-n8-9ZU" secondAttribute="top" id="EKu-h4-8Jv"/>
+                                            <constraint firstItem="zxm-wS-yTQ" firstAttribute="leading" secondItem="FDG-n8-9ZU" secondAttribute="leading" id="IpT-gW-giR"/>
+                                            <constraint firstAttribute="bottom" secondItem="zxm-wS-yTQ" secondAttribute="bottom" id="rOL-E8-RmG"/>
+                                        </constraints>
+                                    </view>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemBlueColor"/>
+                                <constraints>
+                                    <constraint firstItem="FDG-n8-9ZU" firstAttribute="trailing" secondItem="M4a-Nm-5Lt" secondAttribute="trailing" id="7bi-da-q4a"/>
+                                    <constraint firstItem="FDG-n8-9ZU" firstAttribute="top" secondItem="M4a-Nm-5Lt" secondAttribute="top" id="87K-IL-UI0"/>
+                                    <constraint firstItem="FDG-n8-9ZU" firstAttribute="bottom" secondItem="M4a-Nm-5Lt" secondAttribute="bottom" id="9xE-Yo-15i"/>
+                                    <constraint firstItem="FDG-n8-9ZU" firstAttribute="leading" secondItem="M4a-Nm-5Lt" secondAttribute="leading" id="Cn1-JA-H9a"/>
+                                    <constraint firstItem="FDG-n8-9ZU" firstAttribute="width" secondItem="5kr-xF-uTy" secondAttribute="width" id="FCn-FG-vbs"/>
+                                    <constraint firstItem="FDG-n8-9ZU" firstAttribute="height" secondItem="5kr-xF-uTy" secondAttribute="height" placeholder="YES" id="pKt-Kc-IuI"/>
+                                </constraints>
+                                <viewLayoutGuide key="contentLayoutGuide" id="M4a-Nm-5Lt"/>
+                                <viewLayoutGuide key="frameLayoutGuide" id="5kr-xF-uTy"/>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="vDu-zF-Fre"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="Tot-Pz-ANL" firstAttribute="top" secondItem="vDu-zF-Fre" secondAttribute="top" id="33g-KX-KdB"/>
+                            <constraint firstItem="Tot-Pz-ANL" firstAttribute="leading" secondItem="vDu-zF-Fre" secondAttribute="leading" id="ODM-hg-3Ns"/>
+                            <constraint firstItem="vDu-zF-Fre" firstAttribute="trailing" secondItem="Tot-Pz-ANL" secondAttribute="trailing" id="nax-uM-XzD"/>
+                            <constraint firstItem="vDu-zF-Fre" firstAttribute="bottom" secondItem="Tot-Pz-ANL" secondAttribute="bottom" id="tze-gu-vfp"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="stackView" destination="zxm-wS-yTQ" id="9f4-RM-HEc"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="131.8840579710145" y="115.84821428571428"/>
+        </scene>
+    </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemBlueColor">
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+        <systemColor name="systemYellowColor">
+            <color red="1" green="0.80000000000000004" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
+</document>

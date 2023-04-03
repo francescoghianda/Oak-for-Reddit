@@ -7,51 +7,108 @@
 
 import SwiftUI
 
+
 struct PhotoViewerView: View {
     
     @Environment(\.dismiss) var dismiss
     
-    @State var offset: CGSize = .zero
+    //@EnvironmentObject var mediaDataModel: MediaSheetDataModel
     
-    let image: Image
+    @State var offset: CGSize = .zero
+    @State var imageSaved: Bool = false
+    
+    //@StateObject private var loader: PhotoViewerLoader = PhotoViewerLoader()
+    
+    @State var image: UIImage?
+    let imageUrl: URL?
+    
+    
+    init(image: UIImage){
+        self.imageUrl = nil
+        self.image = image
+    }
+    
+    init(url: URL?) {
+        self.imageUrl = url
+        self.image = nil
+    }
     
     var body: some View {
-        ZStack{
+        
+        ZStack {
             Color.black
                 .ignoresSafeArea()
             
-            ZoomableScrollView{
-                image
-                    .resizable()
-                    .scaledToFit()
+            if let image = self.image {
+                ZoomableScrollView {
+                    Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                }
             }
-            .gesture(
-                DragGesture()
-                    .onChanged { gesture in
-                        offset = gesture.translation
-                    }
-                    .onEnded { _ in
-                        if abs(offset.height) > 300 {
-                            dismiss()
-                        } else {
-                            offset = .zero
+            else if let url = self.imageUrl {
+                
+                AsyncUIImage(url: url, image: self.$image) { image, error in
+                    
+                    if error != nil {
+                        
+                        VStack{
+                            Image(systemName: "exclamationmark.triangle")
+                            Text("Error loading image")
+                                .foregroundColor(Color.gray)
                         }
+                        
                     }
-            )
+                    else {
+                        ProgressView()
+                    }
+                    
+                }
+                
+            }
+            
             
             VStack{
                 HStack{
-                    Spacer()
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "multiply")
-                            .resizable()
-                            .foregroundColor(Color.white)
-                            .frame(width: 30, height: 30)
-                            .scaledToFit()
-                            .padding()
+                    
+                    if imageSaved {
+                        
+                        HStack{
+                            Image(systemName: "checkmark.seal")
+                                .resizable()
+                                .foregroundColor(Color.green)
+                                .frame(width: 24, height: 24)
+                                .scaledToFit()
+                                .padding()
+                            Text("Photo saved")
+                                .foregroundColor(Color.green)
+                                .bold()
+                                .font(.title3)
+                        }
+                        
                     }
+                    else {
+                        Button {
+                            if let image = self.image {
+                                ImageSaver {
+                                    withAnimation {
+                                        imageSaved = true
+                                    }
+                                }
+                                .saveImage(image: image)
+                            }
+                        } label: {
+                            Image(systemName: "square.and.arrow.down")
+                                .resizable()
+                                .foregroundColor(self.image == nil ? Color.gray : Color.white)
+                                .frame(width: 24, height: 24)
+                                .scaledToFit()
+                                .padding()
+                        }
+                        .disabled(self.image == nil)
+                    }
+                    
+                    Spacer()
 
                 }
                 Spacer()
@@ -64,6 +121,6 @@ struct PhotoViewerView: View {
 
 struct PhotoViewerView_Previews: PreviewProvider {
     static var previews: some View {
-        PhotoViewerView(image: Image("foto_di_prova"))
+        PhotoViewerView(image: UIImage(named: "foto_di_prova")!)
     }
 }

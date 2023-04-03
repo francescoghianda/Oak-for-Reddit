@@ -12,6 +12,18 @@
 		130D5E2229C8B1F5006A5972 /* Listing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130D5E2129C8B1F5006A5972 /* Listing.swift */; };
 		1337E97929CE44F300D9E63B /* ZoomableScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E97829CE44F300D9E63B /* ZoomableScrollView.swift */; };
 		1337E97B29CE581F00D9E63B /* PostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E97A29CE581F00D9E63B /* PostView.swift */; };
+		1337E97D29CF115B00D9E63B /* Media.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E97C29CF115B00D9E63B /* Media.swift */; };
+		1337E97F29D0B93500D9E63B /* VideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E97E29D0B93500D9E63B /* VideoPlayerView.swift */; };
+		1337E98129D0E61100D9E63B /* RefreshableScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E98029D0E61100D9E63B /* RefreshableScrollView.swift */; };
+		1337E98329D3198800D9E63B /* RefreshableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E98229D3198800D9E63B /* RefreshableView.swift */; };
+		1337E98529D329D400D9E63B /* LargePostCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E98429D329D400D9E63B /* LargePostCardView.swift */; };
+		1337E98729D34AF400D9E63B /* PostList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E98629D34AF400D9E63B /* PostList.swift */; };
+		1337E9AA29D4663D00D9E63B /* SPostList.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1337E9A929D4663D00D9E63B /* SPostList.storyboard */; };
+		1337E9AC29D46B8200D9E63B /* SPostListController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E9AB29D46B8200D9E63B /* SPostListController.swift */; };
+		1337E9AE29D6744A00D9E63B /* MediaViewerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E9AD29D6744A00D9E63B /* MediaViewerModel.swift */; };
+		1337E9B029D7244E00D9E63B /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E9AF29D7244E00D9E63B /* SafariView.swift */; };
+		1337E9B229D737D300D9E63B /* AsyncUIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E9B129D737D300D9E63B /* AsyncUIImage.swift */; };
+		1337E9B629D9D92400D9E63B /* PostMediaViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1337E9B529D9D92400D9E63B /* PostMediaViewer.swift */; };
 		136FB3D929C200FE00C3FCF4 /* Oak_for_RedditApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136FB3D829C200FE00C3FCF4 /* Oak_for_RedditApp.swift */; };
 		136FB3DB29C200FE00C3FCF4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136FB3DA29C200FE00C3FCF4 /* ContentView.swift */; };
 		136FB3DD29C2010400C3FCF4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 136FB3DC29C2010400C3FCF4 /* Assets.xcassets */; };
@@ -63,6 +75,18 @@
 		130D5E2129C8B1F5006A5972 /* Listing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listing.swift; sourceTree = "<group>"; };
 		1337E97829CE44F300D9E63B /* ZoomableScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomableScrollView.swift; sourceTree = "<group>"; };
 		1337E97A29CE581F00D9E63B /* PostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostView.swift; sourceTree = "<group>"; };
+		1337E97C29CF115B00D9E63B /* Media.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Media.swift; sourceTree = "<group>"; };
+		1337E97E29D0B93500D9E63B /* VideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerView.swift; sourceTree = "<group>"; };
+		1337E98029D0E61100D9E63B /* RefreshableScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshableScrollView.swift; sourceTree = "<group>"; };
+		1337E98229D3198800D9E63B /* RefreshableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshableView.swift; sourceTree = "<group>"; };
+		1337E98429D329D400D9E63B /* LargePostCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargePostCardView.swift; sourceTree = "<group>"; };
+		1337E98629D34AF400D9E63B /* PostList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostList.swift; sourceTree = "<group>"; };
+		1337E9A929D4663D00D9E63B /* SPostList.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = SPostList.storyboard; sourceTree = "<group>"; };
+		1337E9AB29D46B8200D9E63B /* SPostListController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPostListController.swift; sourceTree = "<group>"; };
+		1337E9AD29D6744A00D9E63B /* MediaViewerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaViewerModel.swift; sourceTree = "<group>"; };
+		1337E9AF29D7244E00D9E63B /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
+		1337E9B129D737D300D9E63B /* AsyncUIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncUIImage.swift; sourceTree = "<group>"; };
+		1337E9B529D9D92400D9E63B /* PostMediaViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostMediaViewer.swift; sourceTree = "<group>"; };
 		136FB3D529C200FE00C3FCF4 /* Oak for Reddit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Oak for Reddit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		136FB3D829C200FE00C3FCF4 /* Oak_for_RedditApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Oak_for_RedditApp.swift; sourceTree = "<group>"; };
 		136FB3DA29C200FE00C3FCF4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -142,8 +166,18 @@
 			children = (
 				130D5E1F29C8B1D5006A5972 /* Thing.swift */,
 				130D5E2129C8B1F5006A5972 /* Listing.swift */,
+				1337E97C29CF115B00D9E63B /* Media.swift */,
 			);
 			path = types;
+			sourceTree = "<group>";
+		};
+		1337E9A829D4661100D9E63B /* storyboard */ = {
+			isa = PBXGroup;
+			children = (
+				1337E9A929D4663D00D9E63B /* SPostList.storyboard */,
+				1337E9AB29D46B8200D9E63B /* SPostListController.swift */,
+			);
+			path = storyboard;
 			sourceTree = "<group>";
 		};
 		136FB3CC29C200FD00C3FCF4 = {
@@ -169,6 +203,7 @@
 		136FB3D729C200FE00C3FCF4 /* Oak for Reddit */ = {
 			isa = PBXGroup;
 			children = (
+				1337E9A829D4661100D9E63B /* storyboard */,
 				13EF220D29C5D0C20099939A /* api */,
 				136FB3D829C200FE00C3FCF4 /* Oak_for_RedditApp.swift */,
 				136FB3DA29C200FE00C3FCF4 /* ContentView.swift */,
@@ -182,12 +217,21 @@
 				136FB3DE29C2010400C3FCF4 /* Preview Content */,
 				13AE9E0C29CA4A1000242EE5 /* PostApi.swift */,
 				13AE9E0E29CA4D5F00242EE5 /* PostListView.swift */,
+				1337E98229D3198800D9E63B /* RefreshableView.swift */,
 				13AE9E1229CA5F4100242EE5 /* HexColorExtension.swift */,
+				1337E98429D329D400D9E63B /* LargePostCardView.swift */,
 				13DAD02D29CCC5D7009F06F9 /* ToolbarSelector.swift */,
+				1337E9B529D9D92400D9E63B /* PostMediaViewer.swift */,
 				13DAD02F29CCF199009F06F9 /* CompactPostCardView.swift */,
+				1337E9B129D737D300D9E63B /* AsyncUIImage.swift */,
+				1337E9AF29D7244E00D9E63B /* SafariView.swift */,
 				13DAD03129CDFE24009F06F9 /* PhotoViewerView.swift */,
+				1337E98029D0E61100D9E63B /* RefreshableScrollView.swift */,
+				1337E98629D34AF400D9E63B /* PostList.swift */,
+				1337E9AD29D6744A00D9E63B /* MediaViewerModel.swift */,
 				1337E97829CE44F300D9E63B /* ZoomableScrollView.swift */,
 				1337E97A29CE581F00D9E63B /* PostView.swift */,
+				1337E97E29D0B93500D9E63B /* VideoPlayerView.swift */,
 			);
 			path = "Oak for Reddit";
 			sourceTree = "<group>";
@@ -342,6 +386,7 @@
 			files = (
 				136FB3E029C2010400C3FCF4 /* Preview Assets.xcassets in Resources */,
 				136FB3DD29C2010400C3FCF4 /* Assets.xcassets in Resources */,
+				1337E9AA29D4663D00D9E63B /* SPostList.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -370,25 +415,36 @@
 				13EF221A29C636A40099939A /* SubredditItemView.swift in Sources */,
 				13EFE7EC29C49C9500C6C13D /* SubredditListView.swift in Sources */,
 				13EF221429C5D5260099939A /* Subreddit.swift in Sources */,
+				1337E98529D329D400D9E63B /* LargePostCardView.swift in Sources */,
 				13DAD02E29CCC5D7009F06F9 /* ToolbarSelector.swift in Sources */,
+				1337E98129D0E61100D9E63B /* RefreshableScrollView.swift in Sources */,
 				13AE9E1129CA4F8400242EE5 /* Post.swift in Sources */,
 				13EFE7E429C3F8F400C6C13D /* OAuthManager.swift in Sources */,
 				130D5E2029C8B1D5006A5972 /* Thing.swift in Sources */,
 				130D5E2229C8B1F5006A5972 /* Listing.swift in Sources */,
 				13EFE7E229C2A4E900C6C13D /* WebView.swift in Sources */,
 				13EFE7E629C4863D00C6C13D /* ApiEndpoint.swift in Sources */,
+				1337E9AE29D6744A00D9E63B /* MediaViewerModel.swift in Sources */,
 				13EFE7E029C27D2300C6C13D /* AuthorizationSheet.swift in Sources */,
 				13DAD03029CCF199009F06F9 /* CompactPostCardView.swift in Sources */,
+				1337E9AC29D46B8200D9E63B /* SPostListController.swift in Sources */,
+				1337E98329D3198800D9E63B /* RefreshableView.swift in Sources */,
 				13AE9E0F29CA4D5F00242EE5 /* PostListView.swift in Sources */,
+				1337E97D29CF115B00D9E63B /* Media.swift in Sources */,
+				1337E9B629D9D92400D9E63B /* PostMediaViewer.swift in Sources */,
 				1337E97B29CE581F00D9E63B /* PostView.swift in Sources */,
 				13AE9E0D29CA4A1000242EE5 /* PostApi.swift in Sources */,
 				13AE9E1329CA5F4100242EE5 /* HexColorExtension.swift in Sources */,
 				13DAD03229CDFE25009F06F9 /* PhotoViewerView.swift in Sources */,
+				1337E97F29D0B93500D9E63B /* VideoPlayerView.swift in Sources */,
 				136FB3D929C200FE00C3FCF4 /* Oak_for_RedditApp.swift in Sources */,
+				1337E98729D34AF400D9E63B /* PostList.swift in Sources */,
 				1337E97929CE44F300D9E63B /* ZoomableScrollView.swift in Sources */,
+				1337E9B029D7244E00D9E63B /* SafariView.swift in Sources */,
 				13EFE7EF29C4ADF100C6C13D /* LoginView.swift in Sources */,
 				13EF221829C61ABF0099939A /* SubredditApi.swift in Sources */,
 				136FB40629C21D9200C3FCF4 /* RedditApi.swift in Sources */,
+				1337E9B229D737D300D9E63B /* AsyncUIImage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -557,6 +613,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Oak-for-Reddit-Info.plist";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Save photo on your device";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -587,6 +644,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Oak-for-Reddit-Info.plist";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Save photo on your device";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

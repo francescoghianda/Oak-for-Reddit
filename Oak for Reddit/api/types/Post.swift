@@ -7,6 +7,54 @@
 
 import Foundation
 
+class GalleryData {
+    typealias Dictionary = [String : Any]
+    
+    struct GalleryItem: Identifiable {
+        
+        let id: String
+        let caption: String?
+        let url: URL
+    }
+    
+    private static let supportedFormats: [String] = ["jpg", "png", "gif"]
+    private static let baseURL = "https://i.redd.it/"
+    
+    let items: [GalleryItem]
+    
+    init(galleryData: Dictionary, metadata: Dictionary) {
+        
+        items = {
+            
+            let items = galleryData["items"] as! [Dictionary]
+            var galleryItems: [GalleryItem] = []
+            
+            for item in items {
+                
+                let mediaId = item["media_id"] as! String
+                let caption = item["caption"] as? String
+                let mediaMetadata = metadata[mediaId] as! Dictionary
+                let format = String((mediaMetadata["m"] as! String).split(separator: "/", maxSplits: 1, omittingEmptySubsequences: true)[1])
+                
+                if GalleryData.supportedFormats.contains(format) {
+                    let url = URL(string: "\(GalleryData.baseURL)\(mediaId).\(format)")!
+                    galleryItems.append(GalleryItem(id: mediaId, caption: caption, url: url))
+                }
+                
+            }
+            
+            return galleryItems
+            
+        }()
+        
+    }
+    
+}
+
+enum PostLinkType{
+    case image, video, gallery, media, link, permalink
+}
+
 class Post: Thing, Votable, Created {
 
     var ups: Int
@@ -30,9 +78,12 @@ class Post: Thing, Votable, Created {
     let thumbnailUrl: URL?
     let title: String
     let permalink: String
-    let url: String
+    let url: URL
     let edited: TimeInterval?
     let stickied: Bool
+    let media: Media?
+    let isGallery: Bool
+    let galleryData: GalleryData?
     
     required init(id: String?, name: String?, kind: String, data: [String : Any]) {
         
@@ -57,20 +108,34 @@ class Post: Thing, Votable, Created {
         subreddit = data["subreddit"] as! String
         subredditId = data["subreddit_id"] as! String
         thumbnail = data["thumbnail"] as! String
-        thumbnailUrl = Thing.extractUrl(data: data, key: "thumbnail")
+        thumbnailUrl = {
+            let thumbnail = data["thumbnail"] as! String
+            if thumbnail == "defaults" || thumbnail == "self" || thumbnail == "image"{
+                return nil
+            }
+            return Thing.extractUrl(data: data, key: "thumbnail")
+        }()
         
         title = Thing.extractHtmlEcodedString(data: data, key: "title")!
         
         permalink = data["permalink"] as! String
-        url = data["url"] as! String
+        url = Thing.extractUrl(data: data, key: "url")!//data["url"] as! String
         edited = nil
         stickied = (data["stickied"] as? Int ?? 0) != 0
         
-        /*if let media = data["media"]{
-            print("media: \(media)")
-        }*/
+        media = Thing.extractMedia(data: data, key: "media")//data["media"] as? [String : Any]
+
         
-        print("url: \(url) - thumbnail: \(thumbnail)")
+        if (data["is_gallery"] as? Int ?? 0) != 0 {
+            
+            isGallery = true
+            galleryData = GalleryData(galleryData: data["gallery_data"] as! [String : Any], metadata: data["media_metadata"] as! [String : Any])
+            
+        }
+        else {
+            isGallery = false
+            galleryData = nil
+        }
         
         
         super.init(id: id, name: name, kind: kind, data: data)
@@ -110,7 +175,38 @@ extension Post {
         return dateFormatter.string(from: self.created)
     }
     
-    /*public func isImageUrl() -> Bool {
+    static let imageFileFormats: [String] = ["jpg", "jpeg", "png", "gif", "gifv", "bmp", "bmpf", "tif", "tiff", "ico", "cur", "xbm"]
+    
+    var postLinkType: PostLinkType {
         
-    }*/
+        if Post.imageFileFormats.contains(url.pathExtension.lowercased()) {
+            return .image
+        }
+        
+        if isGallery {
+            return .gallery
+        }
+        
+        if let media = media {
+            
+            switch media {
+            case .redditVideo:
+                return .video
+            case .embed(let data):
+                if data.type == "video" {
+                    return .video
+                }
+                return .media
+            case .unknown:
+                return .media
+            }
+
+        }
+        
+        if url.path == permalink {
+            return .permalink
+        }
+        
+        return .link
+    }
 }

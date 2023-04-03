@@ -55,7 +55,7 @@ class PostApi: ObservableObject {
     private let topEndpoint = ApiEndpoint(scope: "read", path: "/top", method: "GET", parameters: [:])
     private let controversialEndpoint = ApiEndpoint(scope: "read", path: "/controversial", method: "GET", parameters: [:])
     
-    @Published var posts: Listing<Post> = Listing.empty()
+    @Published var posts: Listing<Post>? = nil
     
     init(subreddit: Subreddit? = nil){
         self.subreddit = subreddit
@@ -95,7 +95,7 @@ class PostApi: ObservableObject {
     }
     
     
-    func load(bind: Binding<Optional<Listing<Post>>>, order: PostListingOrder) async {
+    func load(order: PostListingOrder) async {
         
         let parameters: [String : Any] = [
             "limit": 10
@@ -103,26 +103,26 @@ class PostApi: ObservableObject {
         
         do {
             let newPosts = try await fetch(parameters: parameters, order: order)
-            bind.wrappedValue = newPosts
+            posts = newPosts
         }
         catch {
             print(error)
         }
     }
     
-    func loadMore(bind: Binding<Optional<Listing<Post>>>, order: PostListingOrder) async {
-        
-        if let listing = bind.wrappedValue {
+    func loadMore(order: PostListingOrder) async {
+       
+        if let posts = self.posts {
             
             let parameters: [String : Any] = [
                 "limit": 10,
-                "after": listing.after ?? "",
-                "count": listing.count
+                "after": posts.after ?? posts.last?.subredditId ?? "",
+                "count": posts.count
             ]
             
             do {
                 let newPosts = try await fetch(parameters: parameters, order: order)
-                bind.wrappedValue! += newPosts
+                self.posts! += newPosts
             }
             catch {
                 print(error)
@@ -130,11 +130,16 @@ class PostApi: ObservableObject {
             
         }
         else {
-            await load(bind: bind, order: order)
+            await self.load(order: order)
         }
+       
+        
+
         
         
     }
+    
+    
     
     
 }

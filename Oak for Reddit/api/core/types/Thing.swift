@@ -83,4 +83,14 @@ extension Thing {
         
         return nil
     }
+    
+    static func extractMedia(data: [String : Any], key: String) -> Media? {
+        
+        if let data = data[key] as? [String : Any] {
+            return Media.build(from: data)
+        }
+        
+        return nil
+        
+    }
 }

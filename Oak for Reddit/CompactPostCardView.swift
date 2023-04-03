@@ -9,7 +9,11 @@ import SwiftUI
 
 struct PostThumbnailView: View {
     
-    @Binding var photoIsPresented: Bool
+    //@Environment(\.namespace) var namespace
+    @EnvironmentObject var mediaViewerModel: MediaViewerModel
+    @EnvironmentObject var namespaceWrapper: NamespaceWrapper
+    
+    @Binding var mediaSheetIsPresented: Bool
     
     let post: Post
     let size: CGFloat
@@ -24,22 +28,51 @@ struct PostThumbnailView: View {
                 .resizable()
                 .frame(width: size, height: size)
         }
-        else if let thumbnailUrl = post.thumbnailUrl {
+        else if mediaViewerModel.post?.uuid != post.uuid, let thumbnailUrl = post.thumbnailUrl {
             AsyncImage(url: thumbnailUrl) { image in
                 
-                Button {
-                    photoIsPresented = true
-                } label: {
-                    image.resizable()
-                }
+                image
+                    .resizable()
                 
             } placeholder: {
                 Image("no_thumbnail")
                     .resizable()
                     .frame(width: size, height: size)
             }
+            .matchedGeometryEffect(id: post.uuid, in: namespaceWrapper.namespace, properties: .position)
             .scaledToFill()
             .frame(width: size, height: size)
+            .overlay(alignment: .bottomLeading) {
+                
+                if post.postLinkType == .image || post.postLinkType == .video || post.postLinkType == .link {
+                    //post.postLinkType == .image ? "photo.circle" : "video.circle"
+                    let icon: String = {
+                        switch post.postLinkType {
+                        case .image:
+                            return "photo.circle"
+                        case .video:
+                            return "video.circle"
+                        case .link:
+                            return "safari"
+                        default:
+                            return ""
+                        }
+                    }()
+                    
+                    ZStack{
+                        Color.black
+                            .opacity(0.5)
+                        
+                        Image(systemName: icon)
+                            .foregroundColor(Color.white)
+                            .opacity(0.5)
+                    }
+                    .frame(width: 22, height: 22)
+                    .clipShape(RoundedRectangle(cornerRadius: 2))
+                }
+                
+            }
+            
         }
         else {
             Image("no_thumbnail")
@@ -52,24 +85,27 @@ struct PostThumbnailView: View {
 
 struct CompactPostCardView: View {
     
+    @EnvironmentObject var mediaViewerModel: MediaViewerModel
+
+    
     let post: Post
     let showPin: Bool
     
     @State var photoIsPresented: Bool = false
+    @State var linkIsPresented: Bool = false
     
     let dateFormatter = DateFormatter()
     
     init(post: Post, showPin: Bool){
         self.post = post
         self.showPin = showPin
-        self.photoIsPresented = photoIsPresented
         
         dateFormatter.dateFormat = "dd/MM/yy"
     }
     
     var body: some View {
             
-            VStack(spacing: 0){
+        VStack(spacing: 0){
             
             if post.stickied && showPin {
                 HStack{
@@ -87,6 +123,7 @@ struct CompactPostCardView: View {
             
             VStack{
                 HStack{
+                    
                     NavigationLink {
                         PostView()
                     } label: {
@@ -96,10 +133,29 @@ struct CompactPostCardView: View {
                             .frame(width: .infinity, height: 60)
                     }
                     .buttonStyle(.plain)
+                    
 
                     Spacer()
-                    PostThumbnailView(photoIsPresented: $photoIsPresented, post: post, size: 60)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    
+                    
+                    PostThumbnailView(mediaSheetIsPresented: $photoIsPresented, post: post, size: 60)
+                        .cornerRadius(10)
+                        .onTapGesture {
+                            if post.postLinkType == .image || post.postLinkType == .video {
+                                
+                                /*withAnimation(.spring()) {
+                                    mediaViewerModel.post = post
+                                }*/
+                                photoIsPresented = true
+                            }
+                            else if post.postLinkType == .link {
+                                linkIsPresented = true
+                            }
+                        }
+                        //.clipShape(RoundedRectangle(cornerRadius: 10))
+                            
+                    
+                    
                 }
                 HStack{
                     Button {
@@ -147,7 +203,17 @@ struct CompactPostCardView: View {
             }
         }
         .sheet(isPresented: $photoIsPresented) {
-            PhotoViewerView(image: Image("foto_di_prova"))
+            
+            if post.postLinkType == .image {
+                PhotoViewerView(url: post.url)
+            }
+            else if post.postLinkType == .video, let media = post.media {
+                VideoPlayerView(media: media)
+            }
+            
+        }
+        .fullScreenCover(isPresented: $linkIsPresented) {
+            SafariView(url: post.url)
         }
     
     
@@ -184,7 +250,7 @@ extension Int {
     }
 }
 
-struct CompactPostCardView_Previews: PreviewProvider {
+/*struct CompactPostCardView_Previews: PreviewProvider {
     
     static let postData: [String : Any] = [
         "ups": 100000,
@@ -214,4 +280,4 @@ struct CompactPostCardView_Previews: PreviewProvider {
         CompactPostCardView(post: Post(id: nil, name: nil, kind: "", data: postData), showPin: true)
             .previewLayout(.sizeThatFits)
     }
-}
+}*/
