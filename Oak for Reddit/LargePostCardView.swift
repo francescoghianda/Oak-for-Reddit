@@ -197,7 +197,71 @@ struct PostContentView: View {
     }
 }
 
+fileprivate struct SelfText: View {
+    
+    let text: String
+    let lineLimit: Int? = 10
+    let expandedLineLimit: Int? = nil
+    
+    @State private var expanded: Bool = false
+    @State private var truncated: Bool = false
+    
+    init(_ text: String){
+        self.text = text
+    }
+    
+    var body: some View {
+        
+        VStack{
+            Text(LocalizedStringKey(text))
+                .lineLimit(expanded ? expandedLineLimit : lineLimit)
+                .background {
+                    GeometryReader { geometry in
+                        Color.clear.onAppear {
+                            self.determineTruncation(geometry)
+                        }
+                    }
+                }
+            
+            if truncated && !expanded {
+                Button("Show more") {
+                    withAnimation {
+                        expanded = true
+                    }
+                }
+                .padding(.top)
+            }
+            
+            if expanded {
+                Button("Hide") {
+                    withAnimation {
+                        expanded = false
+                    }
+                }
+                .padding(.top)
+            }
+        }
+        
+    }
+    
+    private func determineTruncation(_ geometry: GeometryProxy) {
+        
+        let total = self.text.boundingRect(
+            with: CGSize(
+                width: geometry.size.width,
+                height: .greatestFiniteMagnitude
+            ),
+            options: .usesLineFragmentOrigin,
+            attributes: [.font: UIFont.systemFont(ofSize: 16)],
+            context: nil
+        )
 
+        if total.size.height > geometry.size.height {
+            self.truncated = true
+        }
+    }
+    
+}
 
 struct LargePostCardView: View {
     
@@ -212,6 +276,8 @@ struct LargePostCardView: View {
     
     @StateObject private var mediaSize: MediaSize
     @State private var maxY: CGFloat = .zero
+    
+    @State private var selfTextLineLimit: Int = 10
     
     
     init(post: Post, showPin: Bool, mediaSize: MediaSize){
@@ -265,24 +331,40 @@ struct LargePostCardView: View {
                     .buttonStyle(.plain)
                     .padding([.top, .bottom], 10)
 
-                    
-                    PostMediaViewer(post: post)
-                        .contentCornerRadius(radius: 10)
-                        .padding(.bottom, 10)
-                        .overlay {
-                            
-                            GeometryReader { geo in
+                    if post.postLinkType == .permalink { // self post
+                        
+                        SelfText(post.selfText)
+                            .padding(.bottom)
+                        
+                    }
+                    else if post.postLinkType == .link { // external link
+                        
+                        
+                    }
+                    else {
+                        
+                        PostMediaViewer(post: post, showContextMenu: true)
+                            .contentCornerRadius(radius: 10)
+                            .padding(.bottom, 10)
+                            .overlay {
                                 
-                                Color.clear
-                                    .onAppear {
-                                        if geo.size.height > mediaSize.size.height {
-                                            mediaSize.size = geo.size
+                                GeometryReader { geo in
+                                    
+                                    Color.clear
+                                        .onAppear {
+                                            if geo.size.height > mediaSize.size.height {
+                                                mediaSize.size = geo.size
+                                            }
                                         }
-                                    }
+                                }
+                                
                             }
-                            
-                        }
-                        .frame(minWidth: mediaSize.size.width, minHeight: mediaSize.size.height) // Impedisce alla view di tornare piccola quando viene ricaricata durante lo scroll (LazyVStack), cosi da non far saltare la scrollview
+                            .frame(minWidth: mediaSize.size.width, minHeight: mediaSize.size.height) // Impedisce alla view di tornare piccola quando viene ricaricata durante lo scroll (LazyVStack), cosi da non far saltare la scrollview
+                        
+                    }
+                    
+                    
+                    
                 }
                     
                 HStack{

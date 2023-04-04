@@ -15,6 +15,8 @@ class GalleryData {
         let id: String
         let caption: String?
         let url: URL
+        let width: Int
+        let height: Int
     }
     
     private static let supportedFormats: [String] = ["jpg", "png", "gif"]
@@ -34,11 +36,14 @@ class GalleryData {
                 let mediaId = item["media_id"] as! String
                 let caption = item["caption"] as? String
                 let mediaMetadata = metadata[mediaId] as! Dictionary
+                let source = mediaMetadata["s"] as! Dictionary
+                let width = source["x"] as! Int
+                let height = source["y"] as! Int
                 let format = String((mediaMetadata["m"] as! String).split(separator: "/", maxSplits: 1, omittingEmptySubsequences: true)[1])
                 
                 if GalleryData.supportedFormats.contains(format) {
                     let url = URL(string: "\(GalleryData.baseURL)\(mediaId).\(format)")!
-                    galleryItems.append(GalleryItem(id: mediaId, caption: caption, url: url))
+                    galleryItems.append(GalleryItem(id: mediaId, caption: caption, url: url, width: width, height: height))
                 }
                 
             }
@@ -137,7 +142,7 @@ class Post: Thing, Votable, Created {
             galleryData = nil
         }
         
-        
+                
         super.init(id: id, name: name, kind: kind, data: data)
     }
 
@@ -203,7 +208,7 @@ extension Post {
 
         }
         
-        if url.path == permalink {
+        if "\(url.path)/" == permalink {
             return .permalink
         }
         

@@ -10,10 +10,21 @@ import SwiftUI
 
 struct ZoomableScrollView<Content: View> : UIViewRepresentable {
     
-    private var content: Content
+    private let onZoomChangeHandler: ((_ zoomScale: CGFloat) -> Void)?
     
-    init(@ViewBuilder content: () -> Content){
+    private var content: Content
+    private var zoomEnabled: Bool
+    
+    private init(content: Content, onZoomChangeHandler: @escaping (_ zoomScale: CGFloat) -> Void, zoomEnabled: Bool){
+        self.content = content
+        self.onZoomChangeHandler = onZoomChangeHandler
+        self.zoomEnabled = zoomEnabled
+    }
+    
+    init(zoomEnabled: Bool = true, @ViewBuilder content: @escaping  () -> Content){
         self.content = content()
+        self.onZoomChangeHandler = nil
+        self.zoomEnabled = zoomEnabled
     }
     
     func makeCoordinator() -> Coordinator {
@@ -23,8 +34,10 @@ struct ZoomableScrollView<Content: View> : UIViewRepresentable {
     func makeUIView(context: Context) -> UIScrollView {
         let scrollView = UIScrollView()
         scrollView.delegate = context.coordinator
-        scrollView.maximumZoomScale = 20
+        scrollView.maximumZoomScale = zoomEnabled ? 20 : 1
         scrollView.minimumZoomScale = 1
+        context.coordinator.onZoomChange = onZoomChangeHandler
+        
         scrollView.bouncesZoom = true
 
         let hostedView = context.coordinator.hostingController.view!
@@ -34,7 +47,7 @@ struct ZoomableScrollView<Content: View> : UIViewRepresentable {
         scrollView.addSubview(hostedView)
 
         return scrollView
-      }
+    }
     
     func updateUIView(_ uiView: UIScrollView, context: Context) {
         
@@ -45,6 +58,7 @@ struct ZoomableScrollView<Content: View> : UIViewRepresentable {
     class Coordinator: NSObject, UIScrollViewDelegate {
         
         var hostingController: UIHostingController<Content>
+        var onZoomChange: ((_ zoomScale: CGFloat) -> Void)?
 
         init(hostingController: UIHostingController<Content>) {
           self.hostingController = hostingController
@@ -54,6 +68,14 @@ struct ZoomableScrollView<Content: View> : UIViewRepresentable {
           return hostingController.view
         }
         
+        func scrollViewDidZoom(_ scrollView: UIScrollView) {
+            onZoomChange?(scrollView.zoomScale)
+        }
         
+        
+    }
+    
+    func onZoomChange(_ perform: @escaping (_ zoomScale: CGFloat) -> Void) -> ZoomableScrollView<Content> {
+        return ZoomableScrollView(content: content, onZoomChangeHandler: perform, zoomEnabled: zoomEnabled)
     }
 }

@@ -221,18 +221,18 @@ struct PostListView: View {
                                 HStack{
                                     Spacer()
                                     if(posts.hasThingsAfter){
-                                        Button {
+                                        /*Button {
                                             Task{
                                                 await api.loadMore(order: order)
                                             }
                                         } label: {
                                             Text("Load more")
-                                        }
+                                        }*/
 
-                                        //ProgressView()
-                                            /*.task {
+                                        ProgressView()
+                                            .task {
                                                 await api.loadMore(order: order)
-                                            }*/
+                                            }
                                     }
                                     else{
                                         Text("You have reached the end")
@@ -250,9 +250,6 @@ struct PostListView: View {
                     }
                     .padding()
                     
-                }
-                .refreshable {
-                    print("refresh")
                 }
                 
                 

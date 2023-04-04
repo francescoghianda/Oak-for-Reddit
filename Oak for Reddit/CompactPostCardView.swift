@@ -7,6 +7,68 @@
 
 import SwiftUI
 
+fileprivate struct MediaSheetView: View {
+    
+    let post: Post
+    
+    @State var showDots: Bool = false
+    @State var image: UIImage? = nil
+    
+    var body: some View{
+        
+        if post.postLinkType == .image || post.postLinkType == .gallery {
+            //PhotoViewerView(url: post.url)
+            ZStack{
+                
+                ZoomableScrollView {
+                    PostMediaViewer(post: post, currentImage: $image)
+                }
+                .onZoomChange { zoomScale in
+                    withAnimation {
+                        showDots = zoomScale > 1
+                    }
+                }
+                
+                
+                VStack{
+                    HStack(alignment: .center){
+                        Spacer()
+                        Image(systemName: "ellipsis")
+                            .foregroundColor(.gray)
+                            .font(.title)
+                            .opacity(showDots ? 1 : 0)
+                        Spacer()
+                        
+                        if let image = image {
+                            
+                            Button {
+                                ImageSaver()
+                                    .saveImage(image: image)
+
+                            } label: {
+                                Image(systemName: "square.and.arrow.down")
+                                    .foregroundColor(.gray)
+                            }
+                            
+                        }
+
+                    }
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    
+                    Spacer()
+                }
+               
+                
+            }
+        }
+        else if post.postLinkType == .video, let media = post.media {
+            VideoPlayerView(media: media)
+        }
+        
+    }
+}
+
 struct PostThumbnailView: View {
     
     //@Environment(\.namespace) var namespace
@@ -44,7 +106,7 @@ struct PostThumbnailView: View {
             .frame(width: size, height: size)
             .overlay(alignment: .bottomLeading) {
                 
-                if post.postLinkType == .image || post.postLinkType == .video || post.postLinkType == .link {
+                if post.postLinkType == .image || post.postLinkType == .video || post.postLinkType == .link || post.postLinkType == .gallery {
                     //post.postLinkType == .image ? "photo.circle" : "video.circle"
                     let icon: String = {
                         switch post.postLinkType {
@@ -52,6 +114,8 @@ struct PostThumbnailView: View {
                             return "photo.circle"
                         case .video:
                             return "video.circle"
+                        case .gallery:
+                            return "photo.stack"
                         case .link:
                             return "safari"
                         default:
@@ -141,7 +205,7 @@ struct CompactPostCardView: View {
                     PostThumbnailView(mediaSheetIsPresented: $photoIsPresented, post: post, size: 60)
                         .cornerRadius(10)
                         .onTapGesture {
-                            if post.postLinkType == .image || post.postLinkType == .video {
+                            if post.postLinkType == .image || post.postLinkType == .gallery || post.postLinkType == .video {
                                 
                                 /*withAnimation(.spring()) {
                                     mediaViewerModel.post = post
@@ -204,12 +268,7 @@ struct CompactPostCardView: View {
         }
         .sheet(isPresented: $photoIsPresented) {
             
-            if post.postLinkType == .image {
-                PhotoViewerView(url: post.url)
-            }
-            else if post.postLinkType == .video, let media = post.media {
-                VideoPlayerView(media: media)
-            }
+            MediaSheetView(post: post)
             
         }
         .fullScreenCover(isPresented: $linkIsPresented) {

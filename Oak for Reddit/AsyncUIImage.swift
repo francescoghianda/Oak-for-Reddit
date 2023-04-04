@@ -9,7 +9,7 @@ import SwiftUI
 
 fileprivate class ImageCache {
     
-    var maxSize: Int = 24
+    var maxSize: Int = 40
     
     private var cachedImages: [URL : UIImage] = [:]
     private var cacheAccesses: [URL : Date] = [:]
@@ -56,11 +56,11 @@ fileprivate class AsyncImageLoader: ObservableObject {
     
     public func load(url: URL, then: ((_ image: UIImage?, _ error: Bool?, _ cached: Bool) -> Void)? = nil) {
                 
-        /*if let image = AsyncImageLoader.imageCache[url] {
-            then?(image, nil)
+        if let image = AsyncImageLoader.imageCache[url] {
+            then?(image, nil, true)
             self.image = image
             return
-        }*/
+        }
         
         let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
         
