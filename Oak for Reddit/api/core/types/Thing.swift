@@ -59,7 +59,25 @@ class Thing: Identifiable, Equatable {
 }
 
 extension Thing {
-    static func extractUrl(data: [String : Any], key: String) -> URL? {
+    
+    static func get<T>(_ key: String, from data: [String : Any], defaultValue: T) -> T {
+        data[key] as? T ?? defaultValue
+    }
+    
+    static func get<T>(_ key: String, from data: [String : Any]) -> T {
+        data[key] as! T
+    }
+    
+    static func getBool(_ key: String, from data: [String : Any]) -> Bool {
+        return get(key, from: data) != 0
+    }
+    
+    static func getBool(_ key: String, from data: [String : Any]) -> Bool? {
+        let val = data[key] as? Int
+        return val != nil ? val! != 0 : nil
+    }
+    
+    static func getUrl(data: [String : Any], key: String) -> URL? {
         
         if let path = data[key] as? String {
             return URL(string: path)
@@ -67,7 +85,7 @@ extension Thing {
         return nil
     }
     
-    static func extractHtmlEcodedString(data: [String : Any], key: String, encoding: String.Encoding = .utf16) -> String? {
+    static func getHtmlEcodedString(data: [String : Any], key: String, encoding: String.Encoding = .utf16) -> String? {
         
         let encodedString = data[key] as? String
         

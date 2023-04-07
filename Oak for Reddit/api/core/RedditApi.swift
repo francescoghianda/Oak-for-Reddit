@@ -9,7 +9,9 @@ import Foundation
 import Combine
 import SwiftUI
 
-class RedditApi: NSObject, ObservableObject{
+class RedditApi: NSObject{
+    typealias JSONObject = [String : Any]
+    typealias JSONArray = [JSONObject]
     
     public static let shared: RedditApi = RedditApi()
     
@@ -26,12 +28,11 @@ class RedditApi: NSObject, ObservableObject{
     private var xRateLimitRemainig: Int = .max
     private var xRateLimitReset: Int = 0
     
-    private override init(){
+    override init(){
         super.init()
     }
     
     private func buildRequest(endpoint: ApiEndpoint) -> URLRequest? {
-        
         
         let urlString: String = {
             if(endpoint.method != "GET"){
@@ -63,6 +64,130 @@ class RedditApi: NSObject, ObservableObject{
         return request
     }
     
+    //--------------------
+    
+    func fetchJsonObject(endpoint: ApiEndpoint) async throws -> JSONObject {
+        return try await fetch(endpoint: endpoint, parser: jsonParser)
+    }
+    
+    func fetchJsonArray(endpoint: ApiEndpoint) async throws -> JSONArray {
+        return try await fetch(endpoint: endpoint, parser: jsonParser)
+    }
+    
+    private func jsonParser<T>(_ data: Data) throws -> T? {
+        return try JSONSerialization.jsonObject(with: data, options: []) as? T
+    }
+    
+    func fetch<T>(endpoint: ApiEndpoint, parser: @escaping (_ data: Data) throws -> T?) async throws -> T {
+        
+        let result: T = try await withCheckedThrowingContinuation({ continuation in
+            fetch(endpoint: endpoint, parser: parser) { result in
+                continuation.resume(returning: result)
+            } onFail: { failCause in
+                continuation.resume(throwing: ApiFetchError(cause: failCause))
+            }
+        })
+        
+        return result
+    }
+    
+    
+    func fetch<T>(endpoint: ApiEndpoint,
+                  parser: @escaping (_ data: Data) throws -> T?,
+                  onSuccess: @escaping (T) -> Void,
+                  onFail: ((ApiFetchFailCause) -> Void)? = nil) {
+        
+
+        oauth.getValidAccessToken { accessToken in
+            
+            guard var request = self.buildRequest(endpoint: endpoint)
+            else{
+                onFail?(.unknown)
+                return
+            }
+            
+            print("Making API request to: \(request.url!)")
+            
+            print(accessToken)
+            
+            request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            
+            self.makeRequest(request: request, parser: parser, onSuccess: onSuccess) { failCause in
+                switch failCause {
+                case .unauthorized:
+                    print("Invalid access token.")
+                    print("Trying to refresh the access token")
+                    
+                    self.oauth.refreshToken(onSuccess: { accessToken in
+                        request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+                        self.makeRequest(request: request, parser: parser, onSuccess: onSuccess) { cause in
+                            onFail?(cause)
+                            print("Error calling api")
+                        }
+                    })
+                    
+                case .bad_response:
+                    onFail?(failCause)
+                    return
+                case .unknown:
+                    onFail?(failCause)
+                    print("Unknown error")
+                    return
+                }
+            }
+        }
+        
+    }
+    
+    private func makeRequest<T>(request: URLRequest,
+                                parser: @escaping (_ data: Data) throws -> T?,
+                                onSuccess: @escaping (T) -> Void,
+                                onFail: @escaping (ApiFetchFailCause) -> Void)  {
+                
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            
+            guard
+                let data = data,
+                let response = response as? HTTPURLResponse,
+                error == nil
+            else {
+                print(error?.localizedDescription ?? "")
+                onFail(.unknown)
+                return
+            }
+            
+            
+            if(response.statusCode == 401){
+                onFail(.unauthorized)
+                return
+            }
+            
+            self.updateRateLimits(response: response)
+            
+            do {
+                if let parsed = try parser(data) {
+                    onSuccess(parsed)
+                    return
+                }
+                else {
+                    onFail(.bad_response)
+                }
+            }
+            catch {
+                print("Failed to load: \(error.localizedDescription)")
+                onFail(.bad_response)
+                return
+            }
+        }
+        
+        task.resume()
+        
+    }
+    
+    
+    //--------------------
+    
+    
     func callApi(endpoint: ApiEndpoint) async throws -> [String : Any] {
         
         let result = try await withCheckedThrowingContinuation({ continuation in
@@ -83,11 +208,13 @@ class RedditApi: NSObject, ObservableObject{
             
             guard var request = self.buildRequest(endpoint: endpoint)
             else{
+                onFail?(.unknown)
                 return
             }
             
             print("Making API request to: \(request.url!)")
             
+            print(accessToken)
             
             request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
             
@@ -156,6 +283,9 @@ class RedditApi: NSObject, ObservableObject{
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any] {
                     onSuccess(json)
                     return
+                }
+                else {
+                    onFail(.bad_response)
                 }
             }
             catch {

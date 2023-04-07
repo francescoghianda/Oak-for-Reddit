@@ -118,18 +118,17 @@ class Post: Thing, Votable, Created {
             if thumbnail == "defaults" || thumbnail == "self" || thumbnail == "image"{
                 return nil
             }
-            return Thing.extractUrl(data: data, key: "thumbnail")
+            return Thing.getUrl(data: data, key: "thumbnail")
         }()
         
-        title = Thing.extractHtmlEcodedString(data: data, key: "title")!
+        title = Thing.getHtmlEcodedString(data: data, key: "title")!
         
         permalink = data["permalink"] as! String
-        url = Thing.extractUrl(data: data, key: "url")!//data["url"] as! String
+        url = Thing.getUrl(data: data, key: "url")!//data["url"] as! String
         edited = nil
         stickied = (data["stickied"] as? Int ?? 0) != 0
         
         media = Thing.extractMedia(data: data, key: "media")//data["media"] as? [String : Any]
-
         
         if (data["is_gallery"] as? Int ?? 0) != 0 {
             
@@ -142,19 +141,23 @@ class Post: Thing, Votable, Created {
             galleryData = nil
         }
         
-                
-        super.init(id: id, name: name, kind: kind, data: data)
+        let postId = data["id"] as! String      // Thing of Listing dosen't have id and name, but their can be found inside the data of the Thing
+        let postName = data["name"] as! String
+                        
+        super.init(id: postId, name: postName, kind: kind, data: data)
+        
     }
 
 }
 
 extension Post {
     
-    var timeSiceCreation: TimeInterval {
+    /*var timeSiceCreation: TimeInterval {
         Date.now.timeIntervalSince(created)
     }
     
-    public func formatCreationTime(maxDays: Int = 3, dateFormatter: DateFormatter) -> String {
+    
+    public func formatCreationTime(maxDays: Int = 3, dateFormatter: DateFormatter? = nil) -> String {
         
         let seconds = self.timeSiceCreation
         let mins = Int(seconds / 60)
@@ -162,7 +165,7 @@ extension Post {
         let days = Int(hours / 24)
         
         if (seconds < 60){
-            return "\(seconds)s"
+            return "now"//"\(seconds)s"
         }
         
         if (mins < 60) {
@@ -177,10 +180,27 @@ extension Post {
             return "\(days)g"
         }
         
-        return dateFormatter.string(from: self.created)
-    }
+        var formatter = dateFormatter
+        if formatter == nil {
+            formatter = DateFormatter()
+            formatter!.dateFormat = "dd/MM/yy"
+        }
+        
+        return formatter!.string(from: self.created)
+    }*/
     
     static let imageFileFormats: [String] = ["jpg", "jpeg", "png", "gif", "gifv", "bmp", "bmpf", "tif", "tiff", "ico", "cur", "xbm"]
+    
+    var containsMedia: Bool {
+        switch postLinkType {
+            
+        case .image, .video, .gallery, .media:
+            return true
+ 
+        default:
+            return false
+        }
+    }
     
     var postLinkType: PostLinkType {
         

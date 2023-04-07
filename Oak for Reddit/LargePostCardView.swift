@@ -22,40 +22,35 @@ struct LinkAndThumbnailView: View {
         
         if let thumbnailUrl = thumbnailUrl {
             
-            ZStack {
+            AsyncImage(url: thumbnailUrl) { image in
                 
-                AsyncImage(url: thumbnailUrl) { image in
-                    
-                    image
-                        .resizable()
-                        .frame(width: width, height: height)
-                        .scaledToFill()
-                    
-                } placeholder: {
-                    ProgressView()
-                }
+                image
+                    .resizable()
+                    .scaledToFill()
+
                 
+            } placeholder: {
+                ProgressView()
+            }
+            .overlay{
                 VStack{
+                    
                     Spacer()
                     
-                    Label {
-                        Text("\(postUrl)")
-                            .lineLimit(1)
-                            .foregroundColor(.orange)
-                    } icon: {
-                        Image(systemName: "link")
-                            .foregroundColor(.orange)
-                    }
-                    .frame(idealWidth: .infinity)
+                    Label("\(postUrl)", systemImage: "link")
+                        .foregroundColor(.orange)
+                        .lineLimit(1)
+                        .padding(10)
+                        .frame(width: width)
+                        .background(.ultraThinMaterial)
+                        
+                    
                 }
-                .padding(.bottom, 10)
-                .background(LinearGradient(colors: [Color.black.opacity(1), Color.clear], startPoint: .bottom, endPoint: .top))
+                .frame(width: .infinity)
                 
             }
             .frame(width: width, height: height)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-
-            
+            .cornerRadius(10)
             
         }
         else {
@@ -77,7 +72,17 @@ struct LinkAndThumbnailView: View {
     }
 }
 
-struct PostContentView: View {
+struct LinkAndThumbnailView_Preview: PreviewProvider {
+    
+    static var previews: some View {
+        
+        LinkAndThumbnailView(thumbnailUrl: URL(string: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg"), postUrl: URL(string: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg")!)
+            .previewLayout(.sizeThatFits)
+        
+    }
+}
+
+/*struct PostContentView: View {
     
     let post: Post
     @Binding var linkIsPresented: Bool
@@ -195,13 +200,13 @@ struct PostContentView: View {
         }
         
     }
-}
+}*/
 
-fileprivate struct SelfText: View {
+struct SelfText: View {
     
     let text: String
     let lineLimit: Int? = 10
-    let expandedLineLimit: Int? = nil
+    let expandedLineLimit: Int? = 40
     
     @State private var expanded: Bool = false
     @State private var truncated: Bool = false
@@ -267,30 +272,26 @@ struct LargePostCardView: View {
     
     let post: Post
     let showPin: Bool
-    
-    let dateFormatter = DateFormatter()
-    
+    @StateObject var mediaSize: MediaSize
+    //@Binding var postToShow: Post?
+    //let namespace: Namespace.ID
+        
     @State var linkIsPresented: Bool = false
-    
     @State private var showMedia: Bool = false
-    
-    @StateObject private var mediaSize: MediaSize
     @State private var maxY: CGFloat = .zero
-    
     @State private var selfTextLineLimit: Int = 10
     
-    
-    init(post: Post, showPin: Bool, mediaSize: MediaSize){
+    //@Namespace private var namespace
+    /*init(post: Post, showPin: Bool, mediaSize: MediaSize){
         self.post = post
         self.showPin = showPin
         
         self._mediaSize = StateObject(wrappedValue: mediaSize)
-        
-        dateFormatter.dateFormat = "dd/MM/yy"
-    }
+    }*/
     
     var body: some View {
-            
+
+        
         VStack(spacing: 0){
             
             if post.stickied && showPin {
@@ -311,7 +312,7 @@ struct LargePostCardView: View {
                 VStack{
                     
                     NavigationLink {
-                        PostView()
+                        PostView(post: post, linkIsPresented: $linkIsPresented)
                     } label: {
                        
                         ZStack(alignment: .leading){
@@ -322,8 +323,10 @@ struct LargePostCardView: View {
                                 .frame(idealWidth: .infinity)
                             
                             Text(post.title)
+                                
                                 .bold()
                                 .multilineTextAlignment(.leading)
+                                //.matchedGeometryEffect(id: "posttitle\(post.uuid)", in: namespace, properties: .position)
                                 .frame(maxHeight: 60)
                         }
 
@@ -338,13 +341,16 @@ struct LargePostCardView: View {
                         
                     }
                     else if post.postLinkType == .link { // external link
-                        
-                        
+                        LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url)
+                            .onTapGesture {
+                                linkIsPresented.toggle()
+                            }
                     }
                     else {
                         
-                        PostMediaViewer(post: post, showContextMenu: true)
-                            .contentCornerRadius(radius: 10)
+                        PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true)
+                            //.contentCornerRadius(radius: 10)
+                            //.matchedGeometryEffect(id: "postmedia\(post.uuid)", in: namespace, properties: .position, anchor: .center)
                             .padding(.bottom, 10)
                             .overlay {
                                 
@@ -360,6 +366,7 @@ struct LargePostCardView: View {
                                 
                             }
                             .frame(minWidth: mediaSize.size.width, minHeight: mediaSize.size.height) // Impedisce alla view di tornare piccola quando viene ricaricata durante lo scroll (LazyVStack), cosi da non far saltare la scrollview
+                            
                         
                     }
                     
@@ -389,7 +396,19 @@ struct LargePostCardView: View {
                             //.padding(.leading, 5)
                     }
                     
-                    Text(post.formatCreationTime(dateFormatter: dateFormatter))
+                    NavigationLink {
+                        PostView(post: post, linkIsPresented: $linkIsPresented)
+                    } label: {
+                        HStack{
+                            Image(systemName: "message.fill")
+                            Text("\(post.numComments)")
+                                .font(.system(size: 12))
+                        }
+                    }
+                    .padding(.leading)
+                    .foregroundColor(Color.gray)
+                    
+                    Text(post.getTimeSiceCreationFormatted())
                         .foregroundColor(Color.gray)
                         .font(.system(size: 12))
                         .bold()
@@ -421,6 +440,8 @@ struct LargePostCardView: View {
     }
     
 }
+
+
 
 /*struct LargePostCardView_Previews: PreviewProvider {
     

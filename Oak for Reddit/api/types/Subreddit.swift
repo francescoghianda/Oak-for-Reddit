@@ -34,8 +34,8 @@ class Subreddit: Thing{
         }
         
         
-        iconImageUrl = Thing.extractUrl(data: data, key: "icon_img")
-        bannerImageUrl = Thing.extractUrl(data: data, key: "banner_background_image")
+        iconImageUrl = Thing.getUrl(data: data, key: "icon_img")
+        bannerImageUrl = Thing.getUrl(data: data, key: "banner_background_image")
         
         super.init(id: id, name: name, kind: kind, data: data)
     }

@@ -189,7 +189,7 @@ struct CompactPostCardView: View {
                 HStack{
                     
                     NavigationLink {
-                        PostView()
+                        //PostView(post: post, linkIsPresented: $linkIsPresented)
                     } label: {
                         Text(post.title)
                             .bold()
@@ -243,7 +243,7 @@ struct CompactPostCardView: View {
                             //.padding(.leading, 5)
                     }
                     
-                    Text(post.formatCreationTime(dateFormatter: dateFormatter))
+                    Text(post.getTimeSiceCreationFormatted(dateFormatter: dateFormatter))
                         .foregroundColor(Color.gray)
                         .font(.system(size: 12))
                         .bold()

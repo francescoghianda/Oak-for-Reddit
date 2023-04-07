@@ -32,4 +32,9 @@ extension ApiEndpoint {
         let newPath = prefix + path
         return ApiEndpoint(scope: scope, path: newPath, method: method, parameters: parameters)
     }
+    
+    func postfixPath(_ postfix: String) -> ApiEndpoint {
+        let newPath = path + postfix
+        return ApiEndpoint(scope: scope, path: newPath, method: method, parameters: parameters)
+    }
 }

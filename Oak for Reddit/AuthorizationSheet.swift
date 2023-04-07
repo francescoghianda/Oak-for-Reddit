@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AuthorizationSheet: View {
     
-    @EnvironmentObject var redditApi: RedditApi
+    //@EnvironmentObject var redditApi: RedditApi
     var url: URL
     
     var body: some View {

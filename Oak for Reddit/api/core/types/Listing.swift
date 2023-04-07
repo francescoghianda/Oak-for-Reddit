@@ -7,6 +7,7 @@
 
 import Foundation
 
+
 infix operator ++ : AdditionPrecedence
 infix operator += : AdditionPrecedence
 final class Listing<T: Thing>: Sequence, RandomAccessCollection, Equatable {
@@ -18,11 +19,13 @@ final class Listing<T: Thing>: Sequence, RandomAccessCollection, Equatable {
     let before: String?
     let after: String?
     let children: [T]
+    let more: [String]?
     
-    init(before: String? = nil, after: String? = nil, children: [T]){
+    init(before: String? = nil, after: String? = nil, children: [T], more: [String]? = nil){
         self.before = before
         self.after = after
         self.children = children
+        self.more = more
     }
     
     var startIndex: Int {
@@ -78,12 +81,22 @@ final class Listing<T: Thing>: Sequence, RandomAccessCollection, Equatable {
         
         let childrenArray: NSArray = data["children"] as! NSArray
         
-        let children: [T] = childrenArray.map { child in
-            let childDict = child as! [String : Any]        // TODO: gestire caso kind = more
+        var more: [String] = []
+        
+        let children: [T] = childrenArray.compactMap { child in
+            let childDict = child as! [String : Any]        
+            
+            if childDict["kind"] as! String == "more"{
+                let moreData = childDict["data"] as! [String : Any]
+                more = moreData["children"] as! [String]
+                return nil
+            }
+            
             return Thing.build(from: childDict)
         }
         
-        return Listing<T>(before: before, after: after, children: children)
+        
+        return Listing<T>(before: before, after: after, children: children, more: more)
     }
     
     static func == (lhs: Listing<T>, rhs: Listing<T>) -> Bool {

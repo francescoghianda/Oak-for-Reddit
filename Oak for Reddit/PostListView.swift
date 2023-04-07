@@ -72,15 +72,16 @@ private struct OrderSelectorView: View {
     }
 }
 
-struct PostStackView: View {
+/*struct PostStackView: View {
     
      // NOT IN USE
     
     @ObservedObject var api: PostApi
     @Binding var order: PostListingOrder
     @Binding var loading: Bool
-    
+    @State var postToShow: Post? = nil
     private let mediaSizeCache = MediaSizeCache()
+    @Namespace var namespace
     
     @Binding private var cardSize: CardSize
     
@@ -93,7 +94,7 @@ struct PostStackView: View {
                     
                     switch cardSize {
                     case .large:
-                        LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.uuid])
+                        LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.uuid], postToShow: $postToShow, namespace: namespace)
                     case .compact:
                         CompactPostCardView(post: post, showPin: order == .hot)
                     }
@@ -129,7 +130,7 @@ struct PostStackView: View {
         
     }
     
-}
+}*/
 
 fileprivate enum CardSize: String, Codable {
     case large, compact
@@ -186,6 +187,10 @@ struct PostListView: View {
     
     private let mediaSizeCache = MediaSizeCache()
     
+    //@Namespace var namespace
+    //@State var postToShow: Post? = nil
+    @State var linkIsPresented: Bool = false
+    
     @AppStorage("cardSize") private var cardSize: CardSize = CardSize.large
     
     init(subreddit: Subreddit? = nil) {
@@ -197,6 +202,7 @@ struct PostListView: View {
         
         ZStack{
             
+                
             if let posts = api.posts {
                 
                 ScrollView(showsIndicators: false) {
@@ -213,7 +219,9 @@ struct PostListView: View {
                                     CompactPostCardView(post: post, showPin: order == .hot)
                                 }
                                 
+                                
                             }
+                            //.opacity(postToShow != nil ? 0 : 1)
                             
                             Divider()
 
@@ -253,205 +261,6 @@ struct PostListView: View {
                 }
                 
                 
-                /*List {
-                    
-                    if !loading {
-                        ForEach(posts) { post in
-                            
-                            switch cardSize {
-                            case .large:
-                                LargePostCardView(post: post, showPin: order == .hot)
-                            case .compact:
-                                CompactPostCardView(post: post, showPin: order == .hot)
-                            }
-                        }
-
-                        if(!posts.isEmpty){
-                            HStack{
-                                Spacer()
-                                if(posts.hasThingsAfter){
-                                    ProgressView()
-                                        .task {
-                                            await api.loadMore(order: order)
-                                        }
-                                }
-                                else{
-                                    Text("You have reached the end")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.gray)
-                                        .padding()
-                                }
-                                Spacer()
-                            }
-                            
-                        }
-                    }
-                    
-                }
-                .buttonStyle(BorderlessButtonStyle())
-                .listStyle(.plain)*/
-                
-                /*RefreshableScrollView {
-                    
-                    VStack{
-                    
-                        if !loading {
-                            ForEach(posts) { post in
-                                Divider()
-                                LargePostCardView(post: post, showPin: order == .hot)
-                            }
-
-                            if(!posts.isEmpty){
-                                Divider()
-                                HStack{
-                                    Spacer()
-                                    if(posts.hasThingsAfter){
-                                        ProgressView()
-                                            /*.task {
-                                                await api.loadMore(order: order)
-                                            }*/
-                                    }
-                                    else{
-                                        Text("You have reached the end")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.gray)
-                                            .padding()
-                                    }
-                                    Spacer()
-                                }
-                                if(!posts.hasThingsAfter){
-                                    Divider()
-                                }
-                                
-                            }
-                        }
-                    }
-                    .padding()
-                    
-                    
-                }
-                .onBottomReached {
-                    
-                    if(api.posts?.hasThingsAfter ?? false) {
-                        await api.loadMore(order: order)
-                    }
-                    
-                    
-                }*/
-                
-                /*if(!loading) {
-                    SPostListView{
-                        PostStackView(api: api, order: $order, loading: $loading)
-                    }
-                }*/
-                
-                
-                
-                
-                /*PostList {
-                    
-                    VStack{
-                    
-                        if !loading {
-                            ForEach(posts) { post in
-                                Divider()
-                                LargePostCardView(post: post, showPin: order == .hot)
-                            }
-
-                            if(!posts.isEmpty){
-                                Divider()
-                                HStack{
-                                    Spacer()
-                                    if(posts.hasThingsAfter){
-                                        ProgressView()
-                                            /*.task {
-                                                await api.loadMore(order: order)
-                                            }*/
-                                    }
-                                    else{
-                                        Text("You have reached the end")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.gray)
-                                            .padding()
-                                    }
-                                    Spacer()
-                                }
-                                if(!posts.hasThingsAfter){
-                                    Divider()
-                                }
-                                
-                            }
-                        }
-                    }
-                    .padding()
-                    
-                    
-                }
-                .onBottomReached {
-                    
-                    if(api.posts?.hasThingsAfter ?? false) {
-                        await api.loadMore(order: order)
-                    }
-                    
-                }*/
-                
-                /*ScrollView {
-                    RefreshableView {
-                        
-                        VStack{
-                        
-                            if !loading {
-                                ForEach(posts) { post in
-                                    Divider()
-                                    LargePostCardView(post: post, showPin: order == .hot)
-                                }
-
-                                if(!posts.isEmpty){
-                                    Divider()
-                                    HStack{
-                                        Spacer()
-                                        if(posts.hasThingsAfter){
-                                            ProgressView()
-                                                /*.task {
-                                                    await api.loadMore(order: order)
-                                                }*/
-                                        }
-                                        else{
-                                            Text("You have reached the end")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.gray)
-                                                .padding()
-                                        }
-                                        Spacer()
-                                    }
-                                    if(!posts.hasThingsAfter){
-                                        Divider()
-                                    }
-                                    
-                                }
-                            }
-                        }
-                        .padding()
-                        
-                    }
-                }
-                .refreshable {
-                    print("refreshing...")
-                    
-                    do {
-                        try await Task.sleep(nanoseconds: UInt64(2 * Double(NSEC_PER_SEC)))
-                    }
-                    catch {
-                        
-                    }
-                    
-                    print("refreshed")
-                    
-                    //await api.load(order: order)
-                }*/
-                //.animation(.easeIn(duration: 1), value: posts)
-                
-                
                 if (!loading && posts.isEmpty){
                     Text("There is nothing here :(")
                         .foregroundColor(Color.gray)
@@ -467,11 +276,23 @@ struct PostListView: View {
                         loading = false
                     }
             }
+            
+                    
+                
+            /*if let postToShow = postToShow {
+                PostView(post: postToShow, linkIsPresented: $linkIsPresented, namespace: namespace, postToShow: $postToShow)
+            }*/
+            
+            
+            
+            
         }
         .navigationBarTitle(subreddit?.displayNamePrefixed ?? "", displayMode: .inline)
         .onChange(of: order, perform: { newValue in
             loading = true
         })
+        //.navigationBarHidden(postToShow != nil)
+        .transition(.opacity)
         .toolbar {
             
             ToolbarItemGroup(placement: .navigationBarTrailing) {

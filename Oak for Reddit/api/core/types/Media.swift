@@ -37,10 +37,10 @@ enum Media {
         if let data = data["reddit_video"] as? [String : Any] {
             
             let bitrate = data["bitrate_kbps"] as! Int
-            let dashUrl = Thing.extractUrl(data: data, key: "dash_url")
-            let hlsUrl = Thing.extractUrl(data: data, key: "hls_url")
-            let fallbackUrl = Thing.extractUrl(data: data, key: "fallback_url")
-            let scrubberMediaUrl = Thing.extractUrl(data: data, key: "scrubber_media_url")
+            let dashUrl = Thing.getUrl(data: data, key: "dash_url")
+            let hlsUrl = Thing.getUrl(data: data, key: "hls_url")
+            let fallbackUrl = Thing.getUrl(data: data, key: "fallback_url")
+            let scrubberMediaUrl = Thing.getUrl(data: data, key: "scrubber_media_url")
             let isGif = (data["is_gif"] as? Int ?? 0) != 0
             let width = data["width"] as! Int
             let height = data["height"] as! Int
@@ -53,8 +53,8 @@ enum Media {
             let type = data["type"] as! String
             let title = data["title"] as? String
             let providerName = data["provider_name"] as! String
-            let providerUrl = Thing.extractUrl(data: data, key: "provider_url")
-            let html = Thing.extractHtmlEcodedString(data: data, key: "html")!//data["html"] as! String
+            let providerUrl = Thing.getUrl(data: data, key: "provider_url")
+            let html = Thing.getHtmlEcodedString(data: data, key: "html")!//data["html"] as! String
             let width = data["width"] as? Int ?? 200
             let height = data["height"] as? Int ?? 113
             
