@@ -246,6 +246,7 @@ struct PostView: View {
     //@Binding var postToShow: Post?
     @StateObject var model: CommentsModel
     @State var commentsOrder: CommentsOrder = .confidence
+    @State var showCommentsOrderPicker: Bool = false
     
     @State private var commentsViewMode: CommentsViewMode = .classic
     
@@ -337,6 +338,45 @@ struct PostView: View {
                         .font(.title)
                         .padding([.top, .bottom])
                     Spacer()
+                    
+                    Button {
+                        withAnimation {
+                            showCommentsOrderPicker.toggle()
+                        }
+                    } label: {
+                        HStack{
+                            Label("Sort: \(commentsOrder.viewString)", systemImage: "arrow.up.arrow.down")
+                            //Spacer()
+                            Image(systemName: "chevron.right")
+                                .rotationEffect(showCommentsOrderPicker ? .degrees(90.0) : .degrees(0.0))
+                        }
+                    }
+
+                }
+                
+                if showCommentsOrderPicker {
+                    
+                    ForEach(CommentsOrder.allCases, id: \.id) { item in
+                        
+                        Button{
+                            withAnimation {
+                                commentsOrder = item
+                                showCommentsOrderPicker = false
+                            }
+                        } label: {
+                            HStack{
+                                if item == commentsOrder {
+                                    Image(systemName: "checkmark")
+                                        .padding(.trailing, 20)
+                                }
+                                
+                                Text(item.viewString)
+                                
+                            }
+                            .foregroundColor(.gray)
+                        }
+                        
+                    }
                     
                 }
                 

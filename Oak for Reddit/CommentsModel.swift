@@ -7,8 +7,31 @@
 
 import Foundation
 
-enum CommentsOrder: String {
+enum CommentsOrder: String, CaseIterable {
     case confidence, top, new, controversial, old, random, qa
+    
+    var id: String {
+        return self.rawValue
+    }
+    
+    var viewString: String {
+        switch self {
+        case .confidence:
+            return "Best"
+        case .top:
+            return "Top"
+        case .new:
+            return "New"
+        case .controversial:
+            return "Controversial"
+        case .old:
+            return "Old"
+        case .random:
+            return "Random"
+        case .qa:
+            return "Interview"
+        }
+    }
 }
 
 class CommentsModel: ObservableObject {
