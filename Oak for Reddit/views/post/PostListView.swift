@@ -179,7 +179,7 @@ struct PostListView: View {
     
     @StateObject var api: PostListModel
     
-    @State private var order: PostListingOrder = .new
+    @State private var order: PostListingOrder = .hot
     //@State private var posts: Listing<Post>? = nil
     @State private var loading: Bool = true
     
@@ -197,6 +197,8 @@ struct PostListView: View {
         self.subreddit = subreddit
         self._api = StateObject(wrappedValue: PostListModel(subreddit: subreddit))
     }
+    
+    
     
     var body: some View {
         
@@ -287,7 +289,7 @@ struct PostListView: View {
             
             
         }
-        .navigationBarTitle(subreddit?.displayNamePrefixed ?? "", displayMode: .inline)
+        .navigationBarTitle(subreddit?.displayNamePrefixed ?? "Posts", displayMode: .inline)
         .onChange(of: order, perform: { newValue in
             loading = true
         })
@@ -298,8 +300,6 @@ struct PostListView: View {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 
                 OrderSelectorView(order: $order)
-            
-            
             
                 Menu {
                     Button {
@@ -323,10 +323,7 @@ struct PostListView: View {
                 
             }
             
-            
-            
         }
-        
         
     }
 }

@@ -27,28 +27,41 @@ struct ContentView: View {
     
     @StateObject var mediaViewerModel = MediaViewerModel()
     
+    @State var selectedTab: Int = 2
+    
     var body: some View {
         
         //let subreddits = SubrettitList(redditApi: redditApi)
         
         ZStack {
             
-            TabView{
+            TabView(selection: $selectedTab){
                 FavoritesSubredditsView()
                         .tabItem {
                             Image(systemName: "star.fill")
                             Text("Favorites")
                         }
+                        .tag(0)
                 SubredditListView()
                         .tabItem {
                             Image(systemName: "list.dash")
                             Text("Subreddits")
                         }
+                        .tag(1)
+                NavigationView{
+                    PostListView()
+                }
+                .tabItem {
+                    Image(systemName: "list.bullet.below.rectangle")
+                    Text("Posts")
+                }
+                .tag(2)
                 Text("Account")
                         .tabItem {
                             Image(systemName: "person.fill")
                             Text("Account")
                         }
+                        .tag(3)
             }
             .environmentObject(NamespaceWrapper(namespace))
             .environmentObject(mediaViewerModel)

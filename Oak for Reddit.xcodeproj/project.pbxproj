@@ -34,6 +34,12 @@
 		135BFF9329E984B600C98978 /* SubredditItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EF221929C636A40099939A /* SubredditItemView.swift */; };
 		135BFF9929E9878200C98978 /* AuthorizationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EFE7DF29C27D2300C6C13D /* AuthorizationSheet.swift */; };
 		135BFF9A29E9878200C98978 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136FB3DA29C200FE00C3FCF4 /* ContentView.swift */; };
+		135BFF9C29E999E500C98978 /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135BFF9B29E999E500C98978 /* CommentView.swift */; };
+		135BFF9E29E99A3800C98978 /* CommentListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135BFF9D29E99A3800C98978 /* CommentListView.swift */; };
+		135BFFA029E99A9400C98978 /* ClassicCommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135BFF9F29E99A9400C98978 /* ClassicCommentView.swift */; };
+		135BFFA229E99AC900C98978 /* LightCommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135BFFA129E99AC900C98978 /* LightCommentView.swift */; };
+		135BFFA429E99AEF00C98978 /* CommentCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135BFFA329E99AEF00C98978 /* CommentCard.swift */; };
+		135BFFA629E99B2500C98978 /* CommentsOrderPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135BFFA529E99B2500C98978 /* CommentsOrderPicker.swift */; };
 		136FB3D929C200FE00C3FCF4 /* Oak_for_RedditApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136FB3D829C200FE00C3FCF4 /* Oak_for_RedditApp.swift */; };
 		136FB3DB29C200FE00C3FCF4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136FB3DA29C200FE00C3FCF4 /* ContentView.swift */; };
 		136FB3DD29C2010400C3FCF4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 136FB3DC29C2010400C3FCF4 /* Assets.xcassets */; };
@@ -102,6 +108,12 @@
 		135BFF8529E97C9F00C98978 /* PostEndpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostEndpoints.swift; sourceTree = "<group>"; };
 		135BFF8829E97CD500C98978 /* CommentEndpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentEndpoints.swift; sourceTree = "<group>"; };
 		135BFF8A29E980A600C98978 /* Parsers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parsers.swift; sourceTree = "<group>"; };
+		135BFF9B29E999E500C98978 /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentView.swift; sourceTree = "<group>"; };
+		135BFF9D29E99A3800C98978 /* CommentListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentListView.swift; sourceTree = "<group>"; };
+		135BFF9F29E99A9400C98978 /* ClassicCommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassicCommentView.swift; sourceTree = "<group>"; };
+		135BFFA129E99AC900C98978 /* LightCommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightCommentView.swift; sourceTree = "<group>"; };
+		135BFFA329E99AEF00C98978 /* CommentCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentCard.swift; sourceTree = "<group>"; };
+		135BFFA529E99B2500C98978 /* CommentsOrderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsOrderPicker.swift; sourceTree = "<group>"; };
 		136FB3D529C200FE00C3FCF4 /* Oak for Reddit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Oak for Reddit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		136FB3D829C200FE00C3FCF4 /* Oak_for_RedditApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Oak_for_RedditApp.swift; sourceTree = "<group>"; };
 		136FB3DA29C200FE00C3FCF4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -319,6 +331,11 @@
 		135BFF9529E984EE00C98978 /* comment */ = {
 			isa = PBXGroup;
 			children = (
+				135BFF9B29E999E500C98978 /* CommentView.swift */,
+				135BFF9D29E99A3800C98978 /* CommentListView.swift */,
+				135BFF9F29E99A9400C98978 /* ClassicCommentView.swift */,
+				135BFFA129E99AC900C98978 /* LightCommentView.swift */,
+				135BFFA329E99AEF00C98978 /* CommentCard.swift */,
 			);
 			path = comment;
 			sourceTree = "<group>";
@@ -338,6 +355,7 @@
 		135BFF9829E9856900C98978 /* media */ = {
 			isa = PBXGroup;
 			children = (
+				135BFFA529E99B2500C98978 /* CommentsOrderPicker.swift */,
 				1337E9AD29D6744A00D9E63B /* MediaViewerModel.swift */,
 				13DAD03129CDFE24009F06F9 /* PhotoViewerView.swift */,
 				1337E9B529D9D92400D9E63B /* PostMediaViewer.swift */,
@@ -557,10 +575,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				136FB3DB29C200FE00C3FCF4 /* ContentView.swift in Sources */,
+				135BFFA429E99AEF00C98978 /* CommentCard.swift in Sources */,
 				13EF221A29C636A40099939A /* SubredditItemView.swift in Sources */,
 				13EFE7EC29C49C9500C6C13D /* SubredditListView.swift in Sources */,
 				13EF221429C5D5260099939A /* Subreddit.swift in Sources */,
 				1337E98529D329D400D9E63B /* LargePostCardView.swift in Sources */,
+				135BFFA029E99A9400C98978 /* ClassicCommentView.swift in Sources */,
 				135BFF7F29E86F3A00C98978 /* PersistanceController.swift in Sources */,
 				1309F41029E083130045ABD1 /* Extensions.swift in Sources */,
 				1353EC7929DDF22F00D7641B /* Comment.swift in Sources */,
@@ -573,8 +593,11 @@
 				135BFF7929E83D7600C98978 /* FavoritesSubredditsView.swift in Sources */,
 				1337E9AE29D6744A00D9E63B /* MediaViewerModel.swift in Sources */,
 				135BFF8629E97C9F00C98978 /* PostEndpoints.swift in Sources */,
+				135BFFA629E99B2500C98978 /* CommentsOrderPicker.swift in Sources */,
 				13EFE7E029C27D2300C6C13D /* AuthorizationSheet.swift in Sources */,
+				135BFF9C29E999E500C98978 /* CommentView.swift in Sources */,
 				13DAD03029CCF199009F06F9 /* CompactPostCardView.swift in Sources */,
+				135BFFA229E99AC900C98978 /* LightCommentView.swift in Sources */,
 				1337E9AC29D46B8200D9E63B /* SPostListController.swift in Sources */,
 				1353EC7B29DDFF3200D7641B /* Endpoints.swift in Sources */,
 				135BFF8B29E980A600C98978 /* Parsers.swift in Sources */,
@@ -588,6 +611,7 @@
 				13AE9E0D29CA4A1000242EE5 /* PostListModel.swift in Sources */,
 				13DAD03229CDFE25009F06F9 /* PhotoViewerView.swift in Sources */,
 				1337E97F29D0B93500D9E63B /* VideoPlayerView.swift in Sources */,
+				135BFF9E29E99A3800C98978 /* CommentListView.swift in Sources */,
 				136FB3D929C200FE00C3FCF4 /* Oak_for_RedditApp.swift in Sources */,
 				1337E97929CE44F300D9E63B /* ZoomableScrollView.swift in Sources */,
 				1337E9B029D7244E00D9E63B /* SafariView.swift in Sources */,

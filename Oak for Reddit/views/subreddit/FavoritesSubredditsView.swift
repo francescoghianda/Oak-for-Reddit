@@ -20,19 +20,50 @@ struct FavoritesSubredditsView: View {
             Subreddit(entity: entity)
         }
         
-        NavigationView {
+        ZStack {
             
-            List(subreddits) { subreddit in
+            NavigationView {
                 
-                NavigationLink {
-                    PostListView(subreddit: subreddit)
-                } label: {
-                    SubredditItemView(subreddit: subreddit)
+                List(subreddits) { subreddit in
+                    
+                    NavigationLink {
+                        PostListView(subreddit: subreddit)
+                    } label: {
+                        SubredditItemView(subreddit: subreddit, isFavorite: false)
+                    }
+                    .swipeActions {
+                        Button{
+                            removeFavorite(subreddit.subredditId)
+                        } label: {
+                            Image(systemName: "trash.fill")
+                                .foregroundColor(.white)
+                        }
+                        .tint(.red)
+                    }
+                    
                 }
+                .listStyle(.plain)
+                .navigationTitle("Favorites")
                 
             }
-            .navigationTitle("Favorites")
             
+            if subreddits.isEmpty {
+                Text("There are no favorites :(")
+                    .foregroundColor(.gray)
+            }
+        }
+        
+        
+    }
+    
+    func removeFavorite(_ subredditId: String) {
+        
+        if let entity = favorites.first(where: { entity in
+            entity.id == subredditId
+        })
+        {
+            viewContext.delete(entity)
+            try? viewContext.save()
         }
         
     }

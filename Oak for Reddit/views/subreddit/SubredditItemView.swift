@@ -80,6 +80,8 @@ struct SubredditItemView: View {
     
     let height: CGFloat = 80
     
+    var isFavorite: Bool
+    
     var body: some View {
         HStack(alignment: .center){
             SubredditIcon(subreddit: subreddit)
@@ -94,12 +96,18 @@ struct SubredditItemView: View {
             
             ZStack{
                 VStack(){
-                    if subreddit.over18 {
-                        /*Image("nsfw_icon")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 18)*/
-                        NsfwSymbolView()
+                    HStack{
+                        if subreddit.over18 {
+                            /*Image("nsfw_icon")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 18)*/
+                            NsfwSymbolView()
+                        }
+                        if isFavorite {
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.yellow)
+                        }
                     }
                     Spacer()
                 }
@@ -108,6 +116,7 @@ struct SubredditItemView: View {
             }
             
         }
+        .animation(.easeInOut, value: isFavorite)
         .frame(height: height)
         //.border(.black)
     }
@@ -116,7 +125,7 @@ struct SubredditItemView: View {
 struct SubredditItemView_Previews: PreviewProvider {
     static var previews: some View {
         Group{
-            SubredditItemView(subreddit: Subreddit.previewSubreddit)
+            SubredditItemView(subreddit: Subreddit.previewSubreddit, isFavorite: true)
             NsfwSymbolView()
         }
         .previewLayout(.sizeThatFits)

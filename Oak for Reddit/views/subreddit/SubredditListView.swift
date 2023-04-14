@@ -8,7 +8,7 @@
 import SwiftUI
 import CoreData
 
-private struct OrderSelectorView: View {
+private struct OrderSelectorMenu: View {
     
     //let api: SubrettitApi
     let toText: (SubredditListingOrder) -> String
@@ -84,21 +84,30 @@ struct SubredditListView: View {
                     
                     List {
                         ForEach(model.subreddits) { subreddit in
+                            
+                            let isFavorite = isFavorite(subreddit.subredditId)
+                            
                             NavigationLink {
                                 PostListView(subreddit: subreddit)
                             } label: {
-                                SubredditItemView(subreddit: subreddit)
+                                SubredditItemView(subreddit: subreddit, isFavorite: isFavorite)
                             }
                             //.transition(.slide)
                             .swipeActions{
                                 Button{
-                                    storeFavorite(subreddit)
+                                    if isFavorite {
+                                        removeFavorite(subreddit.subredditId)
+                                    }
+                                    else {
+                                        storeFavorite(subreddit)
+                                    }
+                                    
                                     //model.addFavourite(subreddit)
                                 } label: {
-                                    Image(systemName: "star")
+                                    Image(systemName: isFavorite ? "trash.fill" : "star.fill")
                                         .foregroundColor(.white)
                                 }
-                                .tint(.yellow)
+                                .tint(isFavorite ? .red : .yellow)
                             }
 
                         }
@@ -147,7 +156,7 @@ struct SubredditListView: View {
                 .navigationTitle("Subreddits")
                 .toolbar {
                     ToolbarItem {
-                        OrderSelectorView(toText: orderToText, order: $order)
+                        OrderSelectorMenu(toText: orderToText, order: $order)
                     }
                 }
                 
@@ -168,17 +177,33 @@ struct SubredditListView: View {
         
     }
     
+    func isFavorite(_ subredditId: String) -> Bool {
+        return favorites.contains(where: { entity in
+            entity.id == subredditId
+        })
+    }
+    
     func storeFavorite(_ subreddit: Subreddit) {
         
-        if favorites.contains(where: { entity in
-            entity.id == subreddit.subredditId
-        }) {
+        if isFavorite(subreddit.subredditId) {
             return
         }
         
         subreddit.createEntity(context: viewContext)
         
         try? viewContext.save()
+    }
+    
+    func removeFavorite(_ subredditId: String) {
+        
+        if let entity = favorites.first(where: { entity in
+            entity.id == subredditId
+        })
+        {
+            viewContext.delete(entity)
+            try? viewContext.save()
+        }
+        
     }
     
 }
