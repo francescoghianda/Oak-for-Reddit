@@ -9,7 +9,9 @@ import Foundation
 import Combine
 import SwiftUI
 
+
 class RedditApi: NSObject{
+    typealias Parser<T> = (_ data: Data) throws -> T?
     typealias JSONObject = [String : Any]
     typealias JSONArray = [JSONObject]
     
@@ -28,14 +30,15 @@ class RedditApi: NSObject{
     private var xRateLimitRemainig: Int = .max
     private var xRateLimitReset: Int = 0
     
+    
     override init(){
         super.init()
     }
     
-    private func buildRequest(endpoint: ApiEndpoint) -> URLRequest? {
+    private func buildRequest(endpoint: Endpoint) -> URLRequest? {
         
         let urlString: String = {
-            if(endpoint.method != "GET"){
+            if(endpoint.method != .get){
                 return "\(RedditApi.API_BASE_URL)\(endpoint.path)"
             }
             let params = endpoint.parameters.map { (param: String, value: Any) in
@@ -55,30 +58,32 @@ class RedditApi: NSObject{
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         
-        request.httpMethod = endpoint.method
+        request.httpMethod = endpoint.method.rawValue.uppercased()
         
-        if(endpoint.method != "GET"){
+        if(endpoint.method != .get){
             request.httpBody = endpoint.parameters.percentEncoded()
         }
         
         return request
     }
     
-    //--------------------
-    
-    func fetchJsonObject(endpoint: ApiEndpoint) async throws -> JSONObject {
-        return try await fetch(endpoint: endpoint, parser: jsonParser)
+    func fetchListing<T>(_ endpoint: Endpoint) async throws -> Listing<T> {
+        return Listing.build(from: try await fetchJsonObject(endpoint))
     }
     
-    func fetchJsonArray(endpoint: ApiEndpoint) async throws -> JSONArray {
-        return try await fetch(endpoint: endpoint, parser: jsonParser)
+    func fetchJsonObject(_ endpoint: Endpoint) async throws -> JSONObject {
+        return try await fetch(endpoint: endpoint, parser: Parsers.jsonParser)
     }
     
-    private func jsonParser<T>(_ data: Data) throws -> T? {
-        return try JSONSerialization.jsonObject(with: data, options: []) as? T
+    func fetchJsonArray(_ endpoint: Endpoint) async throws -> JSONArray {
+        return try await fetch(endpoint: endpoint, parser: Parsers.jsonParser)
     }
     
-    func fetch<T>(endpoint: ApiEndpoint, parser: @escaping (_ data: Data) throws -> T?) async throws -> T {
+    func fetchRaw(_ endpoint: Endpoint) async throws -> Data {
+        return try await fetch(endpoint: endpoint, parser: Parsers.identity)
+    }
+    
+    func fetch<T>(endpoint: Endpoint, parser: @escaping Parser<T>) async throws -> T {
         
         let result: T = try await withCheckedThrowingContinuation({ continuation in
             fetch(endpoint: endpoint, parser: parser) { result in
@@ -92,8 +97,8 @@ class RedditApi: NSObject{
     }
     
     
-    func fetch<T>(endpoint: ApiEndpoint,
-                  parser: @escaping (_ data: Data) throws -> T?,
+    func fetch<T>(endpoint: Endpoint,
+                  parser: @escaping Parser<T>,
                   onSuccess: @escaping (T) -> Void,
                   onFail: ((ApiFetchFailCause) -> Void)? = nil) {
         
@@ -108,7 +113,7 @@ class RedditApi: NSObject{
             
             print("Making API request to: \(request.url!)")
             
-            print(accessToken)
+            //print(accessToken)
             
             request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
             
@@ -140,7 +145,7 @@ class RedditApi: NSObject{
     }
     
     private func makeRequest<T>(request: URLRequest,
-                                parser: @escaping (_ data: Data) throws -> T?,
+                                parser: @escaping Parser<T>,
                                 onSuccess: @escaping (T) -> Void,
                                 onFail: @escaping (ApiFetchFailCause) -> Void)  {
                 
@@ -185,66 +190,6 @@ class RedditApi: NSObject{
     }
     
     
-    //--------------------
-    
-    
-    func callApi(endpoint: ApiEndpoint) async throws -> [String : Any] {
-        
-        let result = try await withCheckedThrowingContinuation({ continuation in
-            callApi(endpoint: endpoint) { result in
-                continuation.resume(returning: result)
-            } onFail: { failCause in
-                continuation.resume(throwing: ApiFetchError(cause: failCause))
-            }
-        })
-        
-        return result
-    }
-    
-    func callApi(endpoint: ApiEndpoint, onSuccess: @escaping ([String : Any]) -> Void, onFail: ((ApiFetchFailCause) -> Void)? = nil) {
-        
-
-        oauth.getValidAccessToken { accessToken in
-            
-            guard var request = self.buildRequest(endpoint: endpoint)
-            else{
-                onFail?(.unknown)
-                return
-            }
-            
-            print("Making API request to: \(request.url!)")
-            
-            print(accessToken)
-            
-            request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-            
-            self.makeApiRequest(request: request, onSuccess: onSuccess) { failCause in
-                switch failCause {
-                case .unauthorized:
-                    print("Invalid access token.")
-                    print("Trying to refresh the access token")
-                    
-                    self.oauth.refreshToken(onSuccess: { accessToken in
-                        request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-                        self.makeApiRequest(request: request, onSuccess: onSuccess) { cause in
-                            onFail?(cause)
-                            print("Error calling api")
-                        }
-                    })
-                    
-                case .bad_response:
-                    onFail?(failCause)
-                    return
-                case .unknown:
-                    onFail?(failCause)
-                    print("Unknown error")
-                    return
-                }
-            }
-        }
-        
-    }
-    
     private func updateRateLimits(response: HTTPURLResponse) {
         let xRateLimitUsed: String? = response.value(forHTTPHeaderField: "x-ratelimit-used")
         let xRateLimitRemainig: String? = response.value(forHTTPHeaderField: "x-ratelimit-remaining")
@@ -257,59 +202,21 @@ class RedditApi: NSObject{
         //print("xRateLimitUsed: \(self.xRateLimitUsed), xRateLimitRemaining: \(self.xRateLimitRemainig), xRateLimitReset:\(self.xRateLimitReset)")
     }
     
-    private func makeApiRequest(request: URLRequest, onSuccess: @escaping ([String : Any]) -> Void, onFail: @escaping (ApiFetchFailCause) -> Void)  {
-                
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            
-            guard
-                let data = data,
-                let response = response as? HTTPURLResponse,
-                error == nil
-            else {
-                print(error)
-                onFail(.unknown)
-                return
-            }
-            
-            
-            if(response.statusCode == 401){
-                onFail(.unauthorized)
-                return
-            }
-            
-            self.updateRateLimits(response: response)
-            
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any] {
-                    onSuccess(json)
-                    return
-                }
-                else {
-                    onFail(.bad_response)
-                }
-            }
-            catch {
-                print("Failed to load: \(error.localizedDescription)")
-                onFail(.bad_response)
-                return
-            }
-        }
-        
-        task.resume()
-        
-    }
-    
 }
 
 class ApiFetchError: Error {
     let cause: ApiFetchFailCause
+    let localizedDescription: String
     
     init(cause: ApiFetchFailCause){
         self.cause = cause
+        self.localizedDescription = {
+            cause.rawValue
+        }()
     }
 }
 
-enum ApiFetchFailCause{
+enum ApiFetchFailCause: String {
     case unauthorized, bad_response, unknown
 }
 

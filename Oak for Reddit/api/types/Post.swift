@@ -57,10 +57,10 @@ class GalleryData {
 }
 
 enum PostLinkType{
-    case image, video, gallery, media, link, permalink
+    case image, video, gallery, media, link, permalink, nolink
 }
 
-class Post: Thing, Votable, Created {
+class Post: Thing, Votable, Created, ObservableObject {
 
     var ups: Int
     var downs: Int
@@ -83,7 +83,7 @@ class Post: Thing, Votable, Created {
     let thumbnailUrl: URL?
     let title: String
     let permalink: String
-    let url: URL
+    let url: URL?
     let edited: TimeInterval?
     let stickied: Bool
     let media: Media?
@@ -124,7 +124,7 @@ class Post: Thing, Votable, Created {
         title = Thing.getHtmlEcodedString(data: data, key: "title")!
         
         permalink = data["permalink"] as! String
-        url = Thing.getUrl(data: data, key: "url")!//data["url"] as! String
+        url = Thing.getUrl(data: data, key: "url") //data["url"] as! String
         edited = nil
         stickied = (data["stickied"] as? Int ?? 0) != 0
         
@@ -147,7 +147,11 @@ class Post: Thing, Votable, Created {
         super.init(id: postId, name: postName, kind: kind, data: data)
         
     }
-
+    
+    required init(from decoder: Decoder) throws {
+        fatalError("init(from:) has not been implemented")
+    }
+    
 }
 
 extension Post {
@@ -203,6 +207,11 @@ extension Post {
     }
     
     var postLinkType: PostLinkType {
+        
+        guard let url = url
+        else {
+            return .nolink
+        }
         
         if Post.imageFileFormats.contains(url.pathExtension.lowercased()) {
             return .image

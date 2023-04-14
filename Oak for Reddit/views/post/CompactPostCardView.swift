@@ -272,7 +272,7 @@ struct CompactPostCardView: View {
             
         }
         .fullScreenCover(isPresented: $linkIsPresented) {
-            SafariView(url: post.url)
+            SafariView(url: post.url!)
         }
     
     

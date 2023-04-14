@@ -19,9 +19,9 @@ final class Listing<T: Thing>: Sequence, RandomAccessCollection, Equatable {
     let before: String?
     let after: String?
     let children: [T]
-    let more: [String]?
+    let more: More?
     
-    init(before: String? = nil, after: String? = nil, children: [T], more: [String]? = nil){
+    init(before: String? = nil, after: String? = nil, children: [T], more: More? = nil){
         self.before = before
         self.after = after
         self.children = children
@@ -81,14 +81,14 @@ final class Listing<T: Thing>: Sequence, RandomAccessCollection, Equatable {
         
         let childrenArray: NSArray = data["children"] as! NSArray
         
-        var more: [String] = []
+        var more: More = More.empty()
         
         let children: [T] = childrenArray.compactMap { child in
             let childDict = child as! [String : Any]        
             
             if childDict["kind"] as! String == "more"{
                 let moreData = childDict["data"] as! [String : Any]
-                more = moreData["children"] as! [String]
+                more = More.build(from: moreData)//moreData["children"] as! [String]
                 return nil
             }
             
@@ -113,4 +113,74 @@ extension Listing{
     var hasThingsAfter: Bool {
         !(after?.isEmpty ?? true)
     }
+}
+
+class More: Sequence, RandomAccessCollection, MutableCollection, Equatable {
+    typealias BaseCollection = [String]
+    
+    typealias Element = String
+    typealias Index = BaseCollection.Index
+    
+    
+    var children: [String]
+    let name: String?
+    let id: String?
+    let count: Int?
+    let depth: Int?
+    let parentId: String?
+    
+    init(children: [String], name: String?, id: String?, count: Int?, depth: Int?, parentId: String?) {
+        self.children = children
+        self.name = name
+        self.id = id
+        self.count = count
+        self.depth = depth
+        self.parentId = parentId
+    }
+    
+    var startIndex: Int {
+        children.startIndex
+    }
+    var endIndex: Int {
+        children.endIndex
+    }
+    
+    func index(before i: Int) -> Int {
+        children.index(before: i)
+    }
+    
+    func index(after i: Int) -> Int {
+        children.index(after: i)
+    }
+    
+    subscript(position: BaseCollection.Index) -> String {
+        get {
+            return children[position]
+        }
+        set(newValue) {
+            children[position] = newValue
+        }
+    }
+    
+    static func == (lhs: More, rhs: More) -> Bool {
+        lhs.children == rhs.children
+    }
+    
+    static func empty() -> More {
+        return More(children: [], name: nil, id: nil, count: nil, depth: nil, parentId: nil)
+    }
+    
+    static func build(from data: [String : Any]) -> More {
+        
+        let children = data["children"] as? [String] ?? []
+        let name = data["name"] as? String
+        let id = data["id"] as? String
+        let count = data["count"] as? Int
+        let depth = data["depth"] as? Int
+        let parentId = data["parent_id"] as? String
+        
+        return More(children: children, name: name, id: id, count: count, depth: depth, parentId: parentId)
+        
+    }
+    
 }

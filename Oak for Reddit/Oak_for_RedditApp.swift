@@ -12,10 +12,13 @@ struct Oak_for_RedditApp: App {
     //@StateObject var redditApi = RedditApi()
     @StateObject var oauth: OAuthManager = OAuthManager.shared
     
+    let persistenceController = PersistenceController.shared
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
                 //.environmentObject(redditApi)
+                .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .environmentObject(oauth)
                 .onOpenURL{url in
                     

@@ -27,7 +27,14 @@ enum ThingKind {
     case comment, account, link, message, subreddit, award // t1, t2, t3, t4, t5, t6
 }
 
-class Thing: Identifiable, Equatable {
+class Thing: Identifiable, Equatable, Codable {
+    
+    enum CodingKeys : String, CodingKey {
+        case thingId = "thing_id"
+        case name = "name"
+        case kind = "kind"
+        case data = "data"
+    }
     
     let uuid: String = UUID.init().uuidString
     
@@ -41,6 +48,30 @@ class Thing: Identifiable, Equatable {
         self.name = name
         self.kind = kind
         self.data = data
+    }
+    
+    required init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        
+        thingId = try values.decode(String.self, forKey: .thingId)
+        name = try values.decode(String.self, forKey: .name)
+        kind = try values.decode(String.self, forKey: .kind)
+        
+        let dataJson = try values.decode(Data.self, forKey: .data)
+        
+        data = try JSONSerialization.jsonObject(with: dataJson, options: []) as! [String : Any]
+
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        
+        try values.encode(thingId, forKey: .thingId)
+        try values.encode(name, forKey: .name)
+        try values.encode(kind, forKey: .kind)
+        
+        let dataJson = try JSONSerialization.data(withJSONObject: data, options: [])
+        try values.encode(dataJson, forKey: .data)
     }
     
     public static func build<T: Thing>(from: [String : Any]) -> T {

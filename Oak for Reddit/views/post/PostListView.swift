@@ -76,7 +76,7 @@ private struct OrderSelectorView: View {
     
      // NOT IN USE
     
-    @ObservedObject var api: PostApi
+    @ObservedObject var api: PostListModel
     @Binding var order: PostListingOrder
     @Binding var loading: Bool
     @State var postToShow: Post? = nil
@@ -177,7 +177,7 @@ struct PostListView: View {
     
     @State private var scrollViewOffset: CGFloat = .zero
     
-    @StateObject var api: PostApi
+    @StateObject var api: PostListModel
     
     @State private var order: PostListingOrder = .new
     //@State private var posts: Listing<Post>? = nil
@@ -195,7 +195,7 @@ struct PostListView: View {
     
     init(subreddit: Subreddit? = nil) {
         self.subreddit = subreddit
-        self._api = StateObject(wrappedValue: PostApi(subreddit: subreddit))
+        self._api = StateObject(wrappedValue: PostListModel(subreddit: subreddit))
     }
     
     var body: some View {

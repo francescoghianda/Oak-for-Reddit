@@ -6,8 +6,20 @@
 //
 
 import Foundation
+import CoreData
 
 class Subreddit: Thing{
+    
+    enum CodingKeys : String, CodingKey {
+        case displayName = "display_name"
+        case displayNamePrefixed = "display_name_prefixed"
+        case subredditName = "subreddit_name"
+        case subredditId = "subreddit_id"
+        case over18 = "over_18"
+        case primaryColor = "primary_color"
+        case iconImageUrl = "icon_image_url"
+        case bannerImageUrl = "banner_image_url"
+    }
     
     let displayName: String
     let displayNamePrefixed: String
@@ -40,6 +52,43 @@ class Subreddit: Thing{
         super.init(id: id, name: name, kind: kind, data: data)
     }
     
+    required init(entity: SubredditEntity) {
+        
+        displayName = entity.displayName!
+        displayNamePrefixed = entity.displayNamePrefixed!
+        subredditName = entity.name!
+        subredditId = entity.id!
+        over18 = entity.over18
+        primaryColor = entity.primaryColor!
+        iconImageUrl = entity.iconImageUrl
+        bannerImageUrl = entity.bannerImageUrl
+        
+        super.init(id: entity.thingId, name: entity.thingName, kind: entity.kind!, data: [:])
+        
+    }
+    
+    required init(from decoder: Decoder) throws {
+        fatalError("init(from:) has not been implemented")
+    }
+    
+    /*required init(from decoder: Decoder) throws {
+        
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        
+        displayName = try values.decode(String.self, forKey: .displayName)
+        displayNamePrefixed = try values.decode(String.self, forKey: .displayNamePrefixed)
+        subredditName = try values.decode(String.self, forKey: .subredditName)
+        subredditId = try values.decode(String.self, forKey: .subredditId)
+        over18 = try values.decode(Bool.self, forKey: .over18)
+        primaryColor = try values.decode(String.self, forKey: .primaryColor)
+        iconImageUrl = try values.decode(URL.self, forKey: .iconImageUrl)
+        bannerImageUrl = try values.decode(URL.self, forKey: .bannerImageUrl)
+
+        try super.init(from: decoder)
+    }*/
+    
+    
+    
     public static let previewSubreddit: Subreddit = {
         let data: [String : Any] = [
             "display_name": "subreddit",
@@ -53,5 +102,29 @@ class Subreddit: Thing{
         ]
         return Subreddit(id: nil, name: nil, kind: "", data: data)
     }()
+    
+}
+
+extension Subreddit {
+    
+    func createEntity(context: NSManagedObjectContext) {
+        
+        let entity = SubredditEntity(context: context)
+        
+        entity.id = subredditId
+        entity.name = subredditName
+        entity.displayName = displayName
+        entity.displayNamePrefixed = displayNamePrefixed
+        entity.over18 = over18
+        entity.primaryColor = primaryColor
+        entity.iconImageUrl = iconImageUrl
+        entity.bannerImageUrl = bannerImageUrl
+        entity.thingId = thingId
+        entity.thingName = name
+        entity.kind = kind
+        
+    }
+    
+    
     
 }

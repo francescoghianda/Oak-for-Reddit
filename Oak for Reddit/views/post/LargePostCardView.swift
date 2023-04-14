@@ -202,6 +202,7 @@ struct LinkAndThumbnailView_Preview: PreviewProvider {
     }
 }*/
 
+
 struct SelfText: View {
     
     let text: String
@@ -217,7 +218,8 @@ struct SelfText: View {
     
     var body: some View {
         
-        VStack{
+        VStack(alignment: .leading){
+            
             Text(LocalizedStringKey(text))
                 .lineLimit(expanded ? expandedLineLimit : lineLimit)
                 .background {
@@ -229,23 +231,33 @@ struct SelfText: View {
                 }
             
             if truncated && !expanded {
-                Button("Show more") {
-                    withAnimation {
-                        expanded = true
+                HStack{
+                    Spacer()
+                    Button("Show more") {
+                        withAnimation {
+                            expanded = true
+                        }
                     }
+                    .padding(.top)
+                    Spacer()
                 }
-                .padding(.top)
+                
             }
             
             if expanded {
-                Button("Hide") {
-                    withAnimation {
-                        expanded = false
+                HStack{
+                    Spacer()
+                    Button("Hide") {
+                        withAnimation {
+                            expanded = false
+                        }
                     }
+                    .padding(.top)
+                    Spacer()
                 }
-                .padding(.top)
             }
         }
+        
         
     }
     
@@ -260,7 +272,7 @@ struct SelfText: View {
             attributes: [.font: UIFont.systemFont(ofSize: 16)],
             context: nil
         )
-
+        
         if total.size.height > geometry.size.height {
             self.truncated = true
         }
@@ -333,15 +345,16 @@ struct LargePostCardView: View {
                     }
                     .buttonStyle(.plain)
                     .padding([.top, .bottom], 10)
+                    
 
-                    if post.postLinkType == .permalink { // self post
+                    if post.postLinkType == .permalink || post.postLinkType == .nolink { // self post
                         
                         SelfText(post.selfText)
                             .padding(.bottom)
                         
                     }
                     else if post.postLinkType == .link { // external link
-                        LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url)
+                        LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!)
                             .onTapGesture {
                                 linkIsPresented.toggle()
                             }
@@ -432,7 +445,7 @@ struct LargePostCardView: View {
             }
         }
         .fullScreenCover(isPresented: $linkIsPresented) {
-            SafariView(url: post.url)
+            SafariView(url: post.url!)
         }
         
     

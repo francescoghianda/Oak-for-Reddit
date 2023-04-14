@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-
+@available(*, deprecated)
 struct PhotoViewerView: View {
     
     @Environment(\.dismiss) var dismiss

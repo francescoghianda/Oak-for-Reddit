@@ -191,7 +191,7 @@ struct PostMediaViewer: View {
         if post.postLinkType == .image {
             
             
-            PostImageView(url: post.url, showContextMenu: showContextMenu)
+            PostImageView(url: post.url!, showContextMenu: showContextMenu)
                 .onImageLoad{ image in
                     currentImage?.wrappedValue = image
                 }

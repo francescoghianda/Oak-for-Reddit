@@ -34,10 +34,10 @@ struct ContentView: View {
         ZStack {
             
             TabView{
-                Text("Favourites")
+                FavoritesSubredditsView()
                         .tabItem {
                             Image(systemName: "star.fill")
-                            Text("Favourites")
+                            Text("Favorites")
                         }
                 SubredditListView()
                         .tabItem {
@@ -73,7 +73,7 @@ struct ContentView: View {
                             }*/
                         
                         
-                        AsyncUIImage(url: post.url) { image, error in
+                        AsyncUIImage(url: post.url!) { image, error in
                             
                             if let image = image {
                                 
