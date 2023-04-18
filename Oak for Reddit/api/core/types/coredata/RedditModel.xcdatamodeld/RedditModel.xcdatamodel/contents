@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19574" systemVersion="20G1120" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="ListingEntity" representedClassName=".ListingEntity" syncable="YES">
+        <attribute name="after" optional="YES" attributeType="String"/>
+        <attribute name="before" optional="YES" attributeType="String"/>
+        <relationship name="children" toMany="YES" deletionRule="Nullify" destinationEntity="ThingEntity"/>
+    </entity>
+    <entity name="ThingEntity" representedClassName=".ThingEntity" syncable="YES">
+        <attribute name="data" attributeType="Transformable" customClassName=".[String : Any]"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="kind" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+    </entity>
+    <elements>
+        <element name="ListingEntity" positionX="-46657.92077636719" positionY="7502.58642578125" width="128" height="88"/>
+        <element name="ThingEntity" positionX="-46355.49420166016" positionY="7492.146423339844" width="128" height="103"/>
+    </elements>
+</model>
