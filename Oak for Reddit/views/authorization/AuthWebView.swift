@@ -9,7 +9,7 @@ import SwiftUI
 import WebKit
 import SafariServices
  
-final class WebView: NSObject, WKNavigationDelegate, UIViewRepresentable {
+final class AuthWebView: NSObject, WKNavigationDelegate, UIViewRepresentable {
  
     var url: URL
     
@@ -32,12 +32,17 @@ final class WebView: NSObject, WKNavigationDelegate, UIViewRepresentable {
         webView.load(request)
     }
     
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: ((WKNavigationActionPolicy) -> Void)) {
+    
+    func webView(_ webView: WKWebView,
+                 decidePolicyFor navigationAction: WKNavigationAction,
+                 decisionHandler: ((WKNavigationActionPolicy) -> Void)) {
+        
         let app = UIApplication.shared
         let url = navigationAction.request.url
         
-        if (url!.scheme == OAuthManager.CALLBACK_URL_SCHEME) && app.canOpenURL(url!) {
-            app.open(url!, options: [:], completionHandler: nil)
+        if let url = url, url.scheme == OAuthManager.CALLBACK_URL_SCHEME && app.canOpenURL(url) {
+            OAuthManager.shared.onCallbackUrl(url: url)
+            //app.open(url!, options: [:], completionHandler: nil)
             decisionHandler(.cancel)
             return
         }

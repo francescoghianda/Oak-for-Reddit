@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import CoreData
 
-class OAuthManager: ObservableObject{
+class OAuthManager: ObservableObject {
     
     public static let shared = OAuthManager()
     
@@ -21,7 +22,7 @@ class OAuthManager: ObservableObject{
     private let defaultsAuthorizationDataKey = "authorizationData"
     
     private let semaphore = DispatchSemaphore(value: 1)
-    private var authorizationData: AuthorizationData? = nil
+    //private var authorizationData: AuthorizationData? = nil
     
     private var scopeParameters = ["read", "identity"]
     private var stateParameter = ""
@@ -33,17 +34,29 @@ class OAuthManager: ObservableObject{
     @Published public var authorizationSheetIsPresented = false
     @Published public var authorizationStatus: AuthorizationStatus = .unauthorized
     
-    private(set) var accessToken: String? = nil
+    //private(set) var accessToken: String? = nil
+    
+    private let accountsManager = AccountsManager.shared
+    
+    private var authorizationData: AuthorizationData? {
+        
+        return AccountsManager.shared.account?.authData
+        
+    }
+    
+    private var moc: NSManagedObjectContext {
+        PersistenceController.shared.container.viewContext
+    }
     
     private init(){
         
         deviceId = OAuthManager.getDeviceId()
         
-        authorizationData = retrieveAuthorizationData()
+        /*authorizationData = retrieveAuthorizationData()
         
         if(authorizationData != nil){
             setAuthorizationData(authorizationData: authorizationData!)
-        }
+        }*/
     }
     
     private static func getDeviceId() -> String {
@@ -57,25 +70,40 @@ class OAuthManager: ObservableObject{
         return deviceId
     }
     
-    func getValidAccessToken(onSuccess: @escaping (String) -> Void) {
+    func getValidAccount(onSuccess: @escaping (Account) -> Void) {
         
-        if(authorizationData != nil){
-            let isValid = Date.now.distance(to: authorizationData!.expireDate) > 0
+        let account = accountsManager.account
+        
+        if let account = account {
+            let isValid = Date.now.distance(to: account.authData.expireDate) > 0
             
             if(isValid){
-                onSuccess(authorizationData!.accessToken)
+                onSuccess(account)
                 return
             }
             
             // The access token is expired
             
-            refreshToken(onSuccess: onSuccess)
+            refreshToken(account: account, onSuccess: onSuccess)
             return
         }
         
         fetchAuthorizationData(type: .installed_client) { authorizationData in
-            self.setAndStoreAuthorizationData(authorizationData: authorizationData)
-            onSuccess(authorizationData.accessToken)
+            let account = self.accountsManager.createGuestAccount(authData: authorizationData)
+            onSuccess(account)
+        }
+    }
+    
+    public func refreshToken(account: Account, onSuccess: @escaping (Account) -> Void){
+        let refreshToken: String? = account.authData.refreshToken
+        let requestType: AuthorizationRequestType = refreshToken != nil ? .refresh : .installed_client
+        
+        self.authorizationStatus = .refreshing
+        
+        fetchAuthorizationData(type: requestType, refreshToken: refreshToken) { newAuthData in
+            account.authData = newAuthData
+            try? self.moc.save()
+            onSuccess(account)
         }
     }
     
@@ -107,7 +135,7 @@ class OAuthManager: ObservableObject{
         return url.queryItems?.first(where: { $0.name == param })?.value
     }
     
-    private func storeAuthorizationData(authData: AuthorizationData){
+    /*private func storeAuthorizationData(authData: AuthorizationData){
         let encoder = JSONEncoder()
         
         do{
@@ -129,15 +157,15 @@ class OAuthManager: ObservableObject{
             return try? decoder.decode(AuthorizationData.self, from: authData)
         }
         return nil
-    }
+    }*/
     
-    func buildAuthorizationUrl() -> URL{
+    func buildAuthorizationUrl() -> URL {
         let scopes = scopeParameters.joined(separator: ",")
         let urlStr = "\(OAuthManager.AUTHORIZE_URL)?client_id=\(RedditApi.API_CLIENT_ID)&response_type=\(responseTypeParameter)&duration=\(tokenDurationParameter)&state=\(stateParameter)&redirect_uri=\(OAuthManager.CALLBACK_URL)&scope=\(scopes)"
         return URL(string: urlStr)!
     }
     
-    private func setAndStoreAuthorizationData(authorizationData: AuthorizationData){
+    /*private func setAndStoreAuthorizationData(authorizationData: AuthorizationData){
         setAuthorizationData(authorizationData: authorizationData)
         self.storeAuthorizationData(authData: authorizationData)
     }
@@ -146,7 +174,7 @@ class OAuthManager: ObservableObject{
         self.authorizationData = authorizationData
         self.authorizationStatus = .authorized
         self.accessToken = authorizationData.accessToken
-    }
+    }*/
     
     func onCallbackUrl(url: URL){
         semaphore.wait()
@@ -167,23 +195,16 @@ class OAuthManager: ObservableObject{
         }
         
         fetchAuthorizationData(type: .code, codeParameter: codeParam) { authData in
-            self.setAndStoreAuthorizationData(authorizationData: authData)
+            let account = Account(context: self.moc) // TODO retrieve account information
+            account.authData = authData
+            account.name = "Test"
+            account.guest = false
+            try? self.moc.save()
         }
 
     }
     
-    public func refreshToken(onSuccess: @escaping (String) -> Void){
-        
-        let refreshToken = authorizationData != nil ? authorizationData!.refreshToken : nil
-        let requestType: AuthorizationRequestType = refreshToken != nil ? .refresh : .installed_client
-        
-        self.authorizationStatus = .refreshing
-        
-        fetchAuthorizationData(type: requestType, refreshToken: refreshToken) { newAuthData in
-                    self.setAndStoreAuthorizationData(authorizationData: newAuthData)
-                    onSuccess(newAuthData.accessToken)
-        }
-    }
+    
     
     private func buildAuthorizationRequest(type: AuthorizationRequestType, codeParameter: String? = nil, refreshToken: String? = nil) -> URLRequest? {
         let url = URL(string: OAuthManager.TOKEN_REQUEST_URL)!
@@ -242,7 +263,7 @@ class OAuthManager: ObservableObject{
         return request
     }
     
-    private func fetchAuthorizationData(type: AuthorizationRequestType,codeParameter: String? = nil, refreshToken: String? = nil, onSuccess: @escaping (AuthorizationData) -> Void) {
+    private func fetchAuthorizationData(type: AuthorizationRequestType, codeParameter: String? = nil, refreshToken: String? = nil, onSuccess: @escaping (AuthorizationData) -> Void) {
         
         let request = buildAuthorizationRequest(type: type, codeParameter: codeParameter, refreshToken: refreshToken)!
         
@@ -268,15 +289,15 @@ class OAuthManager: ObservableObject{
                     switch type {
                     case .code:
                         let refreshToken = dataDictionary["refresh_token"] as? String
-                        let authData = AuthorizationData(accessToken: accessToken!, tokenType: tokenType!, expiresIn: expiresIn!, scope: scope!, refreshToken: refreshToken!, expireDate: Date.now.advanced(by: TimeInterval(expiresIn!)))
+                        let authData = AuthorizationData(moc: self.moc, accessToken: accessToken!, tokenType: tokenType!, expiresIn: Int64(expiresIn!), scope: scope!, refreshToken: refreshToken!, expireDate: Date.now.advanced(by: TimeInterval(expiresIn!)))
                         onSuccess(authData)
                         
                     case .refresh:
-                        let newAuthorizationData = AuthorizationData(accessToken: accessToken!, tokenType: tokenType!, expiresIn: expiresIn!, scope: scope!, refreshToken: refreshToken, expireDate: Date.now.advanced(by: TimeInterval(expiresIn!)))
+                        let newAuthorizationData = AuthorizationData(moc: self.moc, accessToken: accessToken!, tokenType: tokenType!, expiresIn: Int64(expiresIn!), scope: scope!, refreshToken: refreshToken, expireDate: Date.now.advanced(by: TimeInterval(expiresIn!)))
                         onSuccess(newAuthorizationData)
                         
                     case .installed_client:
-                        let authData = AuthorizationData(accessToken: accessToken!, tokenType: tokenType!, expiresIn: expiresIn!, scope: scope!, refreshToken: nil, expireDate: Date.now.advanced(by: TimeInterval(expiresIn!)))
+                        let authData = AuthorizationData(moc: self.moc, accessToken: accessToken!, tokenType: tokenType!, expiresIn: Int64(expiresIn!), scope: scope!, refreshToken: nil, expireDate: Date.now.advanced(by: TimeInterval(expiresIn!)))
                         onSuccess(authData)
                     }
                 }
@@ -292,6 +313,7 @@ class OAuthManager: ObservableObject{
 
         task.resume()
     }
+    
 }
 
 class MissingAuthorizationData: Error{
@@ -306,7 +328,7 @@ enum AuthorizationStatus {
     case authorized, unauthorized, pending, failed, refreshing
 }
 
-struct AuthorizationData: Codable {
+/*struct AuthorizationData: Codable {
     
     let accessToken: String
     let tokenType: String
@@ -324,4 +346,4 @@ struct AuthorizationData: Codable {
         case refreshToken = "refresh_token"
         case expireDate = "expire_date"
     }
-}
+}*/

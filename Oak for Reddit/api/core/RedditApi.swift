@@ -107,13 +107,15 @@ class RedditApi: NSObject{
                   onFail: ((ApiFetchFailCause) -> Void)? = nil) {
         
 
-        oauth.getValidAccessToken { accessToken in
+        oauth.getValidAccount { account in
             
             guard var request = self.buildRequest(endpoint: endpoint)
             else{
                 onFail?(.unknown)
                 return
             }
+            
+            let accessToken = account.authData.accessToken
             
             print("Making API request to: \(request.url!)")
             
@@ -127,7 +129,8 @@ class RedditApi: NSObject{
                     print("Invalid access token.")
                     print("Trying to refresh the access token")
                     
-                    self.oauth.refreshToken(onSuccess: { accessToken in
+                    self.oauth.refreshToken(account: account, onSuccess: { refreshedAccount in
+                        let accessToken = refreshedAccount.authData.accessToken
                         request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
                         self.makeRequest(request: request, parser: parser, onSuccess: onSuccess) { cause in
                             onFail?(cause)
@@ -199,9 +202,9 @@ class RedditApi: NSObject{
         let xRateLimitRemainig: String? = response.value(forHTTPHeaderField: "x-ratelimit-remaining")
         let xRateLimitReset: String? = response.value(forHTTPHeaderField: "x-ratelimit-reset")
         
-        self.xRateLimitUsed = Int(xRateLimitUsed ?? "0")!
-        self.xRateLimitRemainig = Int(xRateLimitRemainig ?? "300")!
-        self.xRateLimitReset = Int(xRateLimitReset ?? "600")!
+        self.xRateLimitUsed = Int(xRateLimitUsed ?? "0") ?? 0
+        self.xRateLimitRemainig = Int(xRateLimitRemainig ?? "300") ?? 300
+        self.xRateLimitReset = Int(xRateLimitReset ?? "600") ?? 600
         
         //print("xRateLimitUsed: \(self.xRateLimitUsed), xRateLimitRemaining: \(self.xRateLimitRemainig), xRateLimitReset:\(self.xRateLimitReset)")
     }

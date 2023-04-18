@@ -90,7 +90,7 @@ struct PostThumbnailView: View {
                 .resizable()
                 .frame(width: size, height: size)
         }
-        else if mediaViewerModel.post?.uuid != post.uuid, let thumbnailUrl = post.thumbnailUrl {
+        else if let thumbnailUrl = post.thumbnailUrl {
             AsyncImage(url: thumbnailUrl) { image in
                 
                 image
@@ -101,7 +101,7 @@ struct PostThumbnailView: View {
                     .resizable()
                     .frame(width: size, height: size)
             }
-            .matchedGeometryEffect(id: post.uuid, in: namespaceWrapper.namespace, properties: .position)
+            //.matchedGeometryEffect(id: post.uuid, in: namespaceWrapper.namespace, properties: .position)
             .scaledToFill()
             .frame(width: size, height: size)
             .overlay(alignment: .bottomLeading) {
