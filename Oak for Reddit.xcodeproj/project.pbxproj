@@ -49,6 +49,7 @@
 		136FB3F629C2010400C3FCF4 /* Oak_for_RedditUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136FB3F529C2010400C3FCF4 /* Oak_for_RedditUITestsLaunchTests.swift */; };
 		136FB40629C21D9200C3FCF4 /* RedditApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136FB40529C21D9200C3FCF4 /* RedditApi.swift */; };
 		136FB40729C21D9200C3FCF4 /* RedditApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136FB40529C21D9200C3FCF4 /* RedditApi.swift */; };
+		139A627829ED994C009D1105 /* SearchableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139A627729ED994C009D1105 /* SearchableView.swift */; };
 		13AE9E0D29CA4A1000242EE5 /* PostListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AE9E0C29CA4A1000242EE5 /* PostListModel.swift */; };
 		13AE9E0F29CA4D5F00242EE5 /* PostListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AE9E0E29CA4D5F00242EE5 /* PostListView.swift */; };
 		13AE9E1129CA4F8400242EE5 /* Post.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AE9E1029CA4F8400242EE5 /* Post.swift */; };
@@ -126,6 +127,7 @@
 		136FB3F529C2010400C3FCF4 /* Oak_for_RedditUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Oak_for_RedditUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		136FB40529C21D9200C3FCF4 /* RedditApi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedditApi.swift; sourceTree = "<group>"; };
 		136FB40829C21F9300C3FCF4 /* Oak-for-Reddit-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Oak-for-Reddit-Info.plist"; sourceTree = SOURCE_ROOT; };
+		139A627729ED994C009D1105 /* SearchableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchableView.swift; sourceTree = "<group>"; };
 		13AE9E0C29CA4A1000242EE5 /* PostListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListModel.swift; sourceTree = "<group>"; };
 		13AE9E0E29CA4D5F00242EE5 /* PostListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListView.swift; sourceTree = "<group>"; };
 		13AE9E1029CA4F8400242EE5 /* Post.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Post.swift; sourceTree = "<group>"; };
@@ -348,6 +350,7 @@
 				13EFE7E129C2A4E900C6C13D /* WebView.swift */,
 				1337E9B129D737D300D9E63B /* AsyncUIImage.swift */,
 				1337E9AF29D7244E00D9E63B /* SafariView.swift */,
+				139A627729ED994C009D1105 /* SearchableView.swift */,
 			);
 			path = utils;
 			sourceTree = "<group>";
@@ -606,6 +609,7 @@
 				1337E97D29CF115B00D9E63B /* Media.swift in Sources */,
 				1337E9B629D9D92400D9E63B /* PostMediaViewer.swift in Sources */,
 				135BFF8929E97CD500C98978 /* CommentEndpoints.swift in Sources */,
+				139A627829ED994C009D1105 /* SearchableView.swift in Sources */,
 				1337E97B29CE581F00D9E63B /* PostView.swift in Sources */,
 				135BFF7C29E86D4E00C98978 /* Model.xcdatamodeld in Sources */,
 				13AE9E0D29CA4A1000242EE5 /* PostListModel.swift in Sources */,

@@ -46,21 +46,21 @@ class PostListModel: ObservableObject {
     
     private let api: RedditApi = RedditApi.shared
     
-    let subreddit: Subreddit?
+    //let subreddit: Subreddit?
+    let subredditNamePrefixed: String
     
     @Published var posts: Listing<Post>? = nil
     
-    init(subreddit: Subreddit? = nil){
-        self.subreddit = subreddit
+    init(subredditNamePrefixed: String? = nil){
+        
+        if let subredditNamePrefixed = subredditNamePrefixed {
+            self.subredditNamePrefixed = "/\(subredditNamePrefixed)"
+        }
+        else {
+            self.subredditNamePrefixed = ""
+        }
     }
     
-    private var subredditNamePrefixed: String {
-        if let subreddit = self.subreddit {
-            return "/" + subreddit.displayNamePrefixed
-        }
-        
-        return ""
-    }
     
     func load(order: PostListingOrder) async {
         

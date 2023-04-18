@@ -92,7 +92,7 @@ final class Listing<T: Thing>: Sequence, RandomAccessCollection, Equatable {
                 return nil
             }
             
-            return Thing.build(from: childDict)
+            return Thing.build(from: childDict, fromListing: true)
         }
         
         

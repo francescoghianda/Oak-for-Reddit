@@ -285,6 +285,7 @@ struct LargePostCardView: View {
     let post: Post
     let showPin: Bool
     @StateObject var mediaSize: MediaSize
+    let linkToSubredditIsActive: Bool
     //@Binding var postToShow: Post?
     //let namespace: Namespace.ID
         
@@ -380,10 +381,7 @@ struct LargePostCardView: View {
                             }
                             .frame(minWidth: mediaSize.size.width, minHeight: mediaSize.size.height) // Impedisce alla view di tornare piccola quando viene ricaricata durante lo scroll (LazyVStack), cosi da non far saltare la scrollview
                             
-                        
                     }
-                    
-                    
                     
                 }
                     
@@ -438,9 +436,17 @@ struct LargePostCardView: View {
                     
                     
                     Spacer()
-                    Text(post.subreddit)
-                        .font(.system(size: 14))
-                        .foregroundColor(Color.gray)
+                    
+                    NavigationLink {
+                        PostListView(subredditNamePrefixed: "r/\(post.subreddit)")
+                    } label: {
+                        Text(post.subreddit)
+                            .font(.system(size: 14))
+                            .foregroundColor(Color.gray)
+                    }
+                    .disabled(!linkToSubredditIsActive)
+                    
+                    
                 }
             }
         }

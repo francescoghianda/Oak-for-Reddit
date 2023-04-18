@@ -72,66 +72,6 @@ private struct OrderSelectorView: View {
     }
 }
 
-/*struct PostStackView: View {
-    
-     // NOT IN USE
-    
-    @ObservedObject var api: PostListModel
-    @Binding var order: PostListingOrder
-    @Binding var loading: Bool
-    @State var postToShow: Post? = nil
-    private let mediaSizeCache = MediaSizeCache()
-    @Namespace var namespace
-    
-    @Binding private var cardSize: CardSize
-    
-    var body: some View {
-        
-        VStack {
-            if !loading {
-                ForEach(api.posts!) { post in
-                    Divider()
-                    
-                    switch cardSize {
-                    case .large:
-                        LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.uuid], postToShow: $postToShow, namespace: namespace)
-                    case .compact:
-                        CompactPostCardView(post: post, showPin: order == .hot)
-                    }
-                    //.transition(.opacity)
-                }
-                
-                Divider()
-
-                if(!api.posts!.isEmpty){
-                    HStack{
-                        Spacer()
-                        if(api.posts!.hasThingsAfter){
-                            ProgressView()
-                                .task {
-                                    await api.loadMore(order: order)
-                                }
-                        }
-                        else{
-                            Text("You have reached the end")
-                                .font(.system(size: 12))
-                                .foregroundColor(.gray)
-                                .padding()
-                        }
-                        Spacer()
-                    }
-                    
-                    Divider()
-                    
-                }
-            }
-        }
-        
-        
-    }
-    
-}*/
-
 fileprivate enum CardSize: String, Codable {
     case large, compact
 }
@@ -174,6 +114,8 @@ class MediaSizeCache {
 struct PostListView: View {
     
     let subreddit: Subreddit?
+    let subredditNamePrefixed: String?
+    let linkToSbubredditsAreActive: Bool
     
     @State private var scrollViewOffset: CGFloat = .zero
     
@@ -195,9 +137,17 @@ struct PostListView: View {
     
     init(subreddit: Subreddit? = nil) {
         self.subreddit = subreddit
-        self._api = StateObject(wrappedValue: PostListModel(subreddit: subreddit))
+        self.subredditNamePrefixed = subreddit?.displayNamePrefixed
+        self.linkToSbubredditsAreActive = subreddit == nil
+        self._api = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subreddit?.displayNamePrefixed))
     }
     
+    init(subredditNamePrefixed: String) {
+        self.subreddit = nil
+        self.subredditNamePrefixed = subredditNamePrefixed
+        self.linkToSbubredditsAreActive = false
+        self._api = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subredditNamePrefixed))
+    }
     
     
     var body: some View {
@@ -216,9 +166,9 @@ struct PostListView: View {
                                 
                                 switch cardSize {
                                 case .large:
-                                    LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.uuid])
+                                    LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.uuid], linkToSubredditIsActive: linkToSbubredditsAreActive)
                                 case .compact:
-                                    CompactPostCardView(post: post, showPin: order == .hot)
+                                    CompactPostCardView(post: post, showPin: order == .hot, linkToSubredditIsActive: linkToSbubredditsAreActive)
                                 }
                                 
                                 
@@ -289,7 +239,7 @@ struct PostListView: View {
             
             
         }
-        .navigationBarTitle(subreddit?.displayNamePrefixed ?? "Posts", displayMode: .inline)
+        .navigationBarTitle(subredditNamePrefixed ?? "Posts", displayMode: .inline)
         .onChange(of: order, perform: { newValue in
             loading = true
         })

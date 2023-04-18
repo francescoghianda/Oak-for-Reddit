@@ -67,6 +67,13 @@ struct Endpoint {
     
 }
 
+struct TypedEndpoint<T> {
+    
+    private(set) var endpoint: Endpoint
+    private(set) var parser: RedditApi.Parser<T>
+    
+}
+
 extension Endpoint {
     
     static func buildParameters(_ dictionary: [String : Any?]) -> ParameterDictionary {

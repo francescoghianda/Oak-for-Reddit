@@ -59,6 +59,11 @@ struct SubredditListView: View {
     @State var order: SubredditListingOrder = .normal
     @State var loading: Bool = false
     
+    //@Binding var searchText: String
+    @Environment(\.isSearching) private var isSearching
+    
+    @Environment(\.searchText) private var searchText
+    
     @Environment(\.managedObjectContext) private var viewContext
 
     @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [])
@@ -83,6 +88,7 @@ struct SubredditListView: View {
                 ZStack{
                     
                     List {
+                        
                         ForEach(model.subreddits) { subreddit in
                             
                             let isFavorite = isFavorite(subreddit.subredditId)
@@ -134,10 +140,22 @@ struct SubredditListView: View {
                     }
                     .listStyle(.plain)
                     .refreshable{
-                        loading = true
-                        await model.load(order: order)
-                        loading = false
+                        if !isSearching {
+                            loading = true
+                            await model.load(order: order)
+                            loading = false
+                        }
                     }
+                    .onChange(of: isSearching, perform: { isSearching in
+                        
+                        if isSearching {
+                            model.save()
+                        }
+                        else {
+                            model.restore()
+                        }
+                        
+                    })
                     .onChange(of: order) { newOrder in
                         Task {
                             loading = true
@@ -163,14 +181,27 @@ struct SubredditListView: View {
                 
             }
             
-            
-            if(model.subreddits.isEmpty){
-                ProgressView()
+            if isSearching && model.subreddits.isEmpty && !loading {
+                Image(systemName: "magnifyingglass")
+                    .resizable()
+                    .foregroundColor(.gray)
+                    .frame(width: 40, height: 40)
+                    .scaledToFit()
+            }
+            else if !isSearching && model.isEmpty() {
+                Color.clear
                     .task{
                         loading = true
                         await model.load(order: order)
                         loading = false
                     }
+            }
+        }
+        .onSearchSubmit {
+            Task {
+                loading = true
+                await model.search(sort: .relevance, query: searchText)
+                loading = false
             }
         }
         

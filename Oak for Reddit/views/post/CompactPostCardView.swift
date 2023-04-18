@@ -154,18 +154,11 @@ struct CompactPostCardView: View {
     
     let post: Post
     let showPin: Bool
+    let linkToSubredditIsActive: Bool
     
     @State var photoIsPresented: Bool = false
     @State var linkIsPresented: Bool = false
     
-    let dateFormatter = DateFormatter()
-    
-    init(post: Post, showPin: Bool){
-        self.post = post
-        self.showPin = showPin
-        
-        dateFormatter.dateFormat = "dd/MM/yy"
-    }
     
     var body: some View {
             
@@ -243,7 +236,7 @@ struct CompactPostCardView: View {
                             //.padding(.leading, 5)
                     }
                     
-                    Text(post.getTimeSiceCreationFormatted(dateFormatter: dateFormatter))
+                    Text(post.getTimeSiceCreationFormatted())
                         .foregroundColor(Color.gray)
                         .font(.system(size: 12))
                         .bold()
@@ -260,9 +253,15 @@ struct CompactPostCardView: View {
                     
                     
                     Spacer()
-                    Text(post.subreddit)
-                        .font(.system(size: 14))
-                        .foregroundColor(Color.gray)
+                    
+                    NavigationLink {
+                        PostListView(subredditNamePrefixed: "r/\(post.subreddit)")
+                    } label: {
+                        Text(post.subreddit)
+                            .font(.system(size: 14))
+                            .foregroundColor(Color.gray)
+                    }
+                    .disabled(!linkToSubredditIsActive)
                 }
             }
         }

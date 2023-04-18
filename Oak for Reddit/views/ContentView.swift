@@ -29,6 +29,8 @@ struct ContentView: View {
     
     @State var selectedTab: Int = 2
     
+    //@State var subredditSeachText: String = ""
+    
     var body: some View {
         
         //let subreddits = SubrettitList(redditApi: redditApi)
@@ -37,17 +39,21 @@ struct ContentView: View {
             
             TabView(selection: $selectedTab){
                 FavoritesSubredditsView()
-                        .tabItem {
-                            Image(systemName: "star.fill")
-                            Text("Favorites")
-                        }
-                        .tag(0)
-                SubredditListView()
-                        .tabItem {
-                            Image(systemName: "list.dash")
-                            Text("Subreddits")
-                        }
-                        .tag(1)
+                    .tabItem {
+                        Image(systemName: "star.fill")
+                        Text("Favorites")
+                    }
+                    .tag(0)
+                
+                SearchableView {
+                    SubredditListView()
+                }
+                .tabItem {
+                    Image(systemName: "list.dash")
+                    Text("Subreddits")
+                }
+                .tag(1)
+                
                 NavigationView{
                     PostListView()
                 }

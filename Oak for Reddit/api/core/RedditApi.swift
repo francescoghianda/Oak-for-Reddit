@@ -67,6 +67,10 @@ class RedditApi: NSObject{
         return request
     }
     
+    func fetch<T>(_ endpoint: TypedEndpoint<T>) async throws -> T {
+        return try await fetch(endpoint: endpoint.endpoint, parser: endpoint.parser)
+    }
+    
     func fetchListing<T>(_ endpoint: Endpoint) async throws -> Listing<T> {
         return Listing.build(from: try await fetchJsonObject(endpoint))
     }

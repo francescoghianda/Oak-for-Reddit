@@ -17,6 +17,15 @@ struct Parsers {
         return try JSONSerialization.jsonObject(with: data, options: []) as? T
     }
     
+    static func listingParser<T>(_ data: Data) throws -> Listing<T> {
+        
+        if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any] {
+            return Listing.build(from: json)
+        }
+        
+        return Listing.empty()
+    }
+    
     static let moreCommentsParser: RedditApi.Parser<(comments: [Comment], mores: [More])> = { data in
         
         let json = (try JSONSerialization.jsonObject(with: data, options: []) as! [String : Any])["json"] as! [String : Any]

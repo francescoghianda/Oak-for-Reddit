@@ -14,10 +14,21 @@ struct FavoritesSubredditsView: View {
     @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [])
     private var favorites: FetchedResults<SubredditEntity>
     
+    @State var searchText: String = ""
+    
     var body: some View {
         
         let subreddits = favorites.map { entity in
             Subreddit(entity: entity)
+        }
+        .filter { subreddit in
+            
+            guard let _ = subreddit.displayName.range(of: searchText, options: .caseInsensitive)
+            else {
+                return searchText.isEmpty
+            }
+            
+            return true
         }
         
         ZStack {
@@ -46,6 +57,7 @@ struct FavoritesSubredditsView: View {
                 .navigationTitle("Favorites")
                 
             }
+            .searchable(text: $searchText)
             
             if subreddits.isEmpty {
                 Text("There are no favorites :(")

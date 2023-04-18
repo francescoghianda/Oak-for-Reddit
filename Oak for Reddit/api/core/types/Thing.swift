@@ -23,8 +23,8 @@ protocol ThingFactory{
     func build<T: Thing>(from: [String : Any]) -> T
 }
 
-enum ThingKind {
-    case comment, account, link, message, subreddit, award // t1, t2, t3, t4, t5, t6
+enum ThingKind: String {
+    case comment = "t1", account = "t2", link = "t3", message = "t4", subreddit = "t5", award = "t6" // t1, t2, t3, t4, t5, t6
 }
 
 class Thing: Identifiable, Equatable, Codable {
@@ -74,12 +74,15 @@ class Thing: Identifiable, Equatable, Codable {
         try values.encode(dataJson, forKey: .data)
     }
     
-    public static func build<T: Thing>(from: [String : Any]) -> T {
+    public static func build<T: Thing>(from: [String : Any], fromListing: Bool = false) -> T {
         
-        let id = from["id"] as? String
-        let name = from["name"] as? String
-        let kind = from["kind"] as! String
         let data = from["data"] as! [String : Any]
+        let kind = from["kind"] as! String
+        
+        let source = fromListing ? data : from
+        
+        let id = source["id"] as? String
+        let name = source["name"] as? String
         
         return T(id: id, name: name, kind: kind, data: data)
     }
