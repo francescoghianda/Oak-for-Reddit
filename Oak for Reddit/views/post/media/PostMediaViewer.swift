@@ -9,13 +9,17 @@ import SwiftUI
 
 struct GalleryView: View {
     
+    @EnvironmentObject var userPreferences: UserPreferences
+    
     let galleryData: GalleryData
+    let over18: Bool
     let contentCornerRadius: CGFloat
     var showContextMenu: Bool = false
     
     var onImageChangeHandler: ((_ image: UIImage) -> Void)? = nil
     
     @State var pageIndex: Int = 0
+    @State var blurredImages: Bool = false
     
     func onImageChange(_ perform: @escaping (_ image: UIImage) -> Void) -> some View {
         var newView = self
@@ -29,7 +33,7 @@ struct GalleryView: View {
             
             ForEach(0..<galleryData.items.count) { index in
                 
-                PostImageView(url: galleryData.items[index].url, showContextMenu: showContextMenu)
+                PostImageView(url: galleryData.items[index].url, blurImage: $blurredImages, showContextMenu: showContextMenu)
                     .onImageLoad{ image in
                         onImageChangeHandler?(image)
                     }
@@ -44,6 +48,11 @@ struct GalleryView: View {
         .scaledToFit()
         .tabViewStyle(.page)
         .indexViewStyle(.page(backgroundDisplayMode: .always))
+        .onFirstAppear {
+            if userPreferences.blurOver18Images && over18 {
+                blurredImages = true
+            }
+        }
         
     }
     
@@ -96,11 +105,15 @@ class PostSizeCache {
 
 struct PostImageView: View {
     
+    @EnvironmentObject var userPreferences: UserPreferences
+    
     let url: URL
+    @Binding var blurImage: Bool
     var onImageLoadHandler: ((_ image: UIImage) -> Void)? = nil
     var showContextMenu: Bool = false
     
     @State var image: UIImage? = nil
+    
     
     
     func onImageLoad(_ perform: @escaping (_ image: UIImage) -> Void) -> some View {
@@ -154,7 +167,19 @@ struct PostImageView: View {
                 
             }
         }
-
+        .overlay {
+            if blurImage {
+                ZStack{
+                    Rectangle()
+                        .background(.ultraThinMaterial)
+                    Button {
+                        blurImage = false
+                    } label: {
+                        Text("show")
+                    }
+                }
+            }
+        }
         
         
     }
@@ -174,10 +199,15 @@ struct PostImageView: View {
 
 struct PostMediaViewer: View {
     
+    @EnvironmentObject var userPreferences: UserPreferences
+    
     let post: Post
     var cornerRadius: CGFloat = 0
     var currentImage: Binding<UIImage?>? = nil
     var showContextMenu: Bool = false
+    
+    @State var blurImage: Bool = false
+    
     
     func contentCornerRadius(radius: CGFloat) -> PostMediaViewer {
         var newView = self
@@ -191,18 +221,23 @@ struct PostMediaViewer: View {
         if post.postLinkType == .image {
             
             
-            PostImageView(url: post.url!, showContextMenu: showContextMenu)
+            PostImageView(url: post.url!, blurImage: $blurImage, showContextMenu: showContextMenu)
                 .onImageLoad{ image in
                     currentImage?.wrappedValue = image
                 }
                 .scaledToFit()
                 .cornerRadius(cornerRadius)
+                .onFirstAppear {
+                    if userPreferences.blurOver18Images && post.over18 {
+                        blurImage = true
+                    }
+                }
 
         }
         
         if post.postLinkType == .gallery, let galleryData = post.galleryData {
             
-            GalleryView(galleryData: galleryData, contentCornerRadius: cornerRadius, showContextMenu: showContextMenu)
+            GalleryView(galleryData: galleryData, over18: post.over18, contentCornerRadius: cornerRadius, showContextMenu: showContextMenu)
                 .onImageChange { image in
                     currentImage?.wrappedValue = image
                 }

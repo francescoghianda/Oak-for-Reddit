@@ -22,7 +22,7 @@ enum Media {
     }
     
     struct RedditVideo {
-        let bitrateKbps: Int
+        let bitrateKbps: Int?
         let dashUrl: URL?
         let hlsUrl: URL?
         let fallbackUrl: URL?
@@ -36,7 +36,7 @@ enum Media {
         
         if let data = data["reddit_video"] as? [String : Any] {
             
-            let bitrate = data["bitrate_kbps"] as! Int
+            let bitrate = data["bitrate_kbps"] as? Int
             let dashUrl = Thing.getUrl(data: data, key: "dash_url")
             let hlsUrl = Thing.getUrl(data: data, key: "hls_url")
             let fallbackUrl = Thing.getUrl(data: data, key: "fallback_url")

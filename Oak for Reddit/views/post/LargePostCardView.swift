@@ -18,20 +18,29 @@ struct LinkAndThumbnailView: View {
     private let width = UIScreen.main.bounds.width * 0.7
     private let height = (UIScreen.main.bounds.width * 0.7) * 0.6
     
+    private let labelHeight = CGFloat(45)
+    
     var body: some View {
         
         if let thumbnailUrl = thumbnailUrl {
             
-            AsyncImage(url: thumbnailUrl) { image in
+            
+            VStack {
                 
-                image
-                    .resizable()
-                    .scaledToFill()
-
+                AsyncImage(url: thumbnailUrl) { image in
+                    
+                    image
+                        .resizable()
+                        .scaledToFill()
+                    
+                } placeholder: {
+                    ProgressView()
+                        .offset(y: -(labelHeight/2))
+                }
                 
-            } placeholder: {
-                ProgressView()
             }
+            .frame(width: width, height: height)
+            .background(.ultraThinMaterial)
             .overlay{
                 VStack{
                     
@@ -41,7 +50,7 @@ struct LinkAndThumbnailView: View {
                         .foregroundColor(.orange)
                         .lineLimit(1)
                         .padding(10)
-                        .frame(width: width)
+                        .frame(width: width, height: labelHeight)
                         .background(.ultraThinMaterial)
                         
                     
@@ -49,22 +58,26 @@ struct LinkAndThumbnailView: View {
                 .frame(width: .infinity)
                 
             }
-            .frame(width: width, height: height)
             .cornerRadius(10)
             
         }
         else {
             
-            Label {
+            HStack(spacing: 0){
+                Image(systemName: "link")
+                    .foregroundColor(.orange)
+                    .padding()
+                Divider()
                 Text("\(postUrl)")
                     .lineLimit(1)
                     .foregroundColor(.orange)
-            } icon: {
-                Image(systemName: "link")
-                    .foregroundColor(.orange)
+                    .padding()
             }
             .frame(width: .infinity)
+            .background(.ultraThinMaterial)
+            .cornerRadius(10)
             .padding()
+            
             
         }
         
@@ -82,126 +95,6 @@ struct LinkAndThumbnailView_Preview: PreviewProvider {
     }
 }
 
-/*struct PostContentView: View {
-    
-    let post: Post
-    @Binding var linkIsPresented: Bool
-    
-    @State var showImageOverlay: Bool = false
-    @State var imageSaved: Bool = false
-    
-    var body: some View {
-        
-        
-        if post.postLinkType == .image {
-            
-            AsyncUIImage(url: post.url) { (image, error) in
-                
-                if let image = image {
-                    
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFit()
-                        .cornerRadius(10, antialiased: true)
-                        .overlay {
-                            
-                            VStack {
-                                
-                                HStack{
-                                    
-                                    Button {
-                                        
-                                        ImageSaver {
-                                            withAnimation {
-                                                imageSaved = true
-                                            }
-                                        }
-                                        .saveImage(image: image)
-                                        
-                                    } label: {
-                                        
-                                        Image(systemName: "square.and.arrow.down")
-                                            .foregroundColor(.white)
-                                            .offset(y: showImageOverlay ? 0 : -20)
-                                        
-                                    }
-                                    
-                                    Spacer()
-                                }
-                                .padding()
-                                
-                                Spacer()
-                            }
-                            .background(LinearGradient(colors: [Color.black.opacity(0.8), Color.clear], startPoint: .top, endPoint: .bottom))
-                            .opacity(showImageOverlay ? 1 : 0)
-                            
-                        }
-                        .onTapGesture {
-                            
-                            withAnimation {
-                                showImageOverlay.toggle()
-                            }
-                            
-                        }
-                        /*.matchedGeometryEffect(id: post.uuid, in: mediaSheetNamespace, isSource: true)
-                        .onTapGesture {
-                            withAnimation(.spring()) {
-                                showMedia.toggle()
-                            }
-                        }*/
-                }
-                else if error != nil {
-                    Label {
-                        Text("Error loading image")
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle")
-                    }
-
-                }
-                else {
-                    ProgressView()
-                        .padding()
-                }
-                
-            }
-            
-            
-        }
-        else if (post.postLinkType == .media || post.postLinkType == .video), let media = post.media {
-            
-            switch media {
-            case .redditVideo(let data):
-                RedditVideoPlayer(url: data.hlsUrl!)
-                    .scaledToFit()
-                    .cornerRadius(10, antialiased: true)
-                
-            case .embed(let data):
-                EmbedVideoPlayer(media: data)
-                    .frame(idealWidth: CGFloat(data.width), idealHeight: CGFloat(data.height))
-                    .scaledToFit()
-                    .cornerRadius(10, antialiased: true)
-                    
-            case .unknown:
-                Rectangle()
-            }
-            
-        }
-        else if post.postLinkType == .link {
-            
-            Button {
-                linkIsPresented = true
-            } label: {
-                LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url)
-            }
-            
-        }
-        else {
-            Text("Internal link")
-        }
-        
-    }
-}*/
-
 
 struct SelfText: View {
     
@@ -218,9 +111,10 @@ struct SelfText: View {
     
     var body: some View {
         
-        VStack(alignment: .leading){
+        VStack(alignment: .leading, spacing: 0){
             
             Text(LocalizedStringKey(text))
+                .padding()
                 .lineLimit(expanded ? expandedLineLimit : lineLimit)
                 .background {
                     GeometryReader { geometry in
@@ -230,7 +124,9 @@ struct SelfText: View {
                     }
                 }
             
+            
             if truncated && !expanded {
+                Divider()
                 HStack{
                     Spacer()
                     Button("Show more") {
@@ -238,13 +134,14 @@ struct SelfText: View {
                             expanded = true
                         }
                     }
-                    .padding(.top)
+                    .padding()
                     Spacer()
                 }
                 
             }
             
             if expanded {
+                Divider()
                 HStack{
                     Spacer()
                     Button("Hide") {
@@ -252,11 +149,13 @@ struct SelfText: View {
                             expanded = false
                         }
                     }
-                    .padding(.top)
+                    .padding()
                     Spacer()
                 }
             }
         }
+        .background(.ultraThinMaterial)
+        .cornerRadius(10)
         
         
     }
@@ -281,6 +180,8 @@ struct SelfText: View {
 }
 
 struct LargePostCardView: View {
+    
+    @EnvironmentObject var userPreferences: UserPreferences
     
     let post: Post
     let showPin: Bool
@@ -307,17 +208,31 @@ struct LargePostCardView: View {
         
         VStack(spacing: 0){
             
-            if post.stickied && showPin {
-                HStack{
+            HStack{
+                
+                if post.stickied && showPin {
                     Image(systemName: "pin.fill")
                         .foregroundColor(Color.green)
                         .rotationEffect(.degrees(45))
                         .padding(5)
+                        
                     Text("PINNED BY MODERATORS")
                         .foregroundColor(Color.gray)
                         .bold()
                         .font(.system(size: 10))
-                    Spacer()
+                }
+                
+                Spacer()
+                
+                if post.over18 {
+                    NsfwSymbolView()
+                        .padding(5)
+                }
+                
+                if post.locked {
+                    Image(systemName: "lock")
+                        .foregroundColor(Color.gray)
+                        .padding(5)
                 }
             }
             
@@ -339,7 +254,6 @@ struct LargePostCardView: View {
                                 
                                 .bold()
                                 .multilineTextAlignment(.leading)
-                                //.matchedGeometryEffect(id: "posttitle\(post.uuid)", in: namespace, properties: .position)
                                 .frame(maxHeight: 60)
                         }
 
@@ -350,8 +264,10 @@ struct LargePostCardView: View {
 
                     if post.postLinkType == .permalink || post.postLinkType == .nolink { // self post
                         
-                        SelfText(post.selfText)
-                            .padding(.bottom)
+                        if !post.selfText.isEmpty {
+                            SelfText(post.selfText)
+                                .padding(.bottom)
+                        }
                         
                     }
                     else if post.postLinkType == .link { // external link
@@ -359,13 +275,14 @@ struct LargePostCardView: View {
                             .onTapGesture {
                                 linkIsPresented.toggle()
                             }
+                            .padding(.bottom)
                     }
                     else {
                         
                         PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true)
                             //.contentCornerRadius(radius: 10)
                             //.matchedGeometryEffect(id: "postmedia\(post.uuid)", in: namespace, properties: .position, anchor: .center)
-                            .padding(.bottom, 10)
+                            .padding(.bottom)
                             .overlay {
                                 
                                 GeometryReader { geo in
@@ -380,7 +297,6 @@ struct LargePostCardView: View {
                                 
                             }
                             .frame(minWidth: mediaSize.size.width, minHeight: mediaSize.size.height) // Impedisce alla view di tornare piccola quando viene ricaricata durante lo scroll (LazyVStack), cosi da non far saltare la scrollview
-                            
                     }
                     
                 }
@@ -394,7 +310,6 @@ struct LargePostCardView: View {
                     }
                     
                     Text(post.ups.toKNotation())
-                        .frame(width: 35, alignment: .leading)
                         .font(.system(size: 12))
                         .foregroundColor(Color.gray)
                     
@@ -412,7 +327,7 @@ struct LargePostCardView: View {
                     } label: {
                         HStack{
                             Image(systemName: "message.fill")
-                            Text("\(post.numComments)")
+                            Text("\(post.numComments.toKNotation())")
                                 .font(.system(size: 12))
                         }
                     }
@@ -424,15 +339,6 @@ struct LargePostCardView: View {
                         .font(.system(size: 12))
                         .bold()
                         .padding(.leading)
-                    
-                    if post.over18 {
-                        NsfwSymbolView()
-                    }
-                    
-                    if post.locked {
-                        Image(systemName: "lock")
-                            .foregroundColor(Color.gray)
-                    }
                     
                     
                     Spacer()
@@ -448,6 +354,7 @@ struct LargePostCardView: View {
                     
                     
                 }
+                .lineLimit(1)
             }
         }
         .fullScreenCover(isPresented: $linkIsPresented) {
