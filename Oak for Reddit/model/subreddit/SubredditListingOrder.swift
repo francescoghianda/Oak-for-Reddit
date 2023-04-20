@@ -8,29 +8,42 @@
 import Foundation
 import SwiftUI
 
-enum SubredditListingOrder: String, Hashable, CaseIterable, Identifiable, Equatable{
-    case normal = "default", popular, new
+
+
+@objc public enum SubredditListingOrder: Int, Hashable, CaseIterable, Identifiable, Equatable{
+    case normal, popular, new
         
-    var id: String {
+    public var id: Int {
         return self.rawValue
+    }
+    
+    public var string: String {
+        switch self {
+        case .normal:
+            return "default"
+        case .popular:
+            return "popular"
+        case .new:
+            return "new"
+        }
     }
 }
 
-extension SubredditListingOrder {
+extension SubredditListingOrder: ViewRappresentable {
     
-    var displayText: String {
-        rawValue.firstUppercased()
-        //"\(rawValue.first?.uppercased() ?? "")\(rawValue[rawValue.index(after: rawValue.startIndex)..<rawValue.endIndex])"
+    
+    var text: String {
+        self.string.firstUppercased()
     }
     
-    var systemImage: String {
+    var icon: Image {
         switch self {
         case .normal:
-            return "suit.club.fill"
+            return Image(systemName: "suit.club.fill")
         case .popular:
-            return "flame"
+            return Image(systemName: "flame")
         case .new:
-            return "bolt.fill"
+            return Image(systemName: "bolt.fill")
         }
     }
     

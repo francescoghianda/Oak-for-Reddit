@@ -8,14 +8,36 @@
 import Foundation
 import SwiftUI
 
-enum CommentsOrder: String, CaseIterable, Identifiable {
+@objc public enum CommentsOrder: Int, CaseIterable, Identifiable {
     case confidence, top, new, controversial, old, random, qa
     
-    var id: String {
-        return UUID().uuidString
+    public var id: Int {
+        return self.rawValue
     }
     
-    var viewString: String {
+    public var string: String {
+        switch self {
+        case .confidence:
+            return "best"
+        case .top:
+            return "top"
+        case .new:
+            return "new"
+        case .controversial:
+            return "controversial"
+        case .old:
+            return "old"
+        case .random:
+            return "random"
+        case .qa:
+            return "qa"
+        }
+    }
+}
+
+extension CommentsOrder: ViewRappresentable {
+    
+    var text: String {
         switch self {
         case .confidence:
             return "Best"
@@ -33,27 +55,23 @@ enum CommentsOrder: String, CaseIterable, Identifiable {
             return "Interview"
         }
     }
-}
-
-extension CommentsOrder {
     
-    
-    var systemImage: String {
+    var icon: Image {
         switch self {
         case .confidence:
-            return "line.horizontal.star.fill.line.horizontal"
+            return Image(systemName: "line.horizontal.star.fill.line.horizontal")
         case .top:
-            return "sparkle.magnifyingglass"
+            return Image(systemName: "sparkle.magnifyingglass")
         case .new:
-            return "clock"
+            return Image(systemName: "clock")
         case .controversial:
-            return "bolt.fill"
+            return Image(systemName: "bolt.fill")
         case .old:
-            return "hourglass.tophalf.filled"
+            return Image(systemName: "hourglass.tophalf.filled")
         case .random:
-            return "dice"
+            return Image(systemName: "dice")
         case .qa:
-            return "person.3.fill"
+            return Image(systemName: "person.3.fill")
         }
     }
     

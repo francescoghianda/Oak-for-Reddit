@@ -15,7 +15,7 @@ extension Endpoint {
     
     static func subredditListing(order: SubredditListingOrder, limit: Int = 10, after: String? = nil, count: Int? = nil) -> Endpoint {
         
-        let path = "/subreddits/\(order.id)"
+        let path = "/subreddits/\(order.string)"
         
         let parameters = buildParameters([
             "limit": limit,

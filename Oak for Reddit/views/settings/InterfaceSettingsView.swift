@@ -60,7 +60,7 @@ private struct ExpandableMenu<Content: View, Label: View>: View {
 
 private struct PostOrderPicker: View {
     
-    @Binding var selected: String
+    @Binding var selected: PostListingOrder
     
     var body: some View{
         
@@ -71,7 +71,7 @@ private struct PostOrderPicker: View {
                 switch sort {
                 case .top, .controversial:
                     
-                    let splitted = selected.split(separator: PostListingOrder.rawValueSeparator)
+                    let splitted = selected.rawValue.split(separator: PostListingOrder.rawValueSeparator)
                     let selectedSort = splitted.first ?? ""
                     let selectedRange = splitted[safe: 1] ?? ""
                     
@@ -84,10 +84,10 @@ private struct PostOrderPicker: View {
                             CheckedButton(checked: checkedRange) {
                                 
                                 if case .top = sort {
-                                    selected = PostListingOrder.top(range: range).rawValue
+                                    selected = PostListingOrder.top(range: range)
                                 }
                                 else {
-                                    selected = PostListingOrder.controversial(range: range).rawValue
+                                    selected = PostListingOrder.controversial(range: range)
                                 }
                                 
                             } label: {
@@ -104,7 +104,7 @@ private struct PostOrderPicker: View {
                     } label: {
                         HStack{
                             Label {
-                                Text(sort.displayText)
+                                Text(sort.text)
                             } icon: {
                                 Image(systemName: sort.systemImage)
                                     .foregroundColor(sort.color)
@@ -119,11 +119,11 @@ private struct PostOrderPicker: View {
 
                     
                 default:
-                    CheckedButton(checked: sort.rawValue == selected) {
-                        selected = sort.rawValue
+                    CheckedButton(checked: sort.rawValue == selected.rawValue) {
+                        selected = sort
                     } label: {
                         Label {
-                            Text(sort.displayText)
+                            Text(sort.text)
                                 .foregroundColor(.primary)
                         } icon: {
                             Image(systemName: sort.systemImage)
@@ -145,7 +145,7 @@ private struct PostOrderPicker: View {
 
 struct PostOrderPicker_Previews: PreviewProvider {
     
-    @State static var selected: String = "best"
+    @State static var selected: PostListingOrder = .best
     
     static var previews: some View {
         
@@ -183,18 +183,19 @@ struct LabelWithValue: View {
 fileprivate struct SubredditPreferredOrderPicker: View {
     
     @Environment(\.managedObjectContext) private var moc
-    @ObservedObject var settings: Settings
+    //@ObservedObject var settings: Settings
+    @EnvironmentObject var userPreferences: UserPreferences
     
     var body: some View {
         Form {
-            Picker("", selection: $settings.subredditPreferredSort) {
+            Picker("", selection: $userPreferences.subredditsPreferredOrder) {
                 ForEach(SubredditListingOrder.allCases) { sort in
                     
                     Label {
-                        Text(sort.displayText)
+                        Text(sort.text)
                             .foregroundColor(.primary)
                     } icon: {
-                        Image(systemName: sort.systemImage)
+                        sort.icon
                             .foregroundColor(sort.color)
                     }
                     .tag(sort)
@@ -202,7 +203,7 @@ fileprivate struct SubredditPreferredOrderPicker: View {
                 }
             }
             .pickerStyle(.inline)
-            .onChange(of: settings.subredditPreferredSort) { _ in
+            .onChange(of: userPreferences.subredditsPreferredOrder) { _ in
                 try? moc.save()
             }
         }
@@ -215,26 +216,26 @@ fileprivate struct SubredditPreferredOrderPicker: View {
 fileprivate struct CommentsPreferredOrderPicker: View {
     
     @Environment(\.managedObjectContext) private var moc
-    @ObservedObject var settings: Settings
+    @EnvironmentObject var userPreferences: UserPreferences
     
     var body: some View {
         Form {
-            Picker("", selection: $settings.commentsPreferredOrder) {
+            Picker("", selection: $userPreferences.commentsPreferredOrder) {
                 ForEach(CommentsOrder.allCases) { sort in
                     
                     Label {
-                        Text(sort.viewString)
+                        Text(sort.text)
                             .foregroundColor(.primary)
                     } icon: {
-                        Image(systemName: sort.systemImage)
+                        sort.icon
                             .foregroundColor(sort.color)
                     }
-                    .tag(sort.rawValue)
+                    .tag(sort)
                         
                 }
             }
             .pickerStyle(.inline)
-            .onChange(of: settings.commentsPreferredOrder) { _ in
+            .onChange(of: userPreferences.commentsPreferredOrder) { _ in
                 try? moc.save()
             }
         }
@@ -248,10 +249,11 @@ fileprivate struct CommentsPreferredOrderPicker: View {
 struct InterfaceSettingsView: View {
     
     @Environment(\.managedObjectContext) private var moc
-    @ObservedObject var settings: Settings
+    
+    @EnvironmentObject var userPreferences: UserPreferences
     
     private func postOrderLabel() -> some View {
-        let order = SettingsReader.postsPreferredSort
+        let order = userPreferences.postPreferredOrder
         let range: String? = {
             switch order {
             case .top(let range):
@@ -263,7 +265,7 @@ struct InterfaceSettingsView: View {
             }
         }()
         
-        let valueStr = range != nil ? "\(SettingsReader.postsPreferredSort.displayText) (\(range!))" : SettingsReader.postsPreferredSort.displayText
+        let valueStr = range != nil ? "\(order.text) (\(range!))" : order.text
         
         return LabelWithValue("Posts preferred order", value: valueStr)
     }
@@ -274,16 +276,16 @@ struct InterfaceSettingsView: View {
             
             Section("SUBREDDITS") {
                 NavigationLink {
-                    SubredditPreferredOrderPicker(settings: settings)
+                    SubredditPreferredOrderPicker()
                 } label: {
-                    LabelWithValue("Subreddits preferred order", value: SettingsReader.subredditsPreferredSort.displayText)
+                    LabelWithValue("Subreddits preferred order", value: userPreferences.subredditsPreferredOrder.text)
                 }
             }
             
             Section("POSTS") {
                 NavigationLink {
-                    PostOrderPicker(selected: $settings.postPreferredSort)
-                        .onChange(of: settings.postPreferredSort) { _ in
+                    PostOrderPicker(selected: $userPreferences.postPreferredOrder)
+                        .onChange(of: userPreferences.postPreferredOrder) { _ in
                             try? moc.save()
                         }
                 } label: {
@@ -292,32 +294,49 @@ struct InterfaceSettingsView: View {
                 
                 HStack{
                     Text("Post view mode")
-                    Picker("", selection: $settings.postCardSize) {
+                    Picker("", selection: $userPreferences.postsCardSize) {
                         
                         Text("Compact")
-                            .tag(PostCardSize.compact.rawValue)
+                            .tag(PostCardSize.compact)
                         
                         Text("Large")
-                            .tag(PostCardSize.large.rawValue)
+                            .tag(PostCardSize.large)
                         
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: settings.postCardSize) { _ in
+                    .onChange(of: userPreferences.postsCardSize) { _ in
                         try? moc.save()
                     }
                 }
                 
-                Toggle("Load new posts automatically", isOn: $settings.automaticLoadNewPosts)
-                    .onChange(of: settings.automaticLoadNewPosts) { newValue in
+                Toggle("Load new posts automatically", isOn: $userPreferences.loadNewPostsAutomatically)
+                    .onChange(of: userPreferences.loadNewPostsAutomatically) { newValue in
                         try? moc.save()
                     }
             }
             
             Section("COMMENTS") {
                 NavigationLink {
-                    CommentsPreferredOrderPicker(settings: settings)
+                    CommentsPreferredOrderPicker()
                 } label: {
-                    LabelWithValue("Comments preferred order", value: SettingsReader.commentsPreferredSort.viewString)
+                    LabelWithValue("Comments preferred order", value: userPreferences.commentsPreferredOrder.text)
+                }
+                
+                HStack{
+                    Text("Comments view mode")
+                    Picker("", selection: $userPreferences.commentsViewMode) {
+                        
+                        Text("Classic")
+                            .tag(CommentsViewMode.classic)
+                        
+                        Text("Light")
+                            .tag(CommentsViewMode.light)
+                        
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: userPreferences.commentsViewMode) { _ in
+                        try? moc.save()
+                    }
                 }
             }
             

@@ -13,7 +13,6 @@ struct SettingsView: View {
 
     //@FetchRequest(entity: Settings.entity(), sortDescriptors: [])
     //private var settings: FetchedResults<Settings>
-    private var settings = SettingsReader.settings
     
     var body: some View {
         
@@ -30,7 +29,7 @@ struct SettingsView: View {
                 }
                 
                 NavigationLink {
-                    InterfaceSettingsView(settings: settings)
+                    InterfaceSettingsView()
                 } label: {
                     Label("Interface", systemImage: "paintbrush.pointed.fill")
                 }

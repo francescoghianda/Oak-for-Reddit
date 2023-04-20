@@ -14,6 +14,8 @@ struct Oak_for_RedditApp: App {
     
     let persistenceController = PersistenceController.shared
     
+    
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -32,4 +34,5 @@ struct Oak_for_RedditApp: App {
                 }
         }
     }
+    
 }

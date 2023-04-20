@@ -207,6 +207,7 @@ class OAuthManager: ObservableObject {
     
     
     private func buildAuthorizationRequest(type: AuthorizationRequestType, codeParameter: String? = nil, refreshToken: String? = nil) -> URLRequest? {
+        
         let url = URL(string: OAuthManager.TOKEN_REQUEST_URL)!
         
         var request = URLRequest(url: url)
@@ -246,8 +247,7 @@ class OAuthManager: ObservableObject {
             case .refresh:
                 return [
                     "grant_type": "refresh_token",
-                    "code": refreshToken!,
-                    "redirect_uri": OAuthManager.CALLBACK_URL
+                    "refresh_token": refreshToken!
                 ]
             case .installed_client:
                 return [
@@ -257,7 +257,7 @@ class OAuthManager: ObservableObject {
             }
             
         }()
-                
+                        
         request.httpBody = parameters.percentEncoded()
         
         return request

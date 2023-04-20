@@ -23,6 +23,9 @@ struct ContentView: View {
     @State var selectedTab: Int = 2
     @ObservedObject var oauthManager = OAuthManager.shared
     
+    @FetchRequest(entity: UserPreferences.entity(), sortDescriptors: [])
+    private var userPreferences: FetchedResults<UserPreferences>
+    
     var body: some View {
                 
         TabView(selection: $selectedTab){
@@ -63,6 +66,7 @@ struct ContentView: View {
         } content: {
             AuthorizationSheet()
         }
+        .environmentObject(userPreferences.first!)
 
         
     }

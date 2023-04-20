@@ -33,7 +33,7 @@ private struct OrderSelectorView: View {
                             }
                         }
                     } label: {
-                        Label(item.displayText, systemImage: item.systemImage)
+                        Label(item.text, systemImage: item.systemImage)
                     }
 
                 default:
@@ -42,7 +42,7 @@ private struct OrderSelectorView: View {
                         //bindListing.wrappedValue = api.getListing(order: item)
                         
                     } label: {
-                        Label(item.displayText, systemImage: item.systemImage)
+                        Label(item.text, systemImage: item.systemImage)
                     }
                 }
                 
@@ -55,7 +55,7 @@ private struct OrderSelectorView: View {
     }
 }
 
-enum PostCardSize: String, Codable {
+@objc public enum PostCardSize: Int, Codable {
     case large, compact
 }
 
@@ -104,7 +104,7 @@ struct PostListView: View {
     
     @StateObject var api: PostListModel
     
-    @State private var order: PostListingOrder = SettingsReader.postsPreferredSort
+    @State private var order: PostListingOrder = .best
     //@State private var posts: Listing<Post>? = nil
     @State private var loading: Bool = true
     @State private var loadingMore: Bool = false
@@ -119,8 +119,7 @@ struct PostListView: View {
     
     //@AppStorage("cardSize") private var cardSize: PostCardSize = PostCardSize.large
     
-    @FetchRequest(entity: Settings.entity(), sortDescriptors: [])
-    private var settings: FetchedResults<Settings>
+    @EnvironmentObject var userPreferences: UserPreferences
     
     init(subreddit: Subreddit? = nil) {
         self.subreddit = subreddit
@@ -138,10 +137,7 @@ struct PostListView: View {
     
     
     var body: some View {
-        
-        let cardSize = PostCardSize(rawValue: settings.first?.postCardSize ?? "") ?? .large
-        let automaticLoadNewPost = settings.first?.automaticLoadNewPosts ?? true
-        
+                
         ZStack{
             
                 
@@ -154,7 +150,7 @@ struct PostListView: View {
                             ForEach(posts) { post in
                                 Divider()
                                 
-                                switch cardSize {
+                                switch userPreferences.postsCardSize {
                                 case .large:
                                     LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.uuid], linkToSubredditIsActive: linkToSbubredditsAreActive)
                                 case .compact:
@@ -172,7 +168,7 @@ struct PostListView: View {
                                     Spacer()
                                     if(posts.hasThingsAfter){
                                         
-                                        if automaticLoadNewPost {
+                                        if userPreferences.loadNewPostsAutomatically {
                                             ProgressView()
                                                 .task {
                                                     loadingMore = true
@@ -261,6 +257,9 @@ struct PostListView: View {
 
             }
             
+        }
+        .onFirstAppear {
+            order = userPreferences.postPreferredOrder
         }
         
     }

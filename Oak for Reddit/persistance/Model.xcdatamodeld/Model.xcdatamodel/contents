@@ -15,16 +15,6 @@
         <attribute name="tokenType" attributeType="String"/>
         <relationship name="account" optional="YES" maxCount="1" deletionRule="Deny" destinationEntity="Account" inverseName="authData" inverseEntity="Account"/>
     </entity>
-    <entity name="Settings" representedClassName=".Settings" syncable="YES">
-        <attribute name="automaticLoadNewPosts" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
-        <attribute name="commentsPreferredOrder" attributeType="String" defaultValueString="best"/>
-        <attribute name="commentsViewMode" attributeType="String" defaultValueString="classic"/>
-        <attribute name="postCardSize" attributeType="String" defaultValueString="large"/>
-        <attribute name="postPreferredSort" attributeType="String" defaultValueString="hot"/>
-        <attribute name="postShowOver18" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <attribute name="subredditPreferredSort" attributeType="String" defaultValueString="normal"/>
-        <attribute name="subredditShowOver18" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-    </entity>
     <entity name="SubredditEntity" representedClassName="SubredditEntity" syncable="YES" codeGenerationType="class">
         <attribute name="bannerImageUrl" optional="YES" attributeType="URI"/>
         <attribute name="displayName" optional="YES" attributeType="String"/>
@@ -38,10 +28,21 @@
         <attribute name="thingId" optional="YES" attributeType="String"/>
         <attribute name="thingName" optional="YES" attributeType="String"/>
     </entity>
+    <entity name="UserPreferences" representedClassName=".UserPreferences" syncable="YES">
+        <attribute name="blurOver18Images" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="commentsPreferredOrder" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="commentsViewMode" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="loadNewPostsAutomatically" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="postPreferredOrderStr" attributeType="String" defaultValueString="best"/>
+        <attribute name="postsCardSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="showOver18Posts" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="showOver18Subreddits" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="subredditsPreferredOrder" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
     <elements>
         <element name="Account" positionX="-36" positionY="90" width="128" height="89"/>
-        <element name="AuthorizationData" positionX="-9" positionY="99" width="128" height="134"/>
-        <element name="Settings" positionX="9" positionY="144" width="128" height="149"/>
-        <element name="SubredditEntity" positionX="-63" positionY="-18" width="128" height="194"/>
+        <element name="AuthorizationData" positionX="138.9405517578125" positionY="230.96728515625" width="128" height="134"/>
+        <element name="SubredditEntity" positionX="-189.6002197265625" positionY="26.94549560546875" width="128" height="194"/>
+        <element name="UserPreferences" positionX="-585.4842529296875" positionY="284.0109252929688" width="128" height="178"/>
     </elements>
 </model>

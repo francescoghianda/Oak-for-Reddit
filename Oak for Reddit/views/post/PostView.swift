@@ -10,6 +10,7 @@ import SwiftUI
 
 struct PostView: View {
     
+    @EnvironmentObject var userPrefereces: UserPreferences
     
     let post: Post
     @Binding var linkIsPresented: Bool
@@ -18,8 +19,6 @@ struct PostView: View {
     @StateObject var model: CommentsModel
     @State var commentsOrder: CommentsOrder = .confidence
     @State var showCommentsOrderPicker: Bool = false
-    
-    
     @State private var commentsViewMode: CommentsViewMode = .classic
     @State private var commentsLoading: Bool = false
     @State private var loadingMoreComments: Bool = false
@@ -109,7 +108,7 @@ struct PostView: View {
                             showCommentsOrderPicker.toggle()
                         } label: {
                             HStack{
-                                Label("Sort: \(commentsOrder.viewString)", systemImage: "arrow.up.arrow.down")
+                                Label("Sort: \(commentsOrder.text)", systemImage: "arrow.up.arrow.down")
                                 //Spacer()
                                 Image(systemName: "chevron.right")
                                     .rotationEffect(showCommentsOrderPicker ? .degrees(90.0) : .degrees(0.0))
@@ -186,7 +185,10 @@ struct PostView: View {
                 commentsLoading = false
             }
         }
-        
+        .onFirstAppear {
+            commentsViewMode = userPrefereces.commentsViewMode
+            commentsOrder = userPrefereces.commentsPreferredOrder
+        }
         
         
     }

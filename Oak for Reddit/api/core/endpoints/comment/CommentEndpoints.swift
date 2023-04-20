@@ -18,7 +18,7 @@ extension Endpoint {
         
         let parameters: ParameterDictionary = [
             "limit": limit,
-            "sort": order.rawValue
+            "sort": order.string
         ]
         
         return Endpoint(method: .get, scopes: [.read], needsAccount: false, path: path, parameters: parameters)
@@ -31,7 +31,7 @@ extension Endpoint {
         let parameters: ParameterDictionary = [
             "api_type": "json",
             "link_id": linkId,
-            "sort": order.rawValue,
+            "sort": order.string,
             "children": children.joined(separator: ","),
             "limit_children": 0
         ]

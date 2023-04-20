@@ -22,7 +22,7 @@ private struct OrderSelectorMenu: View {
                     order.wrappedValue = item
                     
                 } label: {
-                    Label(item.displayText, systemImage: item.systemImage)
+                    Label(title: {Text(item.text)}, icon: {item.icon})
                         .foregroundColor(item.color)
                 }
                 
@@ -36,9 +36,11 @@ private struct OrderSelectorMenu: View {
 
 struct SubredditListView: View {
     
+    @EnvironmentObject var userPreferences: UserPreferences
+    
     @StateObject var model = SubrettitListModel()
     
-    @State var order: SubredditListingOrder = SettingsReader.subredditsPreferredSort
+    @State var order: SubredditListingOrder = .normal
     @State var loading: Bool = false
     
     @Environment(\.isSearching) private var isSearching
@@ -49,9 +51,6 @@ struct SubredditListView: View {
     @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [])
     private var favorites: FetchedResults<SubredditEntity>
     
-    init() {
-        loadSettings()
-    }
     
     var body: some View {
                 
@@ -177,21 +176,11 @@ struct SubredditListView: View {
                 loading = false
             }
         }
-        
-        
-    }
-    
-    func loadSettings() {
-        
-        
-        
-        let moc = PersistenceController.shared.container.viewContext
-        let request = NSFetchRequest<Settings>(entityName: "Settings")
-        let settings = try? moc.fetch(request)
-        
-        if let settings = settings?.first {
-            order = SubredditListingOrder(rawValue: settings.subredditPreferredSort) ?? .normal
+        .onFirstAppear {
+            order = userPreferences.subredditsPreferredOrder
         }
+        
+        
     }
     
     func isFavorite(_ subredditId: String) -> Bool {

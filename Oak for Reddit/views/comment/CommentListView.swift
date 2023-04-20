@@ -7,13 +7,18 @@
 
 import SwiftUI
 
-enum CommentsViewMode: String {
+@objc public enum CommentsViewMode: Int {
     case classic, light
 }
 
 extension CommentsViewMode {
-    var displayText: String {
-        self.rawValue.firstUppercased()
+    var text: String {
+        switch self {
+        case .classic:
+            return "Classic"
+        case .light:
+            return "Ligth"
+        }
     }
 }
 

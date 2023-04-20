@@ -55,7 +55,7 @@ extension TimeRange {
     
 }
 
-enum PostListingOrder: Hashable, CaseIterable, Identifiable, Equatable{
+enum PostListingOrder: Hashable, CaseIterable, Identifiable, Equatable {
     case best, hot, new, rising
     case top(range: TimeRange), controversial(range: TimeRange)
     
@@ -93,7 +93,7 @@ enum PostListingOrder: Hashable, CaseIterable, Identifiable, Equatable{
 
 extension PostListingOrder {
     
-    var displayText: String {
+    var text: String {
         return rawValueNoRange.firstUppercased()
     }
     
