@@ -16,14 +16,17 @@ extension Settings {
         return NSFetchRequest<Settings>(entityName: "Settings")
     }
 
-    @NSManaged public var postCardSize: String?
-    @NSManaged public var postPreferredSort: String?
-    @NSManaged public var subredditPreferredSort: String?
+    @NSManaged public var postCardSize: String
+    @NSManaged public var postPreferredSort: String
+    @NSManaged public var subredditPreferredSort: String
     @NSManaged public var postShowOver18: Bool
     @NSManaged public var subredditShowOver18: Bool
+    @NSManaged public var automaticLoadNewPosts: Bool
+    @NSManaged public var commentsPreferredOrder: String
+    @NSManaged public var commentsViewMode: String
 
 }
 
 extension Settings : Identifiable {
-
+    
 }

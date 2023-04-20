@@ -97,3 +97,19 @@ extension Color {
     
 }
 
+
+extension String {
+    
+    func firstUppercased() -> String {
+        return "\(first?.uppercased() ?? "")\(self[index(after: startIndex)..<endIndex])"
+    }
+    
+}
+
+extension Collection {
+
+    subscript (safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
+

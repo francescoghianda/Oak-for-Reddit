@@ -17,23 +17,6 @@ private struct OrderSelectorView: View {
             
             ForEach(PostListingOrder.allCases, id: \.id) { item in
                 
-                let (symbol, text): (String, String) = {
-                    switch item {
-                    case .best:
-                        return ("line.horizontal.star.fill.line.horizontal", "Best")
-                    case .hot:
-                        return ("flame", "Hot")
-                    case .new:
-                        return ("clock", "New")
-                    case .rising:
-                        return ("chart.line.uptrend.xyaxis", "Rising")
-                    case .top:
-                        return ("sparkle.magnifyingglass", "Top")
-                    case .controversial:
-                        return ("bolt.fill", "Controversial")
-                    }
-                }()
-                
                 switch item {
                 case .top, .controversial:
                     Menu {
@@ -50,7 +33,7 @@ private struct OrderSelectorView: View {
                             }
                         }
                     } label: {
-                        Label(text, systemImage: symbol)
+                        Label(item.displayText, systemImage: item.systemImage)
                     }
 
                 default:
@@ -59,7 +42,7 @@ private struct OrderSelectorView: View {
                         //bindListing.wrappedValue = api.getListing(order: item)
                         
                     } label: {
-                        Label(text, systemImage: symbol)
+                        Label(item.displayText, systemImage: item.systemImage)
                     }
                 }
                 
@@ -72,7 +55,7 @@ private struct OrderSelectorView: View {
     }
 }
 
-fileprivate enum CardSize: String, Codable {
+enum PostCardSize: String, Codable {
     case large, compact
 }
 
@@ -121,9 +104,10 @@ struct PostListView: View {
     
     @StateObject var api: PostListModel
     
-    @State private var order: PostListingOrder = .hot
+    @State private var order: PostListingOrder = SettingsReader.postsPreferredSort
     //@State private var posts: Listing<Post>? = nil
     @State private var loading: Bool = true
+    @State private var loadingMore: Bool = false
     
     @State private var offset: CGPoint = .zero
     
@@ -133,7 +117,10 @@ struct PostListView: View {
     //@State var postToShow: Post? = nil
     @State var linkIsPresented: Bool = false
     
-    @AppStorage("cardSize") private var cardSize: CardSize = CardSize.large
+    //@AppStorage("cardSize") private var cardSize: PostCardSize = PostCardSize.large
+    
+    @FetchRequest(entity: Settings.entity(), sortDescriptors: [])
+    private var settings: FetchedResults<Settings>
     
     init(subreddit: Subreddit? = nil) {
         self.subreddit = subreddit
@@ -151,6 +138,9 @@ struct PostListView: View {
     
     
     var body: some View {
+        
+        let cardSize = PostCardSize(rawValue: settings.first?.postCardSize ?? "") ?? .large
+        let automaticLoadNewPost = settings.first?.automaticLoadNewPosts ?? true
         
         ZStack{
             
@@ -181,18 +171,36 @@ struct PostListView: View {
                                 HStack{
                                     Spacer()
                                     if(posts.hasThingsAfter){
-                                        /*Button {
-                                            Task{
-                                                await api.loadMore(order: order)
+                                        
+                                        if automaticLoadNewPost {
+                                            ProgressView()
+                                                .task {
+                                                    loadingMore = true
+                                                    await api.loadMore(order: order)
+                                                    loadingMore = false
+                                                }
+                                        }
+                                        else {
+                                            
+                                            if loadingMore {
+                                                ProgressView()
                                             }
-                                        } label: {
-                                            Text("Load more")
-                                        }*/
+                                            else {
+                                                Button {
+                                                    Task{
+                                                        loadingMore = true
+                                                        await api.loadMore(order: order)
+                                                        loadingMore = false
+                                                    }
+                                                } label: {
+                                                    Text("Load more")
+                                                }
+                                            }
+                                            
+                                            
+                                        }
 
-                                        ProgressView()
-                                            .task {
-                                                await api.loadMore(order: order)
-                                            }
+                                        
                                     }
                                     else{
                                         Text("You have reached the end")
@@ -250,27 +258,7 @@ struct PostListView: View {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 
                 OrderSelectorView(order: $order)
-            
-                Menu {
-                    Button {
-                        cardSize = .large
-                    } label: {
-                        Text("Large")
-                    }
-                    
-                    Button {
-                        cardSize = .compact
-                    } label: {
-                        Text("Compact")
-                    }
 
-                } label: {
-                    
-                    Image(systemName: "slider.horizontal.3")
-                    
-                }
-
-                
             }
             
         }

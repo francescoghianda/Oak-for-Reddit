@@ -10,10 +10,7 @@ import CoreData
 
 private struct OrderSelectorMenu: View {
     
-    //let api: SubrettitApi
-    let toText: (SubredditListingOrder) -> String
     let order: Binding<SubredditListingOrder>
-    //let bindListing: Binding<Listing<Subreddit>>
     
     var body: some View{
         
@@ -21,33 +18,18 @@ private struct OrderSelectorMenu: View {
             
             ForEach(SubredditListingOrder.allCases, id: \.id) { item in
                 
-                let text: String = toText(item)
-                
-                let (symbol, color): (String, Color) = {
-                    switch item {
-                    case .normal:
-                        return ("suit.club.fill", .green)
-                    case .popular:
-                        return ("flame", .red)
-                    case .new:
-                        return ("bolt.fill", .yellow)
-                    }
-                }()
-                
                 Button {
                     order.wrappedValue = item
-                    //bindListing.wrappedValue = api.getListing(order: item)
                     
                 } label: {
-                    Label(text, systemImage: symbol)
-                        .foregroundColor(color)
+                    Label(item.displayText, systemImage: item.systemImage)
+                        .foregroundColor(item.color)
                 }
                 
             }
 
         } label: {
             Label("Order", systemImage: "arrow.up.arrow.down")
-                //.labelStyle(.titleAndIcon)
         }
     }
 }
@@ -56,28 +38,19 @@ struct SubredditListView: View {
     
     @StateObject var model = SubrettitListModel()
     
-    @State var order: SubredditListingOrder = .normal
+    @State var order: SubredditListingOrder = SettingsReader.subredditsPreferredSort
     @State var loading: Bool = false
     
-    //@Binding var searchText: String
     @Environment(\.isSearching) private var isSearching
-    
     @Environment(\.searchText) private var searchText
     
-    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.managedObjectContext) private var moc
 
     @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [])
     private var favorites: FetchedResults<SubredditEntity>
     
-    func orderToText(_ order: SubredditListingOrder) -> String {
-        switch order {
-        case .normal:
-            return "Default"
-        case .popular:
-            return "Popular"
-        case .new:
-            return "New"
-        }
+    init() {
+        loadSettings()
     }
     
     var body: some View {
@@ -174,7 +147,7 @@ struct SubredditListView: View {
                 .navigationTitle("Subreddits")
                 .toolbar {
                     ToolbarItem {
-                        OrderSelectorMenu(toText: orderToText, order: $order)
+                        OrderSelectorMenu(order: $order)
                     }
                 }
                 
@@ -208,6 +181,19 @@ struct SubredditListView: View {
         
     }
     
+    func loadSettings() {
+        
+        
+        
+        let moc = PersistenceController.shared.container.viewContext
+        let request = NSFetchRequest<Settings>(entityName: "Settings")
+        let settings = try? moc.fetch(request)
+        
+        if let settings = settings?.first {
+            order = SubredditListingOrder(rawValue: settings.subredditPreferredSort) ?? .normal
+        }
+    }
+    
     func isFavorite(_ subredditId: String) -> Bool {
         return favorites.contains(where: { entity in
             entity.id == subredditId
@@ -220,9 +206,9 @@ struct SubredditListView: View {
             return
         }
         
-        subreddit.createEntity(context: viewContext)
+        subreddit.createEntity(context: moc)
         
-        try? viewContext.save()
+        try? moc.save()
     }
     
     func removeFavorite(_ subredditId: String) {
@@ -231,8 +217,8 @@ struct SubredditListView: View {
             entity.id == subredditId
         })
         {
-            viewContext.delete(entity)
-            try? viewContext.save()
+            moc.delete(entity)
+            try? moc.save()
         }
         
     }

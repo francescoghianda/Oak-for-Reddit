@@ -7,14 +7,6 @@
 
 import Foundation
 
-enum SubredditListingOrder: String, Hashable, CaseIterable, Identifiable, Equatable{
-    case normal = "default", popular, new
-        
-    var id: String {
-        return self.rawValue
-    }
-}
-
 class SubrettitListModel: ObservableObject {
         
     private let api: RedditApi = RedditApi.shared

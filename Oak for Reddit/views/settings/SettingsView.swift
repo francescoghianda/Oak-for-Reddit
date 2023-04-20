@@ -9,48 +9,42 @@ import SwiftUI
 
 struct SettingsView: View {
     
-    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.managedObjectContext) private var moc
 
-    @FetchRequest(entity: Settings.entity(), sortDescriptors: [])
-    private var settings: FetchedResults<Settings>
+    //@FetchRequest(entity: Settings.entity(), sortDescriptors: [])
+    //private var settings: FetchedResults<Settings>
+    private var settings = SettingsReader.settings
     
     var body: some View {
         
-        
-        
         NavigationView {
             
-            if let settings: Settings = settings.first {
+            List {
                 
-                List {
-                    
-                    NavigationLink {
-                        
-                    } label: {
-                        Label("Account", systemImage: "person.crop.circle")
+                NavigationLink {
+                    Button("Auth") {
+                        OAuthManager.shared.startAuthorization()
                     }
-                    
-                    NavigationLink {
-                        InterfaceSettingsView(settings: settings)
-                    } label: {
-                        Label("Interface", systemImage: "paintbrush.pointed.fill")
-                    }
-                    
-                    NavigationLink {
-                        
-                    } label: {
-                        Label("Notifications", systemImage: "music.note")
-                    }
-                    
+                } label: {
+                    Label("Account", systemImage: "person.crop.circle")
                 }
-                .navigationTitle("Settings")
+                
+                NavigationLink {
+                    InterfaceSettingsView(settings: settings)
+                } label: {
+                    Label("Interface", systemImage: "paintbrush.pointed.fill")
+                }
+                
+                NavigationLink {
+                    
+                } label: {
+                    Label("Notifications", systemImage: "music.note")
+                }
                 
             }
+            .navigationTitle("Settings")
             
         }
-        
-        
-        
         
     }
 }

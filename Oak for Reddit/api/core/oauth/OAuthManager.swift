@@ -257,7 +257,7 @@ class OAuthManager: ObservableObject {
             }
             
         }()
-        
+                
         request.httpBody = parameters.percentEncoded()
         
         return request
@@ -285,7 +285,7 @@ class OAuthManager: ObservableObject {
                     let tokenType = dataDictionary["token_type"] as? String
                     let expiresIn = dataDictionary["expires_in"] as? Int
                     let scope = dataDictionary["scope"] as? String
-                    
+                                        
                     switch type {
                     case .code:
                         let refreshToken = dataDictionary["refresh_token"] as? String

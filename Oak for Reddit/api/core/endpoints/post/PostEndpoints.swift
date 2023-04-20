@@ -16,7 +16,7 @@ extension Endpoint {
                             after: String? = nil,
                             count: Int? = nil) -> Endpoint {
         
-        let path = "\(subredditPrefixedName)/\(order.id)"
+        let path = "\(subredditPrefixedName)/\(order.rawValueNoRange)"
         
         var parameters = buildParameters([
             "limit": limit,

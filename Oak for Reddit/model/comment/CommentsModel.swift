@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 enum CommentsOrder: String, CaseIterable, Identifiable {
     case confidence, top, new, controversial, old, random, qa
@@ -32,6 +33,49 @@ enum CommentsOrder: String, CaseIterable, Identifiable {
             return "Interview"
         }
     }
+}
+
+extension CommentsOrder {
+    
+    
+    var systemImage: String {
+        switch self {
+        case .confidence:
+            return "line.horizontal.star.fill.line.horizontal"
+        case .top:
+            return "sparkle.magnifyingglass"
+        case .new:
+            return "clock"
+        case .controversial:
+            return "bolt.fill"
+        case .old:
+            return "hourglass.tophalf.filled"
+        case .random:
+            return "dice"
+        case .qa:
+            return "person.3.fill"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .confidence:
+            return .purple
+        case .top:
+            return .orange
+        case .new:
+            return .blue
+        case .controversial:
+            return .yellow
+        case .old:
+            return .red
+        case .random:
+            return .green
+        case .qa:
+            return .white
+        }
+    }
+    
 }
 
 class CommentsModel: ObservableObject {
