@@ -40,6 +40,11 @@ struct PostView: View {
                         Text("Posted by u/\(post.author) ⋅ \(post.getTimeSiceCreationFormatted())")
                             
                         Spacer()
+                        
+                        if post.over18 {
+                            NsfwSymbolView()
+                                .padding(5)
+                        }
                     }
                     .font(.subheadline)
                     .foregroundColor(.gray)
@@ -53,8 +58,6 @@ struct PostView: View {
                         PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true)
                             //.scaledToFit()
                             //.matchedGeometryEffect(id: "postmedia\(post.uuid)", in: namespace!, properties: .position, anchor: .center)
-                            .padding([.top, .bottom])
-                            
                     }
                     else if post.postLinkType == .link {
                         LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!)
@@ -66,7 +69,6 @@ struct PostView: View {
                         
                     if !post.selfText.isEmpty {
                         SelfText(post.selfText)
-                            .padding(.bottom)
                     }
                     
                     HStack{
@@ -77,7 +79,6 @@ struct PostView: View {
                         }
                         
                         Text(post.ups.toKNotation())
-                            .frame(width: 35, alignment: .leading)
                             .font(.system(size: 12))
                         
                         Button {
@@ -93,9 +94,14 @@ struct PostView: View {
                             Image(systemName: "message.fill")
                             Text("\(post.numComments)")
                                 .font(.system(size: 12))
+                            if post.locked {
+                                Image(systemName: "lock.fill")
+                                    .foregroundColor(Color.yellow)
+                            }
                         }
                         .padding(.leading)
                     }
+                    .padding(.top)
                     .foregroundColor(Color.gray)
                     
                     HStack{

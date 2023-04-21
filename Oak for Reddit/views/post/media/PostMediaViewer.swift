@@ -46,6 +46,26 @@ struct GalleryView: View {
         .scaledToFit()
         .tabViewStyle(.page)
         .indexViewStyle(.page(backgroundDisplayMode: .always))
+        .overlay(alignment: .top) {
+            
+            if let caption = galleryData.items[pageIndex].caption {
+                
+                HStack{
+                    Text(caption)
+                        .font(.caption)
+                        .padding(5)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(10)
+                }
+                .padding()
+                .id(pageIndex)
+                
+            }
+            
+            
+        }
+        .transition(.opacity)
+        .animation(.easeInOut, value: pageIndex)
         
     }
     
@@ -220,6 +240,7 @@ struct BlurModifier: ViewModifier {
                     } label: {
                         Image(systemName: "eye.slash.circle.fill")
                             .resizable()
+                            .background(.ultraThinMaterial, in: Circle())
                             .matchedGeometryEffect(id: "eyeimage", in: namespace)
                             .frame(width: 30, height: 30)
                             .scaledToFit()

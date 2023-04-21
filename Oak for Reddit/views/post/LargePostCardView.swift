@@ -154,6 +154,7 @@ struct SelfText: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(.ultraThinMaterial)
         .cornerRadius(10)
         
@@ -224,16 +225,6 @@ struct LargePostCardView: View {
                 
                 Spacer()
                 
-                if post.over18 {
-                    NsfwSymbolView()
-                        .padding(5)
-                }
-                
-                if post.locked {
-                    Image(systemName: "lock")
-                        .foregroundColor(Color.gray)
-                        .padding(5)
-                }
             }
             
             VStack{
@@ -250,11 +241,19 @@ struct LargePostCardView: View {
                                 .contentShape(Rectangle())
                                 .frame(idealWidth: .infinity)
                             
-                            Text(post.title)
+                            HStack {
+                                Text(post.title)
+                                    .bold()
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxHeight: 60)
                                 
-                                .bold()
-                                .multilineTextAlignment(.leading)
-                                .frame(maxHeight: 60)
+                                Spacer()
+                                
+                                if post.over18 {
+                                    NsfwSymbolView()
+                                        .padding(5)
+                                }
+                            }
                         }
 
                     }
@@ -329,19 +328,24 @@ struct LargePostCardView: View {
                             Image(systemName: "message.fill")
                             Text("\(post.numComments.toKNotation())")
                                 .font(.system(size: 12))
+                            if post.locked {
+                                Image(systemName: "lock.fill")
+                                    .foregroundColor(Color.yellow)
+                            }
                         }
                     }
                     .padding(.leading)
                     .foregroundColor(Color.gray)
                     
+                    Spacer()
+                    
                     Text(post.getTimeSiceCreationFormatted())
                         .foregroundColor(Color.gray)
                         .font(.system(size: 12))
                         .bold()
-                        .padding(.leading)
                     
-                    
-                    Spacer()
+                    Text("·")
+                        .foregroundColor(Color.gray)
                     
                     NavigationLink {
                         PostListView(subredditNamePrefixed: "r/\(post.subreddit)")

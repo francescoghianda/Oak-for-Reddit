@@ -182,7 +182,7 @@ struct CompactPostCardView: View {
                 HStack{
                     
                     NavigationLink {
-                        //PostView(post: post, linkIsPresented: $linkIsPresented)
+                        PostView(post: post, linkIsPresented: $linkIsPresented)
                     } label: {
                         Text(post.title)
                             .bold()
@@ -215,44 +215,55 @@ struct CompactPostCardView: View {
                     
                 }
                 HStack{
-                    Button {
-                        
-                    } label: {
-                     Image("arrowshape.up.fill")
-                         .foregroundColor(Color.gray)
-                    }
                     
-                    Text(post.ups.toKNotation())
-                        .frame(width: 35, alignment: .leading)
-                        .font(.system(size: 12))
-                        .foregroundColor(Color.gray)
-                    
-                    Button {
+                    Group {
+                        Button {
+                            
+                        } label: {
+                         Image("arrowshape.up.fill")
+                             .foregroundColor(Color.gray)
+                        }
                         
-                    } label: {
-                        Image("arrowshape.up.fill")
-                            .rotationEffect(.degrees(180))
+                        Text(post.ups.toKNotation())
+                            .font(.system(size: 12))
                             .foregroundColor(Color.gray)
-                            //.padding(.leading, 5)
+                        
+                        Button {
+                            
+                        } label: {
+                            Image("arrowshape.up.fill")
+                                .rotationEffect(.degrees(180))
+                                .foregroundColor(Color.gray)
+                                //.padding(.leading, 5)
+                        }
                     }
                     
-                    Text(post.getTimeSiceCreationFormatted())
-                        .foregroundColor(Color.gray)
-                        .font(.system(size: 12))
-                        .bold()
-                        .padding(.leading)
+                    Group {
+                        Image(systemName: "message.fill")
+                            .foregroundColor(.gray)
+                        
+                        Text("\(post.numComments.toKNotation())")
+                            .font(.system(size: 12))
+                        
+                        if post.locked {
+                            Image(systemName: "lock.fill")
+                                .foregroundColor(Color.yellow)
+                        }
+                    }
                     
                     if post.over18 {
                         NsfwSymbolView()
                     }
                     
-                    if post.locked {
-                        Image(systemName: "lock")
-                            .foregroundColor(Color.gray)
-                    }
-                    
-                    
                     Spacer()
+                    
+                    Text(post.getTimeSiceCreationFormatted())
+                        .foregroundColor(Color.gray)
+                        .font(.system(size: 12))
+                        .bold()
+                    
+                    Text("·")
+                        .foregroundColor(Color.gray)
                     
                     NavigationLink {
                         PostListView(subredditNamePrefixed: "r/\(post.subreddit)")
