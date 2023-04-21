@@ -65,7 +65,7 @@ struct LightCommentView: View {
                                                  count: 10,
                                                  sort: order,
                                                  linkId: comment.linkId,
-                                                 parentId: comment.name!)
+                                                 parentId: comment.name)
                             loadingReplies = false
                         }
                     } label: {

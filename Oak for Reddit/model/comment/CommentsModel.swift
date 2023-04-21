@@ -191,7 +191,7 @@ class CommentsModel: ObservableObject {
         
         for comment in root {
             
-            let children = buildCommentsTree(from: comments, mores: mores, parentId: comment.name!)
+            let children = buildCommentsTree(from: comments, mores: mores, parentId: comment.name)
             let more = mores.first { more in
                 more.parentId == comment.name
             }

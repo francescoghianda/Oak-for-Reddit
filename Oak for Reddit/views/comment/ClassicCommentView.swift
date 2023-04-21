@@ -62,7 +62,7 @@ struct ClassicCommentView: View {
                                                      count: 10,
                                                      sort: order,
                                                      linkId: comment.linkId,
-                                                     parentId: comment.name!)
+                                                     parentId: comment.name)
                                 //await comment.loadMoreReplies(sort: order)
                                 loadingReplies = false
                             }

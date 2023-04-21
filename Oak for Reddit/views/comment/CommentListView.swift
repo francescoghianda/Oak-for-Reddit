@@ -74,8 +74,8 @@ struct PostCommentsView: View {
                         .loadMoreReplies(listing: model.comments,
                                          count: 50,
                                          sort: order,
-                                         linkId: post.name!,
-                                         parentId: post.name!)
+                                         linkId: post.name,
+                                         parentId: post.name)
                     loadingMoreComments = false
                 }
             } label: {

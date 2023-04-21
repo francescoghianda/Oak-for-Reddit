@@ -63,7 +63,7 @@ struct SubredditListView: View {
                         
                         ForEach(model.subreddits) { subreddit in
                             
-                            let isFavorite = isFavorite(subreddit.subredditId)
+                            let isFavorite = isFavorite(subreddit.thingId)
                             
                             NavigationLink {
                                 PostListView(subreddit: subreddit)
@@ -74,7 +74,7 @@ struct SubredditListView: View {
                             .swipeActions{
                                 Button{
                                     if isFavorite {
-                                        removeFavorite(subreddit.subredditId)
+                                        removeFavorite(subreddit.thingId)
                                     }
                                     else {
                                         storeFavorite(subreddit)
@@ -186,13 +186,13 @@ struct SubredditListView: View {
     
     func isFavorite(_ subredditId: String) -> Bool {
         return favorites.contains(where: { entity in
-            entity.id == subredditId
+            entity.thingId == subredditId
         })
     }
     
     func storeFavorite(_ subreddit: Subreddit) {
         
-        if isFavorite(subreddit.subredditId) {
+        if isFavorite(subreddit.thingId) {
             return
         }
         
@@ -204,7 +204,7 @@ struct SubredditListView: View {
     func removeFavorite(_ subredditId: String) {
         
         if let entity = favorites.first(where: { entity in
-            entity.id == subredditId
+            entity.thingId == subredditId
         })
         {
             moc.delete(entity)

@@ -152,7 +152,7 @@ struct PostListView: View {
                                 
                                 switch userPreferences.postsCardSize {
                                 case .large:
-                                    LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.uuid], linkToSubredditIsActive: linkToSbubredditsAreActive)
+                                    LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.id], linkToSubredditIsActive: linkToSbubredditsAreActive)
                                 case .compact:
                                     CompactPostCardView(post: post, showPin: order == .hot, linkToSubredditIsActive: linkToSbubredditsAreActive)
                                 }

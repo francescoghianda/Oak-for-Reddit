@@ -27,51 +27,26 @@ enum ThingKind: String {
     case comment = "t1", account = "t2", link = "t3", message = "t4", subreddit = "t5", award = "t6" // t1, t2, t3, t4, t5, t6
 }
 
-class Thing: Identifiable, Equatable, Codable {
+class Thing: Identifiable, Equatable {
     
-    enum CodingKeys : String, CodingKey {
-        case thingId = "thing_id"
-        case name = "name"
-        case kind = "kind"
-        case data = "data"
+    
+    /// Return the name of the Thing (eg. "t3_15bfi0")
+    var id: String {
+        return name
     }
+        
+    /// The id of the Thing (eg. "15bfi0")
+    let thingId: String
     
-    let uuid: String = UUID.init().uuidString
+    /// The id prefixed with the type of the Thing (eg. "t3_15bfi0")
+    let name: String
     
-    let thingId: String?
-    let name: String?
     let kind: String
-    let data: [String : Any]
-    
-    required init(id: String?, name: String?, kind: String, data: [String : Any]){
+        
+    required init(id: String, name: String, kind: String, data: [String : Any]){
         self.thingId = id
         self.name = name
         self.kind = kind
-        self.data = data
-    }
-    
-    required init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-        
-        thingId = try values.decode(String.self, forKey: .thingId)
-        name = try values.decode(String.self, forKey: .name)
-        kind = try values.decode(String.self, forKey: .kind)
-        
-        let dataJson = try values.decode(Data.self, forKey: .data)
-        
-        data = try JSONSerialization.jsonObject(with: dataJson, options: []) as! [String : Any]
-
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var values = encoder.container(keyedBy: CodingKeys.self)
-        
-        try values.encode(thingId, forKey: .thingId)
-        try values.encode(name, forKey: .name)
-        try values.encode(kind, forKey: .kind)
-        
-        let dataJson = try JSONSerialization.data(withJSONObject: data, options: [])
-        try values.encode(dataJson, forKey: .data)
     }
     
     public static func build<T: Thing>(from: [String : Any], fromListing: Bool = false) -> T {
@@ -81,17 +56,14 @@ class Thing: Identifiable, Equatable, Codable {
         
         let source = fromListing ? data : from
         
-        let id = source["id"] as? String
-        let name = source["name"] as? String
+        let id = source["id"] as! String
+        let name = source["name"] as! String
         
         return T(id: id, name: name, kind: kind, data: data)
     }
     
     static func == (left: Thing, right: Thing) -> Bool {
-        if let leftId = left.thingId, let rightId = right.thingId {
-            return leftId == rightId
-        }
-        return left.uuid == right.uuid
+        return left.name == right.name
     }
 }
 

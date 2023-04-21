@@ -44,7 +44,7 @@ struct FavoritesSubredditsView: View {
                     }
                     .swipeActions {
                         Button{
-                            removeFavorite(subreddit.subredditId)
+                            removeFavorite(subreddit.thingId)
                         } label: {
                             Image(systemName: "trash.fill")
                                 .foregroundColor(.white)
@@ -71,7 +71,7 @@ struct FavoritesSubredditsView: View {
     func removeFavorite(_ subredditId: String) {
         
         if let entity = favorites.first(where: { entity in
-            entity.id == subredditId
+            entity.thingId == subredditId
         })
         {
             viewContext.delete(entity)

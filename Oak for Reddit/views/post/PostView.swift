@@ -27,7 +27,7 @@ struct PostView: View {
     init(post: Post, linkIsPresented: Binding<Bool>) {
         self.post = post
         self._linkIsPresented = linkIsPresented
-        self._model = StateObject(wrappedValue: CommentsModel(postId: post.thingId!))
+        self._model = StateObject(wrappedValue: CommentsModel(postId: post.thingId))
     }
     
     var body: some View {
