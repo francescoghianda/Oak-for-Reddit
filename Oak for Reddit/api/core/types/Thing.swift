@@ -88,7 +88,10 @@ class Thing: Identifiable, Equatable, Codable {
     }
     
     static func == (left: Thing, right: Thing) -> Bool {
-        left.uuid == right.uuid
+        if let leftId = left.thingId, let rightId = right.thingId {
+            return leftId == rightId
+        }
+        return left.uuid == right.uuid
     }
 }
 

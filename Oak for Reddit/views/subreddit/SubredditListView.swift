@@ -111,6 +111,7 @@ struct SubredditListView: View {
                         
                     }
                     .listStyle(.plain)
+                    //.animation(.spring(), value: model.subreddits)
                     .refreshable{
                         if !isSearching {
                             loading = true

@@ -35,7 +35,7 @@ extension Endpoint {
             "after": after,
             "count": count,
             "limit": min(limit, 100),
-            "q": query,
+            "q": query.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed),
             "search_query_id": UUID().uuidString,
             "show_users": false,
             "sort": sort.rawValue
