@@ -23,6 +23,8 @@ struct PostView: View {
     @State private var commentsLoading: Bool = false
     @State private var loadingMoreComments: Bool = false
     
+    @State private var contentWidth: CGFloat = .zero
+    
     
     init(post: Post, linkIsPresented: Binding<Bool>) {
         self.post = post
@@ -32,169 +34,188 @@ struct PostView: View {
     
     var body: some View {
         
-        ScrollViewReader { reader in
-            ScrollView {
-                VStack(alignment: .leading){
-                    
-                    HStack{
-                        Text("Posted by u/\(post.author) ⋅ \(post.getTimeSiceCreationFormatted())")
-                            
-                        Spacer()
+        ScrollView {
+            LazyVStack(alignment: .leading){
+                
+                HStack{
+                    Text("Posted by u/\(post.author) ⋅ \(post.getTimeSiceCreationFormatted())")
                         
-                        if post.over18 {
-                            NsfwSymbolView()
-                                .padding(5)
-                        }
-                    }
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                    .padding(.bottom)
-                    
-                    Text(post.title)
-                        //.matchedGeometryEffect(id: "posttitle\(post.uuid)", in: namespace!, properties: .position)
-                        .font(.headline)
-                    
-                    if post.containsMedia {
-                        PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true)
-                            //.scaledToFit()
-                            //.matchedGeometryEffect(id: "postmedia\(post.uuid)", in: namespace!, properties: .position, anchor: .center)
-                    }
-                    else if post.postLinkType == .link {
-                        LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!)
-                            .onTapGesture {
-                                linkIsPresented.toggle()
-                            }
-                    }
-                    
-                        
-                    if !post.selfText.isEmpty {
-                        SelfText(post.selfText)
-                    }
-                    
-                    HStack{
-                        Button {
-                            
-                        } label: {
-                            Image("arrowshape.up.fill")
-                        }
-                        
-                        Text(post.ups.toKNotation())
-                            .font(.system(size: 12))
-                        
-                        Button {
-                            
-                        } label: {
-                            Image("arrowshape.up.fill")
-                                .rotationEffect(.degrees(180))
-                                
-                                //.padding(.leading, 5)
-                        }
-                        
-                        HStack{
-                            Image(systemName: "message.fill")
-                            Text("\(post.numComments)")
-                                .font(.system(size: 12))
-                            if post.locked {
-                                Image(systemName: "lock.fill")
-                                    .foregroundColor(Color.yellow)
-                            }
-                        }
-                        .padding(.leading)
-                    }
-                    .padding(.top)
-                    .foregroundColor(Color.gray)
-                    
-                    HStack{
-                        Text("Comments")
-                            .font(.title)
-                            .padding([.top, .bottom])
-                        Spacer()
-                        
-                        Button {
-                            showCommentsOrderPicker.toggle()
-                        } label: {
-                            HStack{
-                                Label("Sort: \(commentsOrder.text)", systemImage: "arrow.up.arrow.down")
-                                //Spacer()
-                                Image(systemName: "chevron.right")
-                                    .rotationEffect(showCommentsOrderPicker ? .degrees(90.0) : .degrees(0.0))
-                            }
-                        }
-                        .disabled(commentsLoading)
-
-                    }
-                    
-                    if showCommentsOrderPicker {
-                        
-                        CommentsOrderPicker(commentsOrder: $commentsOrder, showPicker: $showCommentsOrderPicker)
-                            
-                    }
-                    
-                    if commentsLoading {
-                        HStack{
-                            Spacer()
-                            ProgressView()
-                            Spacer()
-                        }
-                        .padding(.bottom, 10)
-                    }
-                    
-                    PostCommentsView(model: model, viewMode: $commentsViewMode, order: $commentsOrder)
-                        .environmentObject(post)
-                    
-                    
                     Spacer()
-                }
-                .padding([.leading, .trailing])
-                .onChange(of: commentsOrder) { newOrder  in
-                    Task {
-                        commentsLoading = true
-                        await model.load(sort: commentsOrder)
-                        commentsLoading = false
+                    
+                    if post.over18 {
+                        NsfwSymbolView()
+                            .padding(5)
                     }
+                }
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .padding(.bottom)
+                
+                Text(post.title)
+                    //.matchedGeometryEffect(id: "posttitle\(post.uuid)", in: namespace!, properties: .position)
+                    .font(.headline)
+                
+                if post.containsMedia {
+                    
+                    let height: CGFloat = {
+                        if let imageSize = post.imageSize {
+                            let val = contentWidth / CGFloat(imageSize.aspectRatio)
+                            return min(val, 600)
+                        }
+                        return 600
+                    }()
+                    
+                    PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true, width: contentWidth, height: height)
+                        //.scaledToFit()
+                        //.matchedGeometryEffect(id: "postmedia\(post.uuid)", in: namespace!, properties: .position, anchor: .center)
+                }
+                else if post.postLinkType == .link {
+                    LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!)
+                        .onTapGesture {
+                            linkIsPresented.toggle()
+                        }
                 }
                 
-            }
-            .animation(Animation.spring(), value: showCommentsOrderPicker)
-            .animation(Animation.spring(), value: model.comments)
-            .navigationBarTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing){
+                    
+                if !post.selfText.isEmpty {
+                    SelfText(post.selfText)
+                }
+                
+                HStack{
+                    Button {
+                        
+                    } label: {
+                        Image("arrowshape.up.fill")
+                    }
+                    
+                    Text(post.ups.toKNotation())
+                        .font(.system(size: 12))
                     
                     Button {
                         
                     } label: {
-                        Label("Share", systemImage: "square.and.arrow.up")
+                        Image("arrowshape.up.fill")
+                            .rotationEffect(.degrees(180))
+                            
+                            //.padding(.leading, 5)
                     }
                     
-                    Menu {
-                        
-                        Picker("View mode", selection: $commentsViewMode) {
-                            Text("Classic").tag(CommentsViewMode.classic)
-                            Text("Light").tag(CommentsViewMode.light)
+                    HStack{
+                        Image(systemName: "message.fill")
+                        Text("\(post.numComments)")
+                            .font(.system(size: 12))
+                        if post.locked {
+                            Image(systemName: "lock.fill")
+                                .foregroundColor(Color.yellow)
                         }
-                        
-                        
-                    } label: {
-                        Image(systemName: "ellipsis")
                     }
-
+                    .padding(.leading)
+                }
+                .padding(.top)
+                .foregroundColor(Color.gray)
+                
+                HStack{
+                    Text("Comments")
+                        .font(.title)
+                        .padding([.top, .bottom])
+                    Spacer()
+                    
+                    Button {
+                        showCommentsOrderPicker.toggle()
+                    } label: {
+                        HStack{
+                            Label("Sort: \(commentsOrder.text)", systemImage: "arrow.up.arrow.down")
+                            //Spacer()
+                            Image(systemName: "chevron.right")
+                                .rotationEffect(showCommentsOrderPicker ? .degrees(90.0) : .degrees(0.0))
+                        }
+                    }
+                    .disabled(commentsLoading)
 
                 }
                 
+                if showCommentsOrderPicker {
+                    
+                    CommentsOrderPicker(commentsOrder: $commentsOrder, showPicker: $showCommentsOrderPicker)
+                        
+                }
                 
+                if commentsLoading {
+                    HStack{
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }
+                    .padding(.bottom, 10)
+                }
+                
+                PostCommentsView(model: model, viewMode: $commentsViewMode, order: $commentsOrder)
+                    .environmentObject(post)
+                
+                
+                Spacer()
             }
-            .task{
-                commentsLoading = true
-                await model.load(sort: commentsOrder)
-                commentsLoading = false
+            .background {
+                GeometryReader { geo in
+                    Color.clear
+                        .onAppear {
+                            contentWidth = geo.size.width
+                        }
+                        .onChange(of: geo.size.width) { newWidth in
+                            contentWidth = newWidth
+                        }
+                }
             }
+            .padding([.leading, .trailing])
+            .onChange(of: commentsOrder) { newOrder  in
+                Task {
+                    commentsLoading = true
+                    await model.load(sort: commentsOrder)
+                    commentsLoading = false
+                }
+            }
+            
+        }
+        .animation(Animation.spring(), value: showCommentsOrderPicker)
+        .animation(Animation.spring(), value: model.comments)
+        .navigationBarTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItemGroup(placement: .navigationBarTrailing){
+                
+                Button {
+                    
+                } label: {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+                
+                Menu {
+                    
+                    Picker("View mode", selection: $commentsViewMode) {
+                        Text("Classic").tag(CommentsViewMode.classic)
+                        Text("Light").tag(CommentsViewMode.light)
+                    }
+                    
+                    
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+
+
+            }
+            
+            
+        }
+        .task{
+            commentsLoading = true
+            await model.load(sort: commentsOrder)
+            commentsLoading = false
         }
         .onFirstAppear {
             commentsViewMode = userPrefereces.commentsViewMode
             commentsOrder = userPrefereces.commentsPreferredOrder
         }
+        
         
         
     }

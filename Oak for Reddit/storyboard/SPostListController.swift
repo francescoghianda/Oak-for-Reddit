@@ -5,22 +5,22 @@
 //  Created by Francesco Ghianda on 29/03/23.
 //
 
-/*
+
 
 import Foundation
 import UIKit
 import SwiftUI
 
-struct SPostListView: UIViewControllerRepresentable {
+struct SPostListView<Content: View>: UIViewControllerRepresentable {
     
-    //@ViewBuilder let content: () -> Content
+    @ViewBuilder let content: () -> Content
     
-    @ViewBuilder let content: () -> PostStackView
+    private var hostingController: UIHostingController<Content>
     //private let hostingController: UIHostingController<Content>
     
-    init(@ViewBuilder content: @escaping () -> PostStackView) {
-        
+    init(@ViewBuilder content: @escaping () -> Content) {
         self.content = content
+        self.hostingController = UIHostingController(rootView: content())
     }
     
     func makeUIViewController(context: Context) -> SPostListController {
@@ -29,7 +29,14 @@ struct SPostListView: UIViewControllerRepresentable {
         
         let vc = storyboard.instantiateViewController(identifier: "PostList") as! SPostListController
         
-        vc.hostingController = UIHostingController(rootView: content())
+        vc.addChild(hostingController)
+        
+        hostingController.view.backgroundColor = .green
+        
+        vc.onViewDidLoad = {
+            vc.stackView.insertArrangedSubview(hostingController.view, at: 0)
+            //vc.stackView.addArrangedSubview(hostingController.view)
+        }
         //vc.addChild(hostingController)
         
         return vc
@@ -40,14 +47,25 @@ struct SPostListView: UIViewControllerRepresentable {
         print("update")
         //vc.updateView(content: content)
         //vc.stackView.removeArrangedSubview(hostingController.view)
+                
+        hostingController.rootView = content()
         
-        vc.stackView.removeArrangedSubview(vc.hostingController!.view)
+        hostingController.view.setNeedsLayout()
+        hostingController.view.layoutIfNeeded()
+        hostingController.view.invalidateIntrinsicContentSize()
         
-        vc.hostingController?.rootView = content()
+        //vc.stackView.addArrangedSubview(hostingController.view)
         
-        vc.hostingController?.view.layoutIfNeeded()
+        vc.stackView.insertArrangedSubview(hostingController.view, at: 0)
         
-        vc.stackView.addArrangedSubview(vc.hostingController!.view)
+        vc.stackView.setNeedsLayout()
+        vc.stackView.layoutIfNeeded()
+        vc.stackView.invalidateIntrinsicContentSize()
+        
+        //vc.stackView.addSubview(hostingController.view)
+        
+        
+        //vc.stackView.addArrangedSubview(vc.hostingController!.view)
         
         /*hostingController.rootView = content()
         hostingController.view.frame.size.width = vc.stackView.frame.size.width
@@ -64,27 +82,14 @@ class SPostListController: UIViewController {
     
     @IBOutlet var stackView: UIStackView!
     
-    var hostingController: UIHostingController<PostStackView>?
-    
-    func removePostCards() {
-        for view in stackView.arrangedSubviews {
-            view.removeFromSuperview()
-        }
-    }
-    
+    var onViewDidLoad: (() -> Void)? = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if hostingController != nil {
-            
-            self.addChild(hostingController!)
-            hostingController!.view.backgroundColor = .green
-            stackView.addArrangedSubview(hostingController!.view)
-        }
-
+        stackView.distribution = .fill
+        
+        onViewDidLoad?()
     }
     
 }
-
-*/

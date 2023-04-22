@@ -117,7 +117,11 @@ struct PostListView: View {
     //@State var postToShow: Post? = nil
     @State var linkIsPresented: Bool = false
     
+    @State var navbarHeight: CGFloat = .zero
+    
     //@AppStorage("cardSize") private var cardSize: PostCardSize = PostCardSize.large
+    
+    @State private var contentWidth: CGFloat = .zero
     
     @EnvironmentObject var userPreferences: UserPreferences
     
@@ -133,6 +137,7 @@ struct PostListView: View {
         self.subredditNamePrefixed = subredditNamePrefixed
         self.linkToSbubredditsAreActive = false
         self._api = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subredditNamePrefixed))
+        
     }
     
     
@@ -140,10 +145,9 @@ struct PostListView: View {
                 
         ZStack{
             
-                
             if let posts = api.posts {
                 
-                ScrollView(showsIndicators: false) {
+                ScrollView(showsIndicators: false) /*SPostListView*/ {
                     
                     LazyVStack {
                         if !loading {
@@ -152,7 +156,7 @@ struct PostListView: View {
                                 
                                 switch userPreferences.postsCardSize {
                                 case .large:
-                                    LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.id], linkToSubredditIsActive: linkToSbubredditsAreActive)
+                                    LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.id], linkToSubredditIsActive: linkToSbubredditsAreActive, contentWidth: $contentWidth)
                                 case .compact:
                                     CompactPostCardView(post: post, showPin: order == .hot, linkToSubredditIsActive: linkToSbubredditsAreActive)
                                 }
@@ -212,7 +216,19 @@ struct PostListView: View {
                             }
                         }
                     }
+                    .overlay {
+                        GeometryReader { geo in
+                            Color.clear
+                                .onAppear {
+                                    contentWidth = geo.size.width
+                                }
+                                .onChange(of: geo.size.width) { newWidth in
+                                    contentWidth = newWidth
+                                }
+                        }
+                    }
                     .padding()
+                    .offset(y: navbarHeight)
                     
                 }
                 
@@ -240,9 +256,11 @@ struct PostListView: View {
             }*/
             
             
+            /*CustomNavbar()*/
             
             
         }
+        .navigationBarHidden(false)
         .navigationBarTitle(subredditNamePrefixed ?? "Posts", displayMode: .inline)
         .onChange(of: order, perform: { newValue in
             loading = true
@@ -254,6 +272,18 @@ struct PostListView: View {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 
                 OrderSelectorView(order: $order)
+                
+                Button {
+                    Task {
+                        loading = true
+                        await api.load(order: order)
+                        loading = false
+                    }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .disabled(loading)
+
 
             }
             
@@ -263,6 +293,36 @@ struct PostListView: View {
         }
         
     }
+}
+
+struct CustomNavbar: View {
+    
+    @Binding var height: CGFloat
+    
+    var body: some View {
+        
+        VStack{
+            
+            HStack{
+                Text("Posts")
+                    .bold()
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(.ultraThinMaterial)
+            .overlay {
+                GeometryReader { geo in
+                    Color.clear
+                        .onAppear {
+                            height = geo.size.height
+                        }
+                }
+            }
+            
+            Spacer()
+        }
+    }
+    
 }
 
 struct OffsettableScrollView<T: View>: View {

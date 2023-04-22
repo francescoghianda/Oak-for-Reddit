@@ -49,7 +49,7 @@ class Thing: Identifiable, Equatable {
         self.kind = kind
     }
     
-    public static func build<T: Thing>(from: [String : Any], fromListing: Bool = false) -> T {
+    public static func build<T: Thing>(from: [String : Any], fromListing: Bool = true) -> T { //TODO togliere fromListing e recuperare id e name sempre da data
         
         let data = from["data"] as! [String : Any]
         let kind = from["kind"] as! String

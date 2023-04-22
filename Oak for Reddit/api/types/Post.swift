@@ -60,6 +60,15 @@ enum PostLinkType{
     case image, video, gallery, media, link, permalink, nolink
 }
 
+struct ImageSize {
+    let width: Int
+    let height: Int
+    
+    var aspectRatio: Double {
+        Double(width) / Double(height)
+    }
+}
+
 class Post: Thing, Votable, Created, ObservableObject {
 
     var ups: Int
@@ -89,8 +98,9 @@ class Post: Thing, Votable, Created, ObservableObject {
     let media: Media?
     let isGallery: Bool
     let galleryData: GalleryData?
+    let imageSize: ImageSize?
     
-    required init(id: String?, name: String?, kind: String, data: [String : Any]) {
+    required init(id: String, name: String, kind: String, data: [String : Any]) {
         
         ups = data["ups"] as! Int
         downs = data["downs"] as! Int
@@ -141,10 +151,23 @@ class Post: Thing, Votable, Created, ObservableObject {
             galleryData = nil
         }
         
-        let postId = data["id"] as! String      // Thing of Listing dosen't have id and name, but their can be found inside the data of the Thing
-        let postName = data["name"] as! String
+        if let preview = data["preview"] as? [String : Any],
+           let images = preview["images"] as? [[String : Any]],
+           let img = images.first,
+           let source = img["source"] as? [String : Any],
+           let width = source["width"] as? Int,
+           let height = source["height"] as? Int
+        {
+            imageSize = ImageSize(width: width, height: height)
+        }
+        else {
+            if let preview = data["preview"] as? [String : Any] {
+                print(preview)
+            }
+            imageSize = nil
+        }
                         
-        super.init(id: postId, name: postName, kind: kind, data: data)
+        super.init(id: id, name: name, kind: kind, data: data)
         
     }
     

@@ -56,102 +56,98 @@ struct SubredditListView: View {
                 
         ZStack{
             
-            NavigationView{
-                ZStack{
+            ZStack{
+                
+                List {
                     
-                    List {
+                    ForEach(model.subreddits) { subreddit in
                         
-                        ForEach(model.subreddits) { subreddit in
-                            
-                            let isFavorite = isFavorite(subreddit.thingId)
-                            
-                            NavigationLink {
-                                PostListView(subreddit: subreddit)
+                        let isFavorite = isFavorite(subreddit.thingId)
+                        
+                        NavigationLink {
+                            PostListView(subreddit: subreddit)
+                        } label: {
+                            SubredditItemView(subreddit: subreddit, isFavorite: isFavorite)
+                        }
+                        //.transition(.slide)
+                        .swipeActions{
+                            Button{
+                                if isFavorite {
+                                    removeFavorite(subreddit.thingId)
+                                }
+                                else {
+                                    storeFavorite(subreddit)
+                                }
+                                
+                                //model.addFavourite(subreddit)
                             } label: {
-                                SubredditItemView(subreddit: subreddit, isFavorite: isFavorite)
+                                Image(systemName: isFavorite ? "trash.fill" : "star.fill")
+                                    .foregroundColor(.white)
                             }
-                            //.transition(.slide)
-                            .swipeActions{
-                                Button{
-                                    if isFavorite {
-                                        removeFavorite(subreddit.thingId)
-                                    }
-                                    else {
-                                        storeFavorite(subreddit)
-                                    }
-                                    
-                                    //model.addFavourite(subreddit)
-                                } label: {
-                                    Image(systemName: isFavorite ? "trash.fill" : "star.fill")
-                                        .foregroundColor(.white)
-                                }
-                                .tint(isFavorite ? .red : .yellow)
-                            }
+                            .tint(isFavorite ? .red : .yellow)
+                        }
 
-                        }
-                        
-                        if(!model.subreddits.isEmpty){
-                            HStack{
-                                Spacer()
-                                if(model.subreddits.hasThingsAfter){
-                                    ProgressView()
-                                        .task {
-                                            await model.loadMore(order: order)
-                                        }
-                                }
-                                else{
-                                    Text("You have reached the end")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.gray)
-                                        .padding()
-                                }
-                                Spacer()
+                    }
+                    
+                    if(!model.subreddits.isEmpty){
+                        HStack{
+                            Spacer()
+                            if(model.subreddits.hasThingsAfter){
+                                ProgressView()
+                                    .task {
+                                        await model.loadMore(order: order)
+                                    }
                             }
+                            else{
+                                Text("You have reached the end")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.gray)
+                                    .padding()
+                            }
+                            Spacer()
                         }
-                        
-                    }
-                    .listStyle(.plain)
-                    //.animation(.spring(), value: model.subreddits)
-                    .refreshable{
-                        if !isSearching {
-                            loading = true
-                            await model.load(order: order)
-                            loading = false
-                        }
-                    }
-                    .onChange(of: isSearching, perform: { isSearching in
-                        
-                        if isSearching {
-                            model.save()
-                        }
-                        else {
-                            model.restore()
-                        }
-                        
-                    })
-                    .onChange(of: order) { newOrder in
-                        Task {
-                            loading = true
-                            await model.load(order: newOrder)
-                            loading = false
-                        }
-                    }
-                    .opacity(loading ? 0 : 1)
-                    
-                    
-                    if loading {
-                        ProgressView()
                     }
                     
                 }
-                .navigationTitle("Subreddits")
-                .toolbar {
-                    ToolbarItem {
-                        OrderSelectorMenu(order: $order)
+                .listStyle(.plain)
+                //.animation(.spring(), value: model.subreddits)
+                .refreshable{
+                    if !isSearching {
+                        loading = true
+                        await model.load(order: order)
+                        loading = false
                     }
                 }
+                .onChange(of: isSearching, perform: { isSearching in
+                    
+                    if isSearching {
+                        model.save()
+                    }
+                    else {
+                        model.restore()
+                    }
+                    
+                })
+                .onChange(of: order) { newOrder in
+                    Task {
+                        loading = true
+                        await model.load(order: newOrder)
+                        loading = false
+                    }
+                }
+                .opacity(loading ? 0 : 1)
                 
                 
+                if loading {
+                    ProgressView()
+                }
+                
+            }
+            .navigationTitle("Subreddits")
+            .toolbar {
+                ToolbarItem {
+                    OrderSelectorMenu(order: $order)
+                }
             }
             
             if isSearching && model.subreddits.isEmpty && !loading {

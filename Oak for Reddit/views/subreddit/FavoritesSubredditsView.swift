@@ -33,30 +33,26 @@ struct FavoritesSubredditsView: View {
         
         ZStack {
             
-            NavigationView {
+            List(subreddits) { subreddit in
                 
-                List(subreddits) { subreddit in
-                    
-                    NavigationLink {
-                        PostListView(subreddit: subreddit)
-                    } label: {
-                        SubredditItemView(subreddit: subreddit, isFavorite: false)
-                    }
-                    .swipeActions {
-                        Button{
-                            removeFavorite(subreddit.thingId)
-                        } label: {
-                            Image(systemName: "trash.fill")
-                                .foregroundColor(.white)
-                        }
-                        .tint(.red)
-                    }
-                    
+                NavigationLink {
+                    PostListView(subreddit: subreddit)
+                } label: {
+                    SubredditItemView(subreddit: subreddit, isFavorite: false)
                 }
-                .listStyle(.plain)
-                .navigationTitle("Favorites")
+                .swipeActions {
+                    Button{
+                        removeFavorite(subreddit.thingId)
+                    } label: {
+                        Image(systemName: "trash.fill")
+                            .foregroundColor(.white)
+                    }
+                    .tint(.red)
+                }
                 
             }
+            //.listStyle(.sidebar)
+            .navigationTitle("Favorites")
             .searchable(text: $searchText)
             
             if subreddits.isEmpty {

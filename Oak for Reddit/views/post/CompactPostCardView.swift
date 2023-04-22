@@ -14,14 +14,24 @@ fileprivate struct MediaSheetView: View {
     @State var showDots: Bool = false
     @State var image: UIImage? = nil
     
+    @State var contentWidth: CGFloat = .zero
+    
     var body: some View{
         
         if post.postLinkType == .image || post.postLinkType == .gallery {
             //PhotoViewerView(url: post.url)
             ZStack{
                 
+                let height: CGFloat = {
+                    if let imageSize = post.imageSize {
+                        let val = contentWidth / CGFloat(imageSize.aspectRatio)
+                        return min(val, 600)
+                    }
+                    return 600
+                }()
+                
                 ZoomableScrollView {
-                    PostMediaViewer(post: post, currentImage: $image)
+                    PostMediaViewer(post: post, currentImage: $image, width: contentWidth, height: height)
                 }
                 .onZoomChange { zoomScale in
                     withAnimation {
@@ -61,6 +71,18 @@ fileprivate struct MediaSheetView: View {
                
                 
             }
+            .overlay {
+                GeometryReader { geo in
+                    Color.clear
+                        .onAppear {
+                            contentWidth = geo.size.width
+                        }
+                        .onChange(of: geo.size.width) { newWidth in
+                            contentWidth = newWidth
+                        }
+                }
+            }
+            
         }
         else if post.postLinkType == .video, let media = post.media {
             VideoPlayerView(media: media)

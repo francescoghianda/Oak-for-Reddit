@@ -270,6 +270,8 @@ struct PostMediaViewer: View {
     var cornerRadius: CGFloat = 0
     var currentImage: Binding<UIImage?>? = nil
     var showContextMenu: Bool = false
+    var width: CGFloat
+    var height: CGFloat
     
     @State var blurred: Bool = true
     
@@ -295,6 +297,7 @@ struct PostMediaViewer: View {
                 .scaledToFit()
                 .blur(blurred, showHideButton: post.over18)
                 .cornerRadius(cornerRadius)
+                .frame(width: width, height: height)
                 
 
         }
@@ -318,6 +321,7 @@ struct PostMediaViewer: View {
                     .scaledToFit()
                     .blur(blurred, showHideButton: post.over18)
                     .cornerRadius(cornerRadius)
+                    .frame(width: width, height: height)
                 
             case .embed(let data):
                 EmbedVideoPlayer(media: data)

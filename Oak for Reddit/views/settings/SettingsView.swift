@@ -16,34 +16,30 @@ struct SettingsView: View {
     
     var body: some View {
         
-        NavigationView {
+        List {
             
-            List {
-                
-                NavigationLink {
-                    Button("Auth") {
-                        OAuthManager.shared.startAuthorization()
-                    }
-                } label: {
-                    Label("Account", systemImage: "person.crop.circle")
+            NavigationLink {
+                Button("Auth") {
+                    OAuthManager.shared.startAuthorization()
                 }
-                
-                NavigationLink {
-                    InterfaceSettingsView()
-                } label: {
-                    Label("Interface", systemImage: "paintbrush.pointed.fill")
-                }
-                
-                NavigationLink {
-                    
-                } label: {
-                    Label("Notifications", systemImage: "music.note")
-                }
-                
+            } label: {
+                Label("Account", systemImage: "person.crop.circle")
             }
-            .navigationTitle("Settings")
+            
+            NavigationLink {
+                InterfaceSettingsView()
+            } label: {
+                Label("Interface", systemImage: "paintbrush.pointed.fill")
+            }
+            
+            NavigationLink {
+                
+            } label: {
+                Label("Notifications", systemImage: "music.note")
+            }
             
         }
+        .navigationTitle("Settings")
         
     }
 }

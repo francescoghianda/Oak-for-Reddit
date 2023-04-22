@@ -188,6 +188,7 @@ struct LargePostCardView: View {
     let showPin: Bool
     @StateObject var mediaSize: MediaSize
     let linkToSubredditIsActive: Bool
+    @Binding var contentWidth: CGFloat
     //@Binding var postToShow: Post?
     //let namespace: Namespace.ID
         
@@ -278,24 +279,28 @@ struct LargePostCardView: View {
                     }
                     else {
                         
-                        PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true)
+                        let height: CGFloat = {
+                            if let imageSize = post.imageSize {
+                                let val = contentWidth / CGFloat(imageSize.aspectRatio)
+                                return min(val, 600)
+                            }
+                            return 600
+                        }()
+                        
+                        PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true, width: contentWidth, height: height)
                             //.contentCornerRadius(radius: 10)
                             //.matchedGeometryEffect(id: "postmedia\(post.uuid)", in: namespace, properties: .position, anchor: .center)
                             .padding(.bottom)
                             .overlay {
                                 
-                                GeometryReader { geo in
-                                    
-                                    Color.clear
-                                        .onAppear {
-                                            if geo.size.height > mediaSize.size.height {
-                                                mediaSize.size = geo.size
-                                            }
-                                        }
+                                if let imageSize = post.imageSize {
+                                    Text("width: \(imageSize.width), height: \(imageSize.height)")
+                                        .font(.title)
+                                        .background(.ultraThinMaterial)
                                 }
                                 
                             }
-                            .frame(minWidth: mediaSize.size.width, minHeight: mediaSize.size.height) // Impedisce alla view di tornare piccola quando viene ricaricata durante lo scroll (LazyVStack), cosi da non far saltare la scrollview
+                            //.frame(width: contentWidth, height: height)
                     }
                     
                 }
