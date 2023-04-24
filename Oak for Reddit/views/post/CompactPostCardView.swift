@@ -274,7 +274,7 @@ struct CompactPostCardView: View {
                     }
                     
                     if post.over18 {
-                        NsfwSymbolView()
+                        NsfwSymbol()
                     }
                     
                     Spacer()

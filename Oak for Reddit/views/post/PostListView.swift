@@ -94,7 +94,16 @@ class MediaSizeCache {
 }
 
 
-struct PostListView: View {
+struct PostListView: View, Equatable {
+    
+    
+    static func == (lhs: PostListView, rhs: PostListView) -> Bool {
+        if let lsubr = lhs.subreddit, let rsubr = lhs.subreddit {
+            return lsubr.name == rsubr.name
+        }
+        return true
+    }
+    
     
     let subreddit: Subreddit?
     let subredditNamePrefixed: String?

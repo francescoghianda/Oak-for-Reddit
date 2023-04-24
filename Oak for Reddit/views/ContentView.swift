@@ -102,7 +102,7 @@ struct ContentView: View {
                     }
                     
                     
-                    NavigationLink(tag: 1, selection: selected) {
+                    NavigationLink {
                         Tab {
                             SearchableView {
                                 SubredditListView()
@@ -113,15 +113,13 @@ struct ContentView: View {
                     }
                     
                     
-                    NavigationLink(tag: 2, selection: selected){
-                        Tab {
-                            PostListView()
-                        }
+                    NavigationLink{
+                        PostListView()
                     } label: {
                         Label("Posts", systemImage: "list.bullet.below.rectangle")
                     }
                     
-                    NavigationLink(tag: 3, selection: selected) {
+                    NavigationLink {
                         
                         SettingsView()
                         
@@ -130,11 +128,8 @@ struct ContentView: View {
                     }
                     
                     
-                    
-                    
                     Section("Favorites") {
-                        FavoritesSubredditsView()
-                            
+                        FavoritesSubredditsView(sidebar: true)
                     }
                     
                 }

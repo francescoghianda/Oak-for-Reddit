@@ -10,11 +10,13 @@ import SwiftUI
 struct FavoritesSubredditsView: View {
     
     @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [])
+    
+    @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [], animation: .easeInOut)
     private var favorites: FetchedResults<SubredditEntity>
     
     @State var searchText: String = ""
+    
+    var sidebar: Bool = false
     
     var body: some View {
         
@@ -31,10 +33,15 @@ struct FavoritesSubredditsView: View {
             return true
         }
         
-        ZStack {
+        if sidebar {
             
-            List(subreddits) { subreddit in
-                
+            TextField("Search", text: $searchText)
+            
+            /*TextField(text: $searchText, prompt: nil) {
+                Label("Search", systemName: "magnifyingglass")
+            }*/
+            
+            ForEach(subreddits) { subreddit in
                 NavigationLink {
                     PostListView(subreddit: subreddit)
                 } label: {
@@ -51,14 +58,43 @@ struct FavoritesSubredditsView: View {
                 }
                 
             }
-            //.listStyle(.sidebar)
-            .navigationTitle("Favorites")
-            .searchable(text: $searchText)
+            //.animation(.easeInOut, value: subreddits)
             
-            if subreddits.isEmpty {
-                Text("There are no favorites :(")
-                    .foregroundColor(.gray)
+            
+        }
+        else {
+            
+            ZStack {
+                
+                List(subreddits) { subreddit in
+                    
+                    NavigationLink {
+                        PostListView(subreddit: subreddit)
+                    } label: {
+                        SubredditItemView(subreddit: subreddit, isFavorite: false)
+                    }
+                    .swipeActions {
+                        Button{
+                            removeFavorite(subreddit.thingId)
+                        } label: {
+                            Image(systemName: "trash.fill")
+                                .foregroundColor(.white)
+                        }
+                        .tint(.red)
+                    }
+                    
+                }
+                .listStyle(.plain)
+                .navigationTitle("Favorites")
+                .searchable(text: $searchText)
+                
+                if subreddits.isEmpty {
+                    Text("There are no favorites :(")
+                        .foregroundColor(.gray)
+                }
             }
+            
+            
         }
         
         
@@ -70,8 +106,10 @@ struct FavoritesSubredditsView: View {
             entity.thingId == subredditId
         })
         {
+            
             viewContext.delete(entity)
             try? viewContext.save()
+            
         }
         
     }

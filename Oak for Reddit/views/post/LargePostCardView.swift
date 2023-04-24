@@ -251,7 +251,7 @@ struct LargePostCardView: View {
                                 Spacer()
                                 
                                 if post.over18 {
-                                    NsfwSymbolView()
+                                    NsfwSymbol()
                                         .padding(5)
                                 }
                             }
@@ -275,6 +275,10 @@ struct LargePostCardView: View {
                             .onTapGesture {
                                 linkIsPresented.toggle()
                             }
+                            .padding(.bottom)
+                    }
+                    else if post.postLinkType == .poll {
+                        PollView(pollData: post.pollData!)
                             .padding(.bottom)
                     }
                     else {

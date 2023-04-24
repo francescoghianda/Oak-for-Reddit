@@ -7,30 +7,6 @@
 
 import SwiftUI
 
-struct NsfwSymbolView: View{
-    
-    let color = Color(red: 255/255, green: 88/255, blue: 91/255)
-    
-    var body: some View {
-        ZStack{
-            Rectangle()
-                .stroke(color, lineWidth: 3)
-                .cornerRadius(2)
-                .padding(.leading, 12)
-                .padding(.trailing, 12)
-                .padding(.top, 6)
-                .padding(.bottom, 6)
-            Text("nsfw")
-                .foregroundColor(color)
-                .font(.custom("Arial", size: 12))
-        }
-        .frame(width: 60, height: 30)
-        .padding(.leading, -12)
-        .padding(.trailing, -12)
-        .padding(.top, -6)
-        .padding(.bottom, -6)
-    }
-}
 
 struct SubredditIcon: View {
     
@@ -102,7 +78,7 @@ struct SubredditItemView: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 18)*/
-                            NsfwSymbolView()
+                            NsfwSymbol()
                         }
                         if isFavorite {
                             Image(systemName: "star.fill")
@@ -126,7 +102,7 @@ struct SubredditItemView_Previews: PreviewProvider {
     static var previews: some View {
         Group{
             SubredditItemView(subreddit: Subreddit.previewSubreddit, isFavorite: true)
-            NsfwSymbolView()
+            NsfwSymbol()
         }
         .previewLayout(.sizeThatFits)
     }

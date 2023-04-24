@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 class GalleryData {
     typealias Dictionary = [String : Any]
@@ -57,7 +58,7 @@ class GalleryData {
 }
 
 enum PostLinkType{
-    case image, video, gallery, media, link, permalink, nolink
+    case image, video, gallery, media, poll, link, permalink, nolink
 }
 
 struct ImageSize {
@@ -67,6 +68,48 @@ struct ImageSize {
     var aspectRatio: Double {
         Double(width) / Double(height)
     }
+}
+
+struct PollData {
+    
+    struct Option: Identifiable {
+        let id: Int
+        let text: String
+        var voteCount: Int
+    }
+    
+    let options: [Option]
+    let votingEndDate: Date?
+    let isPrediction: Bool
+    
+    init(pollData: [String : Any]) {
+        
+        let optionsData = pollData["options"] as! [[String : Any]]
+                
+        options = optionsData.map{ option in
+            let id = Int(option["id"] as! String) ?? 0
+            let text = option["text"] as! String
+            let voteCount = option["vote_count"] as! Int
+            return Option(id: id, text: text, voteCount: voteCount)
+        }
+        
+        if let votingEndTimestamp = pollData["voting_end_timestamp"] as? TimeInterval {
+            votingEndDate = Date(timeIntervalSince1970: votingEndTimestamp)
+        }
+        else {
+            votingEndDate = nil
+        }
+        
+        isPrediction = (pollData["is_prediction"] as? Int ?? 0) != 0
+        
+    }
+}
+
+enum Tag: Equatable {
+    case nsfw
+    case spoiler
+    case oc
+    case custom(text: String, color: Color?)
 }
 
 class Post: Thing, Votable, Created, ObservableObject {
@@ -99,6 +142,10 @@ class Post: Thing, Votable, Created, ObservableObject {
     let isGallery: Bool
     let galleryData: GalleryData?
     let imageSize: ImageSize?
+    let isSpoiler: Bool
+    let pollData: PollData?
+    
+    private(set) var tags: [Tag] = []
     
     required init(id: String, name: String, kind: String, data: [String : Any]) {
         
@@ -117,7 +164,6 @@ class Post: Thing, Votable, Created, ObservableObject {
         isSelf = (data["is_self"] as? Int ?? 0) != 0
         locked = (data["locked"] as? Int ?? 0) != 0
         numComments = data["num_comments"] as! Int
-        over18 = (data["over_18"] as? Int ?? 0) != 0
         score = data["score"] as! Int
         selfText = data["selftext"] as! String
         subreddit = data["subreddit"] as! String
@@ -140,13 +186,21 @@ class Post: Thing, Votable, Created, ObservableObject {
         
         media = Thing.extractMedia(data: data, key: "media")//data["media"] as? [String : Any]
         
-        if (data["is_gallery"] as? Int ?? 0) != 0 {
+        if let galleryData = data["gallery_data"] as? [String : Any],
+           let metadata = data["media_metadata"] as? [String : Any],
+            (data["is_gallery"] as? Int ?? 0) != 0
+        {
             
             isGallery = true
-            galleryData = GalleryData(galleryData: data["gallery_data"] as! [String : Any], metadata: data["media_metadata"] as! [String : Any])
+            self.galleryData = GalleryData(galleryData: galleryData, metadata: metadata)
             
         }
         else {
+            
+            if (data["is_gallery"] as? Int ?? 0) != 0 {
+                print(data)
+            }
+            
             isGallery = false
             galleryData = nil
         }
@@ -165,6 +219,26 @@ class Post: Thing, Votable, Created, ObservableObject {
                 print(preview)
             }
             imageSize = nil
+        }
+        
+        
+        over18 = (data["over_18"] as? Int ?? 0) != 0
+        
+        if over18 {
+            tags.append(.nsfw)
+        }
+        
+        isSpoiler = Thing.getBool("spoiler", from: data)
+        
+        if isSpoiler {
+            tags.append(.spoiler)
+        }
+        
+        if let pollData = data["poll_data"] as? [String : Any] {
+            self.pollData = PollData(pollData: pollData)
+        }
+        else {
+            pollData = nil
         }
                         
         super.init(id: id, name: name, kind: kind, data: data)
@@ -242,6 +316,10 @@ extension Post {
         
         if isGallery {
             return .gallery
+        }
+        
+        if pollData != nil {
+            return .poll
         }
         
         if let media = media {

@@ -35,7 +35,7 @@ struct PostView: View {
     var body: some View {
         
         ScrollView {
-            LazyVStack(alignment: .leading){
+            VStack(alignment: .leading){
                 
                 HStack{
                     Text("Posted by u/\(post.author) ⋅ \(post.getTimeSiceCreationFormatted())")
@@ -43,7 +43,7 @@ struct PostView: View {
                     Spacer()
                     
                     if post.over18 {
-                        NsfwSymbolView()
+                        NsfwSymbol()
                             .padding(5)
                     }
                 }
@@ -75,7 +75,9 @@ struct PostView: View {
                             linkIsPresented.toggle()
                         }
                 }
-                
+                else if post.postLinkType == .poll {
+                    PollView(pollData: post.pollData!)
+                }
                     
                 if !post.selfText.isEmpty {
                     SelfText(post.selfText)

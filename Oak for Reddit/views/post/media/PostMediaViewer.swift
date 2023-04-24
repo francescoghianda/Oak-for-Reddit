@@ -201,6 +201,7 @@ struct BlurModifier: ViewModifier {
     
     @State var blurred: Bool
     let showHideButton: Bool
+    let text: String
     
     @Namespace private var namespace
     
@@ -223,7 +224,7 @@ struct BlurModifier: ViewModifier {
                                     .frame(width: 50, height: 50)
                                     .scaledToFit()
                             }
-                            Text("THIS POST MAY CONTAIN\nSENSITIVE CONTENT")
+                            Text(text)
                                 .multilineTextAlignment(.center)
                                 .font(.caption2.weight(.bold))
                         }
@@ -256,9 +257,9 @@ struct BlurModifier: ViewModifier {
 
 extension View {
     
-    func blur(_ blurred: Bool, showHideButton: Bool) -> some View {
+    func blur(_ blurred: Bool, showHideButton: Bool, text: String) -> some View {
         self
-            .modifier(BlurModifier(blurred: blurred, showHideButton: showHideButton))
+            .modifier(BlurModifier(blurred: blurred, showHideButton: showHideButton, text: text))
     }
 }
 
@@ -285,7 +286,9 @@ struct PostMediaViewer: View {
     
     var body: some View {
         
-        let blurred = userPreferences.blurOver18Images && post.over18 && self.blurred
+        let blurred = ((userPreferences.blurOver18Images && post.over18) || post.isSpoiler) && self.blurred
+        let showHideButton = post.isSpoiler || post.over18
+        let blurText = post.over18 ? "THIS POST MAY CONTAIN\nSENSITIVE CONTENT" : "THIS POST MAY CONTAIN\nA SPOILER"
         
         if post.postLinkType == .image {
             
@@ -295,9 +298,10 @@ struct PostMediaViewer: View {
                     currentImage?.wrappedValue = image
                 }
                 .scaledToFit()
-                .blur(blurred, showHideButton: post.over18)
+                .blur(blurred, showHideButton: showHideButton, text: blurText)
                 .cornerRadius(cornerRadius)
-                .frame(width: width, height: height)
+                //.frame(width: width, height: height)
+                .frame(height: height)
                 
 
         }
@@ -308,7 +312,7 @@ struct PostMediaViewer: View {
                 .onImageChange { image in
                     currentImage?.wrappedValue = image
                 }
-                .blur(blurred, showHideButton: post.over18)
+                .blur(blurred, showHideButton: showHideButton, text: blurText)
                 .cornerRadius(10)
             
         }
@@ -319,7 +323,7 @@ struct PostMediaViewer: View {
             case .redditVideo(let data):
                 RedditVideoPlayer(url: data.hlsUrl!)
                     .scaledToFit()
-                    .blur(blurred, showHideButton: post.over18)
+                    .blur(blurred, showHideButton: showHideButton, text: blurText)
                     .cornerRadius(cornerRadius)
                     .frame(width: width, height: height)
                 
@@ -327,7 +331,7 @@ struct PostMediaViewer: View {
                 EmbedVideoPlayer(media: data)
                     .frame(idealWidth: CGFloat(data.width), idealHeight: CGFloat(data.height))
                     .scaledToFit()
-                    .blur(blurred, showHideButton: post.over18)
+                    .blur(blurred, showHideButton: showHideButton, text: blurText)
                     .cornerRadius(cornerRadius)
             case .unknown:
                 Rectangle()
