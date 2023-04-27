@@ -12,12 +12,15 @@ import SwiftUI
 
 class PostListModel: ObservableObject {
     
-    private let api: RedditApi = RedditApi.shared
+    private let api: ApiFetcher = ApiFetcher.shared
     
-    //let subreddit: Subreddit?
     let subredditNamePrefixed: String
     
     @Published var posts: Listing<Post>? = nil
+    @Published private(set) var loading: Bool = false
+    @Published private(set) var loadingMore: Bool = false
+    @Published private(set) var error: Error? = nil
+    @Published private(set) var loadingMoreError: Error? = nil
     
     init(subredditNamePrefixed: String? = nil){
         
@@ -30,32 +33,71 @@ class PostListModel: ObservableObject {
     }
     
     
-    func load(order: PostListingOrder) async {
+    func load(order: PostListingOrder) {
         
-        do {
-            posts = try await api.fetchListing(.postListing(order: order, subredditName: subredditNamePrefixed))
+        if loading || loadingMore {
+            return
         }
-        catch {
-            print(error)
+        
+        loading = true
+        error = nil
+        
+        Task {
+            
+            do {
+                let posts: Listing<Post> = try await api.fetchListing(.postListing(order: order, subredditName: subredditNamePrefixed))
+                
+                Task { @MainActor [weak self] in
+                    self?.posts = posts
+                    self?.loading = false
+                }
+            }
+            catch {
+                Task { @MainActor [weak self] in
+                    self?.error = error
+                    self?.loading = false
+                }
+            }
+            
         }
+        
     }
     
-    func loadMore(order: PostListingOrder) async {
+    func loadMore(order: PostListingOrder) {
+        
+        if loading || loadingMore {
+            return
+        }
+        
+        loadingMore = true
+        loadingMoreError = nil
        
         if let posts = self.posts {
             
-            let after = posts.after ?? posts.last?.subredditId ?? ""
-            
-            do {
-                self.posts! += try await api.fetchListing(.postListing(order: order, subredditName: subredditNamePrefixed, after: after, count: posts.count))
-            }
-            catch {
-                print(error)
+            Task {
+                
+                do {
+                    let after = posts.after ?? posts.last?.subredditId ?? ""
+                    
+                    let newPosts: Listing<Post> = try await api.fetchListing(.postListing(order: order, subredditName: subredditNamePrefixed, after: after, count: posts.count))
+                    
+                    Task { @MainActor [weak self] in
+                        self?.posts! += newPosts
+                        self?.loadingMore = false
+                    }
+                }
+                catch {
+                    Task { @MainActor [weak self] in
+                        self?.loadingMoreError = error
+                        self?.loadingMore = false
+                    }
+                }
+                
             }
             
         }
         else {
-            await self.load(order: order)
+            self.load(order: order)
         }
        
     }

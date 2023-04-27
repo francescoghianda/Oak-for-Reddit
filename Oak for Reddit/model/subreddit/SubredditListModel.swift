@@ -9,10 +9,14 @@ import Foundation
 
 class SubrettitListModel: ObservableObject {
         
-    private let api: RedditApi = RedditApi.shared
+    private let api: ApiFetcher = ApiFetcher.shared
     
     private var saved: Listing<Subreddit> = Listing.empty()
     @Published var subreddits: Listing<Subreddit> = Listing.empty()
+    @Published private(set) var loading: Bool = false
+    @Published private(set) var loadingMore: Bool = false
+    @Published private(set) var error: Error? = nil
+    @Published private(set) var errorLoadingMore: Error? = nil
     
     func save() {
         saved = subreddits
@@ -27,35 +31,89 @@ class SubrettitListModel: ObservableObject {
         return saved.isEmpty && subreddits.isEmpty
     }
     
-    func search(sort: SubredditSearchSort, query: String) async {
+    func search(sort: SubredditSearchSort, query: String) {
         
-        do {
-            subreddits = try await api.fetchListing(.subredditSearch(sort: sort, query: query))
-            
-        }
-        catch {
-            print("Error searching subreddits: \(error)")
+        if loading {
+            return
         }
         
-    }
-    
-    func load(order: SubredditListingOrder = .normal) async{
+        loading = true
+        error = nil
+        
+        Task {
+            do {
+                let subreddits: Listing<Subreddit> = try await api.fetchListing(.subredditSearch(sort: sort, query: query))
                 
-        do {
-            subreddits = try await api.fetchListing(.subredditListing(order: order))
+                Task { @MainActor [weak self] in
+                    self?.subreddits = subreddits
+                    self?.loading = false
+                }
+                
+            }
+            catch {
+                Task { @MainActor [weak self] in
+                    self?.error = error
+                    self?.loading = false
+                }
+            }
         }
-        catch{
-            print("Error loanding subreddits: \(error)")
+        
+    }
+    
+    func load(order: SubredditListingOrder = .normal){
+             
+        if loading {
+            return
+        }
+        
+        loading = true
+        error = nil
+        
+        Task {
+            do {
+                let subreddits: Listing<Subreddit> = try await api.fetchListing(.subredditListing(order: order))
+                
+                Task { @MainActor [weak self] in
+                    self?.subreddits = subreddits
+                    self?.loading = false
+                }
+            }
+            catch{
+                Task { @MainActor [weak self] in
+                    self?.error = error
+                    self?.loading = false
+                }
+            }
         }
     }
     
-    func loadMore(order: SubredditListingOrder = .normal) async {
+    func loadMore(order: SubredditListingOrder = .normal) {
         
-        do {
-            self.subreddits += try await api.fetchListing(.subredditListing(order: order, after: self.subreddits.after ?? "", count: self.subreddits.count))
+        if loadingMore {
+            return
         }
-        catch{
-            print("Error loanding subreddits: \(error)")
+        
+        loadingMore = true
+        errorLoadingMore = nil
+        
+        Task {
+            
+            do {
+                let subreddits: Listing<Subreddit> = try await api.fetchListing(.subredditListing(order: order, after: self.subreddits.after ?? "", count: self.subreddits.count))
+                
+                Task { @MainActor [weak self] in
+                    self?.subreddits += subreddits
+                    self?.loadingMore = false
+                }
+                
+            }
+            catch{
+                Task { @MainActor [weak self] in
+                    self?.errorLoadingMore = error
+                    self?.loadingMore = false
+                }
+            }
+            
         }
     }
     

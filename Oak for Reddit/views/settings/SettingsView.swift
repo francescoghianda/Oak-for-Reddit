@@ -19,9 +19,7 @@ struct SettingsView: View {
         List {
             
             NavigationLink {
-                Button("Auth") {
-                    OAuthManager.shared.startAuthorization()
-                }
+                AccountInfoView()
             } label: {
                 Label("Account", systemImage: "person.crop.circle")
             }

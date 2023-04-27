@@ -10,12 +10,12 @@ import Combine
 import SwiftUI
 
 
-class RedditApi: NSObject{
+class ApiFetcher: NSObject{
     typealias Parser<T> = (_ data: Data) throws -> T?
     typealias JSONObject = [String : Any]
     typealias JSONArray = [JSONObject]
     
-    public static let shared: RedditApi = RedditApi()
+    public static let shared: ApiFetcher = ApiFetcher()
     
     private static let APP_VERSION: String = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String)!
     private static let APP_ID: String = Bundle.main.bundleIdentifier!
@@ -38,13 +38,13 @@ class RedditApi: NSObject{
     private func buildRequest(endpoint: Endpoint) -> URLRequest? {
         
         let urlString: String = {
-            if(endpoint.method != .get){
-                return "\(RedditApi.API_BASE_URL)\(endpoint.path)"
+            if(endpoint.method != .get || endpoint.parameters.isEmpty){
+                return "\(ApiFetcher.API_BASE_URL)\(endpoint.path)"
             }
             let params = endpoint.parameters.map { (param: String, value: Any) in
                 "\(param)=\(value)"
             }.joined(separator: "&")
-            return "\(RedditApi.API_BASE_URL)\(endpoint.path)?\(params)"
+            return "\(ApiFetcher.API_BASE_URL)\(endpoint.path)?\(params)"
         }()
         
         guard let url = URL(string: urlString)
@@ -54,7 +54,7 @@ class RedditApi: NSObject{
         }
         
         var request = URLRequest(url: url)
-        request.setValue(RedditApi.USER_AGENT, forHTTPHeaderField: "User-Agent")
+        request.setValue(ApiFetcher.USER_AGENT, forHTTPHeaderField: "User-Agent")
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         
@@ -92,8 +92,8 @@ class RedditApi: NSObject{
         let result: T = try await withCheckedThrowingContinuation({ continuation in
             fetch(endpoint: endpoint, parser: parser) { result in
                 continuation.resume(returning: result)
-            } onFail: { failCause in
-                continuation.resume(throwing: ApiFetchError(cause: failCause))
+            } onFail: { fetchError in
+                continuation.resume(throwing: fetchError)
             }
         })
         
@@ -104,14 +104,14 @@ class RedditApi: NSObject{
     func fetch<T>(endpoint: Endpoint,
                   parser: @escaping Parser<T>,
                   onSuccess: @escaping (T) -> Void,
-                  onFail: ((ApiFetchFailCause) -> Void)? = nil) {
+                  onFail: ((FetchError) -> Void)? = nil) {
         
 
-        oauth.getValidAccount { account in
+        oauth.getValidAccount(needsLogin: endpoint.needsAccount) { account in
             
             guard var request = self.buildRequest(endpoint: endpoint)
             else{
-                onFail?(.unknown)
+                onFail?(.invalid_request)
                 return
             }
             
@@ -123,8 +123,8 @@ class RedditApi: NSObject{
             
             request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
             
-            self.makeRequest(request: request, parser: parser, onSuccess: onSuccess) { failCause in
-                switch failCause {
+            self.makeRequest(request: request, parser: parser, onSuccess: onSuccess) { fetchError in
+                switch fetchError {
                 case .unauthorized:
                     print("Invalid access token.")
                     print("Trying to refresh the access token")
@@ -134,19 +134,16 @@ class RedditApi: NSObject{
                         request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
                         self.makeRequest(request: request, parser: parser, onSuccess: onSuccess) { cause in
                             onFail?(cause)
-                            print("Error calling api")
+                            //print("Error calling api")
                         }
                     })
-                    
-                case .bad_response:
-                    onFail?(failCause)
-                    return
-                case .unknown:
-                    onFail?(failCause)
-                    print("Unknown error")
+                default:
+                    onFail?(fetchError)
                     return
                 }
             }
+        } onFail: {
+            onFail?(.login_error)
         }
         
     }
@@ -154,7 +151,7 @@ class RedditApi: NSObject{
     private func makeRequest<T>(request: URLRequest,
                                 parser: @escaping Parser<T>,
                                 onSuccess: @escaping (T) -> Void,
-                                onFail: @escaping (ApiFetchFailCause) -> Void)  {
+                                onFail: @escaping (FetchError) -> Void)  {
                 
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             
@@ -164,14 +161,25 @@ class RedditApi: NSObject{
                 error == nil
             else {
                 print(error?.localizedDescription ?? "")
-                onFail(.unknown)
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+                onFail(.unexpected(code: statusCode))
                 return
             }
             
-            
-            if(response.statusCode == 401){
-                onFail(.unauthorized)
-                return
+            if response.statusCode >= 400 {
+                switch response.statusCode {
+                case 400:
+                    onFail(.bad_request)
+                    return
+                case 401:
+                    onFail(.unauthorized)
+                    return
+                case 403:
+                    onFail(.forbidden)
+                default:
+                    onFail(.unexpected(code: response.statusCode))
+                    return
+                }
             }
             
             self.updateRateLimits(response: response)
@@ -182,12 +190,12 @@ class RedditApi: NSObject{
                     return
                 }
                 else {
-                    onFail(.bad_response)
+                    onFail(.parser_error)
                 }
             }
             catch {
-                print("Failed to load: \(error.localizedDescription)")
-                onFail(.bad_response)
+                print("Parser error: \(error.localizedDescription)")
+                onFail(.parser_error)
                 return
             }
         }
@@ -211,7 +219,19 @@ class RedditApi: NSObject{
     
 }
 
-class ApiFetchError: Error {
+enum FetchError: Error {
+    
+    case unauthorized
+    case invalid_request
+    case bad_request
+    case parser_error
+    case login_error
+    case forbidden
+    case unexpected(code: Int)
+    
+}
+
+/*class ApiFetchError: Error {
     let cause: ApiFetchFailCause
     let localizedDescription: String
     
@@ -229,27 +249,6 @@ enum ApiFetchFailCause: String {
 
 class UnauthorizedError: Error{
     
-}
+}*/
 
-extension Dictionary {
-    func percentEncoded() -> Data? {
-        map { key, value in
-            let escapedKey = "\(key)".addingPercentEncoding(withAllowedCharacters: .urlQueryValueAllowed) ?? ""
-            let escapedValue = "\(value)".addingPercentEncoding(withAllowedCharacters: .urlQueryValueAllowed) ?? ""
-            return escapedKey + "=" + escapedValue
-        }
-        .joined(separator: "&")
-        .data(using: .utf8)
-    }
-}
 
-extension CharacterSet {
-    static let urlQueryValueAllowed: CharacterSet = {
-        let generalDelimitersToEncode = ":#[]@" // does not include "?" or "/" due to RFC 3986 - Section 3.4
-        let subDelimitersToEncode = "!$&'()*+,;="
-        
-        var allowed: CharacterSet = .urlQueryAllowed
-        allowed.remove(charactersIn: "\(generalDelimitersToEncode)\(subDelimitersToEncode)")
-        return allowed
-    }()
-}

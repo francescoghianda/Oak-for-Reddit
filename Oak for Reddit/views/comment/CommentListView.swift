@@ -61,6 +61,7 @@ struct PostCommentsView: View {
     @Binding var order: CommentsOrder
     @EnvironmentObject var post: Post
     @State var loadingMoreComments: Bool = false
+    @State var error: Error? = nil
     
     var body: some View {
         
@@ -68,14 +69,22 @@ struct PostCommentsView: View {
         
         if model.comments.more != nil && model.comments.more!.count > 0 {
             Button{
+                loadingMoreComments = true
                 Task {
-                    loadingMoreComments = true
-                    model.comments = await CommentsModel
-                        .loadMoreReplies(listing: model.comments,
-                                         count: 50,
-                                         sort: order,
-                                         linkId: post.name,
-                                         parentId: post.name)
+                    do {
+                        let newComments = try await CommentsModel
+                            .loadMoreReplies(listing: model.comments,
+                                             count: 50,
+                                             sort: order,
+                                             linkId: post.name,
+                                             parentId: post.name)
+                        
+                        Task { @MainActor in
+                            self.model.comments = newComments
+                        }
+                    } catch {
+                        self.error = error
+                    }
                     loadingMoreComments = false
                 }
             } label: {

@@ -20,8 +20,7 @@ struct PostView: View {
     @State var commentsOrder: CommentsOrder = .confidence
     @State var showCommentsOrderPicker: Bool = false
     @State private var commentsViewMode: CommentsViewMode = .classic
-    @State private var commentsLoading: Bool = false
-    @State private var loadingMoreComments: Bool = false
+    //@State private var loadingMoreComments: Bool = false
     
     @State private var contentWidth: CGFloat = .zero
     
@@ -70,7 +69,7 @@ struct PostView: View {
                         //.matchedGeometryEffect(id: "postmedia\(post.uuid)", in: namespace!, properties: .position, anchor: .center)
                 }
                 else if post.postLinkType == .link {
-                    LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!)
+                    LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!, contentWidth: $contentWidth)
                         .onTapGesture {
                             linkIsPresented.toggle()
                         }
@@ -132,7 +131,7 @@ struct PostView: View {
                                 .rotationEffect(showCommentsOrderPicker ? .degrees(90.0) : .degrees(0.0))
                         }
                     }
-                    .disabled(commentsLoading)
+                    .disabled(model.loading)
 
                 }
                 
@@ -142,7 +141,7 @@ struct PostView: View {
                         
                 }
                 
-                if commentsLoading {
+                if model.loading {
                     HStack{
                         Spacer()
                         ProgressView()
@@ -170,11 +169,7 @@ struct PostView: View {
             }
             .padding([.leading, .trailing])
             .onChange(of: commentsOrder) { newOrder  in
-                Task {
-                    commentsLoading = true
-                    await model.load(sort: commentsOrder)
-                    commentsLoading = false
-                }
+                model.load(sort: newOrder)
             }
             
         }
@@ -208,14 +203,11 @@ struct PostView: View {
             
             
         }
-        .task{
-            commentsLoading = true
-            await model.load(sort: commentsOrder)
-            commentsLoading = false
-        }
         .onFirstAppear {
             commentsViewMode = userPrefereces.commentsViewMode
             commentsOrder = userPrefereces.commentsPreferredOrder
+            
+            model.load(sort: commentsOrder)
         }
         
         

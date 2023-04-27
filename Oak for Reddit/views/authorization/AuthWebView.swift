@@ -28,7 +28,7 @@ final class AuthWebView: NSObject, WKNavigationDelegate, UIViewRepresentable {
  
     func updateUIView(_ webView: WKWebView, context: Context) {
         let request = URLRequest(url: url)
-        webView.customUserAgent = RedditApi.USER_AGENT
+        webView.customUserAgent = ApiFetcher.USER_AGENT
         webView.load(request)
     }
     

@@ -39,4 +39,22 @@ extension Endpoint {
         
     }
     
+    static func vote(thingName: String, dir: VoteDirection) -> Endpoint {
+        
+        let path = "/api/vote"
+        
+        let parameters: [String : Any] = [
+            "id": thingName,
+            "dir": dir.rawValue
+        ]
+        
+        return Endpoint(method: .post, scopes: [.vote], needsAccount: true, path: path, parameters: parameters)
+    }
+    
+}
+
+enum VoteDirection: Int {
+    case upvote = 1
+    case downvote = -1
+    case unvote = 0
 }

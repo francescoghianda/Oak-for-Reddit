@@ -89,7 +89,7 @@ struct PollData {
         options = optionsData.map{ option in
             let id = Int(option["id"] as! String) ?? 0
             let text = option["text"] as! String
-            let voteCount = option["vote_count"] as! Int
+            let voteCount = option["vote_count"] as? Int ?? 0
             return Option(id: id, text: text, voteCount: voteCount)
         }
         
@@ -112,11 +112,27 @@ enum Tag: Equatable {
     case custom(text: String, color: Color?)
 }
 
-class Post: Thing, Votable, Created, ObservableObject {
+class Post: Thing, Votable, Created {
 
     var ups: Int
     var downs: Int
-    var likes: Bool?
+    @Published var likes: Bool?
+    
+    var upvoted: Bool {
+        guard let likes = likes
+        else {
+            return false
+        }
+        return likes
+    }
+    
+    var downvoted: Bool {
+        guard let likes = likes
+        else {
+            return false
+        }
+        return !likes
+    }
     
     var created: Date
     var createdUtc: Date
@@ -151,7 +167,7 @@ class Post: Thing, Votable, Created, ObservableObject {
         
         ups = data["ups"] as! Int
         downs = data["downs"] as! Int
-        likes = (data["likes"] as? Int ?? 0) != 0
+        likes = Thing.getBool("likes", from: data)
         
         let createdTI = data["created"] as! TimeInterval
         created = Date(timeIntervalSince1970: createdTI)
@@ -253,42 +269,57 @@ class Post: Thing, Votable, Created, ObservableObject {
 
 extension Post {
     
-    /*var timeSiceCreation: TimeInterval {
-        Date.now.timeIntervalSince(created)
+    func vote(dir: VoteDirection) {
+        
+        let direction: VoteDirection = {
+            
+            guard let likes = likes
+            else {
+                return dir
+            }
+            
+            if (dir == .upvote && likes) || (dir == .downvote && !likes) {
+                return .unvote
+            }
+            
+            return dir
+        }()
+        
+        Task {
+            
+            do {
+                let json = try await ApiFetcher.shared.fetchJsonObject(.vote(thingName: name, dir: direction))
+                
+                if json.isEmpty {
+                    
+                    let generator = UINotificationFeedbackGenerator()
+                                        
+                    DispatchQueue.main.async {
+                        switch direction {
+                        case .upvote:
+                            self.likes = true
+                            generator.notificationOccurred(.success)
+                        case .unvote:
+                            self.likes = nil
+                        case .downvote:
+                            self.likes = false
+                            generator.notificationOccurred(.success)
+                        }
+                    }
+                }
+                
+            }
+            catch {
+                print(error)
+            }
+            
+        }
+        
     }
     
-    
-    public func formatCreationTime(maxDays: Int = 3, dateFormatter: DateFormatter? = nil) -> String {
-        
-        let seconds = self.timeSiceCreation
-        let mins = Int(seconds / 60)
-        let hours = Int(mins / 60)
-        let days = Int(hours / 24)
-        
-        if (seconds < 60){
-            return "now"//"\(seconds)s"
-        }
-        
-        if (mins < 60) {
-            return "\(mins)m"
-        }
-        
-        if (hours < 24) {
-            return "\(hours)h"
-        }
+}
 
-        if (days <= maxDays) {
-            return "\(days)g"
-        }
-        
-        var formatter = dateFormatter
-        if formatter == nil {
-            formatter = DateFormatter()
-            formatter!.dateFormat = "dd/MM/yy"
-        }
-        
-        return formatter!.string(from: self.created)
-    }*/
+extension Post {
     
     static let imageFileFormats: [String] = ["jpg", "jpeg", "png", "gif", "gifv", "bmp", "bmpf", "tif", "tiff", "ico", "cur", "xbm"]
     

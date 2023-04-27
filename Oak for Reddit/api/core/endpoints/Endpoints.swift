@@ -70,7 +70,7 @@ struct Endpoint {
 struct TypedEndpoint<T> {
     
     private(set) var endpoint: Endpoint
-    private(set) var parser: RedditApi.Parser<T>
+    private(set) var parser: ApiFetcher.Parser<T>
     
 }
 

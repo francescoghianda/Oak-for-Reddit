@@ -26,21 +26,31 @@ class AccountsManager {
     }
     
     var accounts: [Account] {
-        return (try? moc.fetch(request)) ?? []
+        return moc.performAndWait {
+            return (try? moc.fetch(request)) ?? []
+        }
     }
     
-    var account: Account? {
+    var any: Account? {
+        
+        if let account = logged {
+            return account
+        }
+        
+        return guest
+        
+    }
+    
+    var logged: Account? {
         
         let request = request
         
         request.predicate = NSPredicate(format: "guest = %d", false)
         request.fetchLimit = 1
         
-        if let account = try? moc.fetch(request).first {
-            return account
+        return moc.performAndWait {
+            return try? moc.fetch(request).first
         }
-        
-        return guest
         
     }
     
@@ -51,23 +61,30 @@ class AccountsManager {
         request.predicate = NSPredicate(format: "guest = %d", true)
         request.fetchLimit = 1
         
-        return try? moc.fetch(request).first
+        return moc.performAndWait {
+            return try? moc.fetch(request).first
+        }
         
     }
     
     func createGuestAccount(authData: AuthorizationData) -> Account {
         
-        let guestAccount = Account(context: moc)
-        guestAccount.guest = true
-        guestAccount.authData = authData
-        
-        do {
-            try moc.save()
-            return guestAccount
-        }
-        catch {
-            print(error.localizedDescription)
-            fatalError("Error initilizing guest account")
+        moc.performAndWait {
+            let guestAccount = Account(context: moc)
+            
+            guestAccount.setValuesForKeys([
+                "guest": true,
+                "authData": authData
+            ])
+            
+            do {
+                try moc.save()
+                return guestAccount
+            }
+            catch {
+                print(error.localizedDescription)
+                fatalError("Error initilizing guest account")
+            }
         }
     }
     

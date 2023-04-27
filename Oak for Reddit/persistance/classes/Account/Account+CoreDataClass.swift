@@ -12,4 +12,10 @@ import CoreData
 
 public class Account: NSManagedObject {
 
+        
+    override public func willChangeValue(forKey key: String) {
+        super.willChangeValue(forKey: key)
+        self.objectWillChange.send()
+    }
+    
 }

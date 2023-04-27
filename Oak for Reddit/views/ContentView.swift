@@ -83,7 +83,7 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $oauthManager.authorizationSheetIsPresented) {
-                // onDismiss
+                OAuthManager.shared.onAuthorizationSheetDismissed()
             } content: {
                 AuthorizationSheet()
             }
@@ -148,7 +148,7 @@ struct ContentView: View {
             }
             //SidebarTabView()
             .sheet(isPresented: $oauthManager.authorizationSheetIsPresented) {
-                // onDismiss
+                OAuthManager.shared.onAuthorizationSheetDismissed()
             } content: {
                 AuthorizationSheet()
             }

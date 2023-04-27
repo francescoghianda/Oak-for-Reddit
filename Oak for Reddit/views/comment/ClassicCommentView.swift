@@ -16,6 +16,7 @@ struct ClassicCommentView: View {
     @Binding var mode: CommentsViewMode
     @Binding var order: CommentsOrder
     @Binding var loadingReplies: Bool
+    @State var error: Error? = nil
     
     @Namespace private var namespace
     
@@ -55,16 +56,30 @@ struct ClassicCommentView: View {
                     if comment.replies.more != nil && comment.replies.more!.count > 0 {
                         Divider()
                         Button {
+                            loadingReplies = true
+                            error = nil
                             Task{
-                                loadingReplies = true
-                                comment.replies = await CommentsModel
-                                    .loadMoreReplies(listing: comment.replies,
-                                                     count: 10,
-                                                     sort: order,
-                                                     linkId: comment.linkId,
-                                                     parentId: comment.name)
+                                
+                                do {
+                                    let replies = try await CommentsModel
+                                        .loadMoreReplies(listing: comment.replies,
+                                                         count: 10,
+                                                         sort: order,
+                                                         linkId: comment.linkId,
+                                                         parentId: comment.name)
+                                    Task { @MainActor in
+                                        comment.replies = replies
+                                        loadingReplies = false
+                                    }
+                                }
+                                catch {
+                                    Task { @MainActor in
+                                        self.error = error
+                                        loadingReplies = false
+                                    }
+                                }
                                 //await comment.loadMoreReplies(sort: order)
-                                loadingReplies = false
+                                
                             }
                         } label: {
                             HStack{

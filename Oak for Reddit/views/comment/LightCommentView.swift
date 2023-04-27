@@ -15,6 +15,7 @@ struct LightCommentView: View {
     @Binding var mode: CommentsViewMode
     @Binding var order: CommentsOrder
     @Binding var loadingReplies: Bool
+    @State var error: Error? = nil
     
     var body: some View {
         
@@ -58,15 +59,31 @@ struct LightCommentView: View {
                 
                 if comment.replies.more != nil && comment.replies.more!.count > 0 {
                     Button {
-                        Task{
-                            loadingReplies = true
-                            comment.replies = await CommentsModel
-                                .loadMoreReplies(listing: comment.replies,
-                                                 count: 10,
-                                                 sort: order,
-                                                 linkId: comment.linkId,
-                                                 parentId: comment.name)
-                            loadingReplies = false
+                        loadingReplies = true
+                        error = nil
+                        Task {
+                            
+                            do {
+                                let replies = try await CommentsModel
+                                    .loadMoreReplies(listing: comment.replies,
+                                                     count: 10,
+                                                     sort: order,
+                                                     linkId: comment.linkId,
+                                                     parentId: comment.name)
+                                
+                                Task { @MainActor in
+                                    comment.replies = replies
+                                    loadingReplies = false
+                                }
+                            }
+                            catch {
+                                Task { @MainActor in
+                                    self.error = error
+                                    loadingReplies = false
+                                }
+                            }
+                            
+                            
                         }
                     } label: {
                         HStack{

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19574" systemVersion="20G1231" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Account" representedClassName=".Account" syncable="YES">
+        <attribute name="avatarUrl" optional="YES" attributeType="URI"/>
+        <attribute name="bannerUrl" optional="YES" attributeType="URI"/>
         <attribute name="guest" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="imageUrl" optional="YES" attributeType="URI"/>
+        <attribute name="lastUpdate" attributeType="Date" defaultDateTimeInterval="-978310800" usesScalarValueType="NO"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="authData" maxCount="1" deletionRule="Cascade" destinationEntity="AuthorizationData" inverseName="account" inverseEntity="AuthorizationData"/>
     </entity>
@@ -38,7 +41,7 @@
         <attribute name="subredditsPreferredOrder" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <elements>
-        <element name="Account" positionX="-36" positionY="90" width="128" height="89"/>
+        <element name="Account" positionX="-36" positionY="90" width="128" height="134"/>
         <element name="AuthorizationData" positionX="138.9405517578125" positionY="230.96728515625" width="128" height="134"/>
         <element name="SubredditEntity" positionX="-189.6002197265625" positionY="26.94549560546875" width="128" height="164"/>
         <element name="UserPreferences" positionX="-585.4842529296875" positionY="284.0109252929688" width="128" height="178"/>

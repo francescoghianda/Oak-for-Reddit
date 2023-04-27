@@ -11,6 +11,7 @@ protocol Votable {
     var ups: Int { get }
     var downs: Int { get }
     var likes: Bool? { get }
+    
 }
 
 protocol Created {
@@ -27,7 +28,7 @@ enum ThingKind: String {
     case comment = "t1", account = "t2", link = "t3", message = "t4", subreddit = "t5", award = "t6" // t1, t2, t3, t4, t5, t6
 }
 
-class Thing: Identifiable, Equatable {
+class Thing: Identifiable, Equatable, ObservableObject {
     
     
     /// Return the name of the Thing (eg. "t3_15bfi0")

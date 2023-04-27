@@ -22,9 +22,8 @@ class OAuthManager: ObservableObject {
     private let defaultsAuthorizationDataKey = "authorizationData"
     
     private let semaphore = DispatchSemaphore(value: 1)
-    //private var authorizationData: AuthorizationData? = nil
     
-    private var scopeParameters = ["read", "identity"]
+    private var scopeParameters = ["read", "identity", "vote"]
     private var stateParameter = ""
     private var responseTypeParameter = "code"
     private var tokenDurationParameter = "permanent"
@@ -32,15 +31,24 @@ class OAuthManager: ObservableObject {
     private var errorMessage = ""
     
     @Published public var authorizationSheetIsPresented = false
-    @Published public var authorizationStatus: AuthorizationStatus = .unauthorized
     
-    //private(set) var accessToken: String? = nil
+    private var loginStatus: LoginStatus = .initialized {
+        didSet {
+            if [.completed, .canceled, .failed].contains(loginStatus) {
+                Task {
+                    onLoginCompletion?(loginStatus)
+                }
+            }
+        }
+    }
+    
+    private var onLoginCompletion: ((LoginStatus) -> Void)? = nil
     
     private let accountsManager = AccountsManager.shared
     
     private var authorizationData: AuthorizationData? {
         
-        return AccountsManager.shared.account?.authData
+        return AccountsManager.shared.any?.authData
         
     }
     
@@ -52,11 +60,6 @@ class OAuthManager: ObservableObject {
         
         deviceId = OAuthManager.getDeviceId()
         
-        /*authorizationData = retrieveAuthorizationData()
-        
-        if(authorizationData != nil){
-            setAuthorizationData(authorizationData: authorizationData!)
-        }*/
     }
     
     private static func getDeviceId() -> String {
@@ -70,9 +73,9 @@ class OAuthManager: ObservableObject {
         return deviceId
     }
     
-    func getValidAccount(onSuccess: @escaping (Account) -> Void) {
+    func getValidAccount(needsLogin: Bool = false, onSuccess: @escaping (Account) -> Void, onFail: @escaping () -> Void) {
         
-        let account = accountsManager.account
+        let account = needsLogin ? accountsManager.logged : accountsManager.any
         
         if let account = account {
             let isValid = Date.now.distance(to: account.authData.expireDate) > 0
@@ -85,44 +88,70 @@ class OAuthManager: ObservableObject {
             // The access token is expired
             
             refreshToken(account: account, onSuccess: onSuccess)
-            return
+        }
+        else if needsLogin {
+            
+            startAuthorization { status in
+                if status == .completed {
+                    if let account = self.accountsManager.logged {
+                        onSuccess(account)
+                    }
+                }
+                else {
+                    onFail()
+                }
+            }
+            
+        }
+        else {
+            fetchAuthorizationData(type: .installed_client) { authorizationData in
+                let account = self.accountsManager.createGuestAccount(authData: authorizationData)
+                onSuccess(account)
+            }
         }
         
-        fetchAuthorizationData(type: .installed_client) { authorizationData in
-            let account = self.accountsManager.createGuestAccount(authData: authorizationData)
-            onSuccess(account)
-        }
     }
     
     public func refreshToken(account: Account, onSuccess: @escaping (Account) -> Void){
         let refreshToken: String? = account.authData.refreshToken
         let requestType: AuthorizationRequestType = refreshToken != nil ? .refresh : .installed_client
         
-        self.authorizationStatus = .refreshing
         
         fetchAuthorizationData(type: requestType, refreshToken: refreshToken) { newAuthData in
-            account.authData = newAuthData
-            try? self.moc.save()
+            self.moc.performAndWait {
+                account.setValue(newAuthData, forKey: "authData")
+                //account.authData = newAuthData
+                try? self.moc.save()
+            }
             onSuccess(account)
         }
     }
     
     
-    func startAuthorization() {
+    func startAuthorization(onCompletion: ((LoginStatus) -> Void)? = nil) {
         semaphore.wait()
         if(authorizationSheetIsPresented){
             return
         }
+        self.onLoginCompletion = onCompletion
         updateStateParameter()
+        loginStatus = .pending
         authorizationSheetIsPresented = true
-        authorizationStatus = .pending
         semaphore.signal()
+    }
+    
+    func onAuthorizationSheetDismissed() {
+        
+        if loginStatus == .pending {
+            loginStatus = .canceled
+        }
+        
     }
     
     private func failAuthorization(message: String){
         print("Authorization failed: \(message)")
         errorMessage = message
-        authorizationStatus = .failed
+        loginStatus = .failed
         authorizationSheetIsPresented = false
     }
     
@@ -135,50 +164,15 @@ class OAuthManager: ObservableObject {
         return url.queryItems?.first(where: { $0.name == param })?.value
     }
     
-    /*private func storeAuthorizationData(authData: AuthorizationData){
-        let encoder = JSONEncoder()
-        
-        do{
-            let encoded = try encoder.encode(authData)
-            let defaults = UserDefaults.standard
-            defaults.set(encoded, forKey: defaultsAuthorizationDataKey)
-        }
-        catch{
-            print("Error storing authorization data: \(error)")
-        }
-        
-    }
-    
-    private func retrieveAuthorizationData() -> AuthorizationData? {
-        
-        let defaults = UserDefaults.standard
-        if let authData = defaults.object(forKey: defaultsAuthorizationDataKey) as? Data {
-            let decoder = JSONDecoder()
-            return try? decoder.decode(AuthorizationData.self, from: authData)
-        }
-        return nil
-    }*/
     
     func buildAuthorizationUrl() -> URL {
         let scopes = scopeParameters.joined(separator: ",")
-        let urlStr = "\(OAuthManager.AUTHORIZE_URL)?client_id=\(RedditApi.API_CLIENT_ID)&response_type=\(responseTypeParameter)&duration=\(tokenDurationParameter)&state=\(stateParameter)&redirect_uri=\(OAuthManager.CALLBACK_URL)&scope=\(scopes)"
+        let urlStr = "\(OAuthManager.AUTHORIZE_URL)?client_id=\(ApiFetcher.API_CLIENT_ID)&response_type=\(responseTypeParameter)&duration=\(tokenDurationParameter)&state=\(stateParameter)&redirect_uri=\(OAuthManager.CALLBACK_URL)&scope=\(scopes)"
         return URL(string: urlStr)!
     }
     
-    /*private func setAndStoreAuthorizationData(authorizationData: AuthorizationData){
-        setAuthorizationData(authorizationData: authorizationData)
-        self.storeAuthorizationData(authData: authorizationData)
-    }
-    
-    private func setAuthorizationData(authorizationData: AuthorizationData){
-        self.authorizationData = authorizationData
-        self.authorizationStatus = .authorized
-        self.accessToken = authorizationData.accessToken
-    }*/
     
     func onCallbackUrl(url: URL){
-        semaphore.wait()
-        authorizationSheetIsPresented = false
         
         guard let stateParam = getQueryStringParameter(url: url, param: "state"),
               stateParam == stateParameter
@@ -195,27 +189,36 @@ class OAuthManager: ObservableObject {
         }
         
         fetchAuthorizationData(type: .code, codeParameter: codeParam) { authData in
-            let account = Account(context: self.moc) // TODO retrieve account information
-            account.authData = authData
-            account.name = "Test"
-            account.guest = false
-            try? self.moc.save()
+            
+            self.moc.performAndWait {
+                
+                let account = Account(context: self.moc) // TODO retrieve account information
+                account.setValuesForKeys([
+                    "authData": authData,
+                    "guest": false
+                ])
+                try? self.moc.save()
+            }
+            
+            self.loginStatus = .completed
+            
+            DispatchQueue.main.async {
+                self.authorizationSheetIsPresented = false
+            }
         }
 
     }
-    
-    
     
     private func buildAuthorizationRequest(type: AuthorizationRequestType, codeParameter: String? = nil, refreshToken: String? = nil) -> URLRequest? {
         
         let url = URL(string: OAuthManager.TOKEN_REQUEST_URL)!
         
         var request = URLRequest(url: url)
-        request.setValue(RedditApi.USER_AGENT, forHTTPHeaderField: "User-Agent")
+        request.setValue(ApiFetcher.USER_AGENT, forHTTPHeaderField: "User-Agent")
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         
-        let authtorizationToken = Data("\(RedditApi.API_CLIENT_ID):".utf8).base64EncodedString()
+        let authtorizationToken = Data("\(ApiFetcher.API_CLIENT_ID):".utf8).base64EncodedString()
         request.setValue("Basic \(authtorizationToken)", forHTTPHeaderField: "Authorization")
         request.httpMethod = "POST"
         
@@ -328,22 +331,6 @@ enum AuthorizationStatus {
     case authorized, unauthorized, pending, failed, refreshing
 }
 
-/*struct AuthorizationData: Codable {
-    
-    let accessToken: String
-    let tokenType: String
-    let expiresIn: Int
-    let scope: String
-    let refreshToken: String?
-    
-    let expireDate: Date
-    
-    enum CodingKeys: String, CodingKey {
-        case accessToken = "access_token"
-        case tokenType = "token_type"
-        case expiresIn = "expires_in"
-        case scope = "scope"
-        case refreshToken = "refresh_token"
-        case expireDate = "expire_date"
-    }
-}*/
+enum LoginStatus {
+    case initialized, pending, completed, failed, canceled
+}

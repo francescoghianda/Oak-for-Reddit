@@ -98,9 +98,11 @@ extension CommentsOrder: ViewRappresentable {
 
 class CommentsModel: ObservableObject {
         
-    private let api = RedditApi.shared
+    private let api = ApiFetcher.shared
     
     @Published var comments: Listing<Comment> = Listing.empty()
+    @Published private(set) var loading: Bool = false
+    @Published private(set) var error: Error? = nil
         
     private let postId: String
     private let subredditName: String?
@@ -119,19 +121,36 @@ class CommentsModel: ObservableObject {
         return comments
     }
     
-    func load(sort: CommentsOrder) async {
+    func load(sort: CommentsOrder) {
         
-        do {
-            self.comments = try await fetch(sort: sort)
+        if loading {
+            return
         }
-        catch{
-            print("Error loading comments")
+        
+        loading = true
+        
+        Task {
+            
+            do {
+                let comments = try await fetch(sort: sort)
+                
+                Task { @MainActor [weak self] in
+                    self?.comments = comments
+                    self?.loading = false
+                }
+            }
+            catch{
+                Task { @MainActor [weak self] in
+                    self?.error = error
+                }
+            }
+            
         }
         
     }
     
     
-    static func loadMoreReplies(listing: Listing<Comment>, count: Int, sort: CommentsOrder, linkId: String, parentId: String) async -> Listing<Comment> {
+    static func loadMoreReplies(listing: Listing<Comment>, count: Int, sort: CommentsOrder, linkId: String, parentId: String) async throws -> Listing<Comment> {
         
         guard let more = listing.more,
               more.count > 0
@@ -145,42 +164,36 @@ class CommentsModel: ObservableObject {
         
         let endpoint = Endpoint.moreChildren(order: sort, linkId: linkId, children: toLoad)
         
-        do {
-            let result = try await RedditApi.shared.fetch(endpoint: endpoint, parser: Parsers.moreCommentsParser)
-            
-            let newComments = result.comments
-            let newMores = result.mores
-            
-            let newReplies = listing.children + CommentsModel.buildCommentsTree(from: newComments, mores: newMores, parentId: parentId)
-            
-            let newIds = newComments.map { comment in
-                comment.thingId
+        let result = try await ApiFetcher.shared.fetch(endpoint: endpoint, parser: Parsers.moreCommentsParser)
+        
+        let newComments = result.comments
+        let newMores = result.mores
+        
+        let newReplies = listing.children + CommentsModel.buildCommentsTree(from: newComments, mores: newMores, parentId: parentId)
+        
+        let newIds = newComments.map { comment in
+            comment.thingId
+        }
+        
+        let remaining = listing.more?.filter({ id in
+            !newIds.contains(id)
+        })
+        
+        let remainingMore: More? = {
+            guard let remaining = remaining
+            else {
+                return nil
             }
-            
-            let remaining = listing.more?.filter({ id in
-                !newIds.contains(id)
-            })
-            
-            let remainingMore: More? = {
-                guard let remaining = remaining
-                else {
-                    return nil
-                }
-                return More(children: remaining,
-                            name: listing.more?.name,
-                            id: listing.more?.id,
-                            count: remaining.count,
-                            depth: listing.more?.depth,
-                            parentId: listing.more?.parentId)
-            }()
-            
-            return Listing(before: listing.before, after: listing.after, children: newReplies, more: remainingMore)
-            
-        }
-        catch {
-            print(error.localizedDescription)
-            return listing
-        }
+            return More(children: remaining,
+                        name: listing.more?.name,
+                        id: listing.more?.id,
+                        count: remaining.count,
+                        depth: listing.more?.depth,
+                        parentId: listing.more?.parentId)
+        }()
+        
+        return Listing(before: listing.before, after: listing.after, children: newReplies, more: remainingMore)
+        
     }
     
     private static func buildCommentsTree(from comments: [Comment], mores: [More], parentId: String) -> [Comment] {

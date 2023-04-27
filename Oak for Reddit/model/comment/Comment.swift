@@ -8,7 +8,7 @@
 import Foundation
 
 
-class Comment: Thing, Votable, Created, ObservableObject {
+class Comment: Thing, Votable, Created {
     
     var ups: Int
     var downs: Int

@@ -41,7 +41,6 @@ struct SubredditListView: View {
     @StateObject var model = SubrettitListModel()
     
     @State var order: SubredditListingOrder = .normal
-    @State var loading: Bool = false
     
     @Environment(\.isSearching) private var isSearching
     @Environment(\.searchText) private var searchText
@@ -94,8 +93,8 @@ struct SubredditListView: View {
                             Spacer()
                             if(model.subreddits.hasThingsAfter){
                                 ProgressView()
-                                    .task {
-                                        await model.loadMore(order: order)
+                                    .onAppear {
+                                        model.loadMore(order: order)
                                     }
                             }
                             else{
@@ -113,9 +112,7 @@ struct SubredditListView: View {
                 //.animation(.spring(), value: model.subreddits)
                 .refreshable{
                     if !isSearching {
-                        loading = true
-                        await model.load(order: order)
-                        loading = false
+                        model.load(order: order)
                     }
                 }
                 .onChange(of: isSearching, perform: { isSearching in
@@ -129,16 +126,12 @@ struct SubredditListView: View {
                     
                 })
                 .onChange(of: order) { newOrder in
-                    Task {
-                        loading = true
-                        await model.load(order: newOrder)
-                        loading = false
-                    }
+                    model.load(order: newOrder)
                 }
-                .opacity(loading ? 0 : 1)
+                .opacity(model.loading ? 0 : 1)
                 
                 
-                if loading {
+                if model.loading {
                     ProgressView()
                 }
                 
@@ -150,7 +143,7 @@ struct SubredditListView: View {
                 }
             }
             
-            if isSearching && model.subreddits.isEmpty && !loading {
+            if isSearching && model.subreddits.isEmpty && !model.loading {
                 Image(systemName: "magnifyingglass")
                     .resizable()
                     .foregroundColor(.gray)
@@ -159,19 +152,13 @@ struct SubredditListView: View {
             }
             else if !isSearching && model.isEmpty() {
                 Color.clear
-                    .task{
-                        loading = true
-                        await model.load(order: order)
-                        loading = false
+                    .onAppear{
+                        model.load(order: order)
                     }
             }
         }
         .onSearchSubmit {
-            Task {
-                loading = true
-                await model.search(sort: .relevance, query: searchText)
-                loading = false
-            }
+            model.search(sort: .relevance, query: searchText)
         }
         .onFirstAppear {
             order = userPreferences.subredditsPreferredOrder

@@ -9,7 +9,7 @@ import Foundation
 
 struct Parsers {
     
-    static let identity: RedditApi.Parser<Data> = { data in
+    static let identity: ApiFetcher.Parser<Data> = { data in
         data
     }
     
@@ -26,7 +26,7 @@ struct Parsers {
         return Listing.empty()
     }
     
-    static let moreCommentsParser: RedditApi.Parser<(comments: [Comment], mores: [More])> = { data in
+    static let moreCommentsParser: ApiFetcher.Parser<(comments: [Comment], mores: [More])> = { data in
         
         let json = (try JSONSerialization.jsonObject(with: data, options: []) as! [String : Any])["json"] as! [String : Any]
         

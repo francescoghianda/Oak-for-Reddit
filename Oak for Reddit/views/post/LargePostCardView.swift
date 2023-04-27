@@ -12,11 +12,12 @@ struct LinkAndThumbnailView: View {
     
     let thumbnailUrl: URL?
     let postUrl: URL
+    @Binding var contentWidth: CGFloat
     
     @Environment(\.colorScheme) var colorScheme
     
-    private let width = UIScreen.main.bounds.width * 0.7
-    private let height = (UIScreen.main.bounds.width * 0.7) * 0.6
+    //private let width = UIScreen.main.bounds.width * 0.7
+    //private let height = (UIScreen.main.bounds.width * 0.7) * 0.6
     
     private let labelHeight = CGFloat(45)
     
@@ -24,6 +25,8 @@ struct LinkAndThumbnailView: View {
         
         if let thumbnailUrl = thumbnailUrl {
             
+            let width = contentWidth * 0.7
+            let height = width * 0.6
             
             VStack {
                 
@@ -50,6 +53,7 @@ struct LinkAndThumbnailView: View {
                         .foregroundColor(.orange)
                         .lineLimit(1)
                         .padding(10)
+                        //.frame(width: width, height: labelHeight)
                         .frame(width: width, height: labelHeight)
                         .background(.ultraThinMaterial)
                         
@@ -89,7 +93,7 @@ struct LinkAndThumbnailView_Preview: PreviewProvider {
     
     static var previews: some View {
         
-        LinkAndThumbnailView(thumbnailUrl: URL(string: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg"), postUrl: URL(string: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg")!)
+        LinkAndThumbnailView(thumbnailUrl: URL(string: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg"), postUrl: URL(string: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg")!, contentWidth: Binding.constant(400))
             .previewLayout(.sizeThatFits)
         
     }
@@ -184,7 +188,7 @@ struct LargePostCardView: View {
     
     @EnvironmentObject var userPreferences: UserPreferences
     
-    let post: Post
+    @ObservedObject var post: Post
     let showPin: Bool
     @StateObject var mediaSize: MediaSize
     let linkToSubredditIsActive: Bool
@@ -271,7 +275,7 @@ struct LargePostCardView: View {
                         
                     }
                     else if post.postLinkType == .link { // external link
-                        LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!)
+                        LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!, contentWidth: _contentWidth)
                             .onTapGesture {
                                 linkIsPresented.toggle()
                             }
@@ -292,10 +296,8 @@ struct LargePostCardView: View {
                         }()
                         
                         PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true, width: contentWidth, height: height)
-                            //.contentCornerRadius(radius: 10)
-                            //.matchedGeometryEffect(id: "postmedia\(post.uuid)", in: namespace, properties: .position, anchor: .center)
                             .padding(.bottom)
-                            .overlay {
+                            /*.overlay {
                                 
                                 if let imageSize = post.imageSize {
                                     Text("width: \(imageSize.width), height: \(imageSize.height)")
@@ -303,18 +305,17 @@ struct LargePostCardView: View {
                                         .background(.ultraThinMaterial)
                                 }
                                 
-                            }
-                            //.frame(width: contentWidth, height: height)
+                            }*/
                     }
                     
                 }
                     
                 HStack{
                     Button {
-                        
+                        post.vote(dir: .upvote)
                     } label: {
                      Image("arrowshape.up.fill")
-                         .foregroundColor(Color.gray)
+                            .foregroundColor(post.upvoted ? Color.blue : Color.gray)
                     }
                     
                     Text(post.ups.toKNotation())
@@ -322,11 +323,11 @@ struct LargePostCardView: View {
                         .foregroundColor(Color.gray)
                     
                     Button {
-                        
+                        post.vote(dir: .downvote)
                     } label: {
                         Image("arrowshape.up.fill")
                             .rotationEffect(.degrees(180))
-                            .foregroundColor(Color.gray)
+                            .foregroundColor(post.downvoted ? Color.red : Color.gray)
                             //.padding(.leading, 5)
                     }
                     

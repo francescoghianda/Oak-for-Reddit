@@ -111,12 +111,9 @@ struct PostListView: View, Equatable {
     
     @State private var scrollViewOffset: CGFloat = .zero
     
-    @StateObject var api: PostListModel
+    @StateObject var model: PostListModel
     
     @State private var order: PostListingOrder = .best
-    //@State private var posts: Listing<Post>? = nil
-    @State private var loading: Bool = true
-    @State private var loadingMore: Bool = false
     
     @State private var offset: CGPoint = .zero
     
@@ -138,14 +135,14 @@ struct PostListView: View, Equatable {
         self.subreddit = subreddit
         self.subredditNamePrefixed = subreddit?.displayNamePrefixed
         self.linkToSbubredditsAreActive = subreddit == nil
-        self._api = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subreddit?.displayNamePrefixed))
+        self._model = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subreddit?.displayNamePrefixed))
     }
     
     init(subredditNamePrefixed: String) {
         self.subreddit = nil
         self.subredditNamePrefixed = subredditNamePrefixed
         self.linkToSbubredditsAreActive = false
-        self._api = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subredditNamePrefixed))
+        self._model = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subredditNamePrefixed))
         
     }
     
@@ -154,12 +151,12 @@ struct PostListView: View, Equatable {
                 
         ZStack{
             
-            if let posts = api.posts {
+            if let posts = model.posts {
                 
                 ScrollView(showsIndicators: false) /*SPostListView*/ {
                     
                     LazyVStack {
-                        if !loading {
+                        if !model.loading {
                             ForEach(posts) { post in
                                 Divider()
                                 
@@ -183,24 +180,18 @@ struct PostListView: View, Equatable {
                                         
                                         if userPreferences.loadNewPostsAutomatically {
                                             ProgressView()
-                                                .task {
-                                                    loadingMore = true
-                                                    await api.loadMore(order: order)
-                                                    loadingMore = false
+                                                .onAppear {
+                                                    model.loadMore(order: order)
                                                 }
                                         }
                                         else {
                                             
-                                            if loadingMore {
+                                            if model.loadingMore {
                                                 ProgressView()
                                             }
                                             else {
                                                 Button {
-                                                    Task{
-                                                        loadingMore = true
-                                                        await api.loadMore(order: order)
-                                                        loadingMore = false
-                                                    }
+                                                    model.loadMore(order: order)
                                                 } label: {
                                                     Text("Load more")
                                                 }
@@ -242,37 +233,27 @@ struct PostListView: View, Equatable {
                 }
                 
                 
-                if (!loading && posts.isEmpty){
+                if (!model.loading && posts.isEmpty){
                     Text("There is nothing here :(")
                         .foregroundColor(Color.gray)
                 }
                 
             }
             
-            if(loading){
+            if(model.loading){
                 ProgressView()
-                    .task{
-                        loading = true
-                        await api.load(order: order)
-                        loading = false
-                    }
+                    /*.onAppear {
+                        api.load(order: order)
+                    }*/
             }
-            
-                    
-                
-            /*if let postToShow = postToShow {
-                PostView(post: postToShow, linkIsPresented: $linkIsPresented, namespace: namespace, postToShow: $postToShow)
-            }*/
-            
-            
-            /*CustomNavbar()*/
             
             
         }
         .navigationBarHidden(false)
         .navigationBarTitle(subredditNamePrefixed ?? "Posts", displayMode: .inline)
         .onChange(of: order, perform: { newValue in
-            loading = true
+            //loading = true
+            model.load(order: newValue)
         })
         //.navigationBarHidden(postToShow != nil)
         .transition(.opacity)
@@ -283,22 +264,22 @@ struct PostListView: View, Equatable {
                 OrderSelectorView(order: $order)
                 
                 Button {
-                    Task {
-                        loading = true
-                        await api.load(order: order)
-                        loading = false
-                    }
+                    model.load(order: order)
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
-                .disabled(loading)
+                .disabled(model.loading)
 
 
             }
             
         }
+        /*.onAppear {
+            api.load(order: order)
+        }*/
         .onFirstAppear {
             order = userPreferences.postPreferredOrder
+            model.load(order: order)
         }
         
     }
