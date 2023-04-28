@@ -12,7 +12,6 @@ fileprivate struct AuthorizationSheetIntroView: View {
     @Environment(\.dismiss) var dismiss
     
     @Binding var tabIndex: Int
-    
     @State private var buttonSize: CGSize = .zero
     
     var body: some View {
@@ -23,16 +22,9 @@ fileprivate struct AuthorizationSheetIntroView: View {
                 
                 Spacer()
                 
-                Button {
+                LoginWithRedditButton {
                     tabIndex = 1
-                } label: {
-                    Text("Login with Reddit")
-                        .padding()
-                        .foregroundColor(.white)
-                        .font(.bold(.title2)())
                 }
-                .background(Color.init(hexString: "#FF4500"))
-                .cornerRadius(10)
                 .highPriorityGesture(DragGesture())
                 .gesture(DragGesture())
                 .overlay {
@@ -98,7 +90,7 @@ fileprivate struct AuthorizationSheetWebView: View {
 
 struct AuthorizationSheet: View {
     
-    @State private var tabIndex: Int = 0
+    @State private var tabIndex: Int = OAuthManager.shared.authSheetStartTabIndex
     
     var body: some View {
         

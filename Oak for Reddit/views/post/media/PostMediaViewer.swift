@@ -7,261 +7,6 @@
 
 import SwiftUI
 
-struct GalleryView: View {
-    
-    @EnvironmentObject var userPreferences: UserPreferences
-    
-    let galleryData: GalleryData
-    let contentCornerRadius: CGFloat
-    var showContextMenu: Bool = false
-    
-    var onImageChangeHandler: ((_ image: UIImage) -> Void)? = nil
-    
-    @State var pageIndex: Int = 0
-    
-    func onImageChange(_ perform: @escaping (_ image: UIImage) -> Void) -> some View {
-        var newView = self
-        newView.onImageChangeHandler = perform
-        return newView
-    }
-    
-    var body: some View {
-        
-        TabView(selection: $pageIndex) {
-            
-            ForEach(0..<galleryData.items.count) { index in
-                
-                PostImageView(url: galleryData.items[index].url, showContextMenu: showContextMenu)
-                    .onImageLoad{ image in
-                        onImageChangeHandler?(image)
-                    }
-                    .scaledToFit()
-                    .cornerRadius(contentCornerRadius)
-                    .tag(index)
-                
-            }
-            
-        }
-        .frame(idealWidth: getMaxWidth(), idealHeight: getMaxHeight())
-        .scaledToFit()
-        .tabViewStyle(.page)
-        .indexViewStyle(.page(backgroundDisplayMode: .always))
-        .overlay(alignment: .top) {
-            
-            if let caption = galleryData.items[pageIndex].caption {
-                
-                HStack{
-                    Text(caption)
-                        .font(.caption)
-                        .padding(5)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(10)
-                }
-                .padding()
-                .id(pageIndex)
-                
-            }
-            
-            
-        }
-        .transition(.opacity)
-        .animation(.easeInOut, value: pageIndex)
-        
-    }
-    
-    private func getMaxWidth() -> CGFloat {
-        var max = 0
-        for item in galleryData.items {
-            if item.width > max {
-                max = item.width
-            }
-        }
-        return CGFloat(max)
-    }
-    
-    private func getMaxHeight() -> CGFloat {
-        var max = 0
-        for item in galleryData.items {
-            if item.height > max {
-                max = item.height
-            }
-        }
-        return CGFloat(max)
-    }
-    
-}
-
-class PostSize: ObservableObject {
-    
-    @Published var height: CGFloat = .zero
-    var aspectRatio: CGFloat? = nil
-    
-}
-
-class PostSizeCache {
-    
-    private static var cache: [URL : PostSize] = [:]
-    
-    static func getPostSize(url: URL) -> PostSize {
-        
-        if let size = cache[url] {
-            return size
-        }
-        
-        let size = PostSize()
-        cache[url] = size
-        return size
-        
-    }
-    
-}
-
-struct PostImageView: View {
-    
-    @EnvironmentObject var userPreferences: UserPreferences
-    
-    let url: URL
-    var onImageLoadHandler: ((_ image: UIImage) -> Void)? = nil
-    var showContextMenu: Bool = false
-    
-    @State var image: UIImage? = nil
-    
-    
-    
-    func onImageLoad(_ perform: @escaping (_ image: UIImage) -> Void) -> some View {
-        var newView = self
-        newView.onImageLoadHandler = perform
-        return newView
-    }
-    
-    
-    var body: some View {
-        
-        AsyncUIImage(url: url) { image, error in
-            
-            if let image = image {
-                
-                Image(uiImage: image)
-                    .resizable()
-                    .onAppear {
-                        self.image = image
-                        onImageLoadHandler?(image)
-                    }
-            }
-            else if error != nil {
-                
-                Image("error_icon")
-                
-            }
-            else {
-                ProgressView()
-            }
-            
-        }
-        .contextMenu {
-            if showContextMenu {
-                
-                Button {
-                    ImageSaver()
-                        .saveImage(image: image!)
-                } label: {
-                    Label("Save image", systemImage: "square.and.arrow.down")
-                }
-                .disabled(image == nil)
-                
-                Button {
-                    shareAction(image: image!)
-                } label: {
-                    Label("Share image", systemImage: "square.and.arrow.up")
-                }
-                .disabled(image == nil)
-
-                
-            }
-        }
-        
-        
-    }
-    
-    func shareAction(image: UIImage) {
-        let activityController = UIActivityViewController(activityItems: [image], applicationActivities: nil)
-        
-        UIApplication.shared.connectedScenes
-            .flatMap { ($0 as? UIWindowScene)?.windows ?? [] }
-            .first { $0.isKeyWindow }?.rootViewController!
-            .present(activityController, animated: true, completion: nil)
-        //UIApplication.shared.windows.first?.rootViewController!.present(activityController, animated: true, completion: nil)
-    }
-
-    
-}
-
-
-struct BlurModifier: ViewModifier {
-    
-    @State var blurred: Bool
-    let showHideButton: Bool
-    let text: String
-    
-    @Namespace private var namespace
-    
-    func body(content: Content) -> some View {
-        content
-            .overlay {
-                if blurred {
-                    ZStack {
-                        Rectangle()
-                            .background(.ultraThinMaterial)
-                        VStack {
-                            Button {
-                                withAnimation {
-                                    blurred = false
-                                }
-                            } label: {
-                                Image(systemName: "eye.circle.fill")
-                                    .resizable()
-                                    .matchedGeometryEffect(id: "eyeimage", in: namespace)
-                                    .frame(width: 50, height: 50)
-                                    .scaledToFit()
-                            }
-                            Text(text)
-                                .multilineTextAlignment(.center)
-                                .font(.caption2.weight(.bold))
-                        }
-                        .foregroundColor(.gray)
-                    }
-                }
-            }
-            .overlay(alignment: .topTrailing) {
-                if showHideButton && !blurred {
-                    Button {
-                        withAnimation {
-                            blurred = true
-                        }
-                    } label: {
-                        Image(systemName: "eye.slash.circle.fill")
-                            .resizable()
-                            .background(.ultraThinMaterial, in: Circle())
-                            .matchedGeometryEffect(id: "eyeimage", in: namespace)
-                            .frame(width: 30, height: 30)
-                            .scaledToFit()
-                            
-                    }
-                    .foregroundColor(.gray)
-                    .padding()
-                }
-            }
-    }
-    
-}
-
-extension View {
-    
-    func blur(_ blurred: Bool, showHideButton: Bool, text: String) -> some View {
-        self
-            .modifier(BlurModifier(blurred: blurred, showHideButton: showHideButton, text: text))
-    }
-}
 
 struct PostMediaViewer: View {
     
@@ -271,8 +16,7 @@ struct PostMediaViewer: View {
     var cornerRadius: CGFloat = 0
     var currentImage: Binding<UIImage?>? = nil
     var showContextMenu: Bool = false
-    var width: CGFloat
-    var height: CGFloat
+    @Binding var width: CGFloat
     
     @State var blurred: Bool = true
     
@@ -292,16 +36,34 @@ struct PostMediaViewer: View {
         
         if post.postLinkType == .image {
             
+            if let previews = post.previews {
+                
+                let height: CGFloat = {
+                    let preview = previews.preview(resolution: userPreferences.mediaQuality)
+                    let val = width / CGFloat(preview.aspectRatio)
+                    return min(val, 600)
+                }()
+                
+                PostImageView(previews: previews, showContextMenu: showContextMenu)
+                    .scaledToFit()
+                    .blur(blurred, showHideButton: showHideButton, text: blurText)
+                    .cornerRadius(cornerRadius)
+                    //.frame(width: width, height: height)
+                    .frame(height: height)
+            }
+            else {
+                PostImageView(url: post.url!, showContextMenu: showContextMenu)
+                    .onImageLoad{ image in
+                        currentImage?.wrappedValue = image
+                    }
+                    .scaledToFit()
+                    .blur(blurred, showHideButton: showHideButton, text: blurText)
+                    .cornerRadius(cornerRadius)
+                    //.frame(width: width, height: height)
+                    .frame(height: width)
+            }
             
-            PostImageView(url: post.url!, showContextMenu: showContextMenu)
-                .onImageLoad{ image in
-                    currentImage?.wrappedValue = image
-                }
-                .scaledToFit()
-                .blur(blurred, showHideButton: showHideButton, text: blurText)
-                .cornerRadius(cornerRadius)
-                //.frame(width: width, height: height)
-                .frame(height: height)
+            
                 
 
         }
@@ -321,6 +83,15 @@ struct PostMediaViewer: View {
             
             switch post.media! {
             case .redditVideo(let data):
+                
+                let height: CGFloat = {
+                    if let preview = post.previews?.preview(resolution: .original) {
+                        let val = width / CGFloat(preview.aspectRatio)
+                        return min(val, 600)
+                    }
+                    return 600
+                }()
+                
                 RedditVideoPlayer(url: data.hlsUrl!)
                     .scaledToFit()
                     .blur(blurred, showHideButton: showHideButton, text: blurText)

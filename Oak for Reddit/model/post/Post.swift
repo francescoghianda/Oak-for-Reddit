@@ -105,6 +105,9 @@ struct PollData {
     }
 }
 
+
+
+
 enum Tag: Equatable {
     case nsfw
     case spoiler
@@ -157,7 +160,8 @@ class Post: Thing, Votable, Created {
     let media: Media?
     let isGallery: Bool
     let galleryData: GalleryData?
-    let imageSize: ImageSize?
+    //let imageSize: ImageSize?
+    let previews: PostPreviews?
     let isSpoiler: Bool
     let pollData: PollData?
     
@@ -213,28 +217,29 @@ class Post: Thing, Votable, Created {
         }
         else {
             
-            if (data["is_gallery"] as? Int ?? 0) != 0 {
+            /*if (data["is_gallery"] as? Int ?? 0) != 0 {
                 print(data)
-            }
+            }*/
             
             isGallery = false
             galleryData = nil
         }
         
-        if let preview = data["preview"] as? [String : Any],
-           let images = preview["images"] as? [[String : Any]],
-           let img = images.first,
-           let source = img["source"] as? [String : Any],
-           let width = source["width"] as? Int,
-           let height = source["height"] as? Int
+        if let preview = data["preview"] as? [String : Any]
+           //let images = preview["images"] as? [[String : Any]],
+           //let img = images.first,
+           //let source = img["source"] as? [String : Any],
+           //let width = source["width"] as? Int,
+           //let height = source["height"] as? Int
         {
-            imageSize = ImageSize(width: width, height: height)
+            self.previews = PostPreviews(previewsData: preview)
+            
+            //imageSize = ImageSize(width: width, height: height)
         }
         else {
-            if let preview = data["preview"] as? [String : Any] {
-                print(preview)
-            }
-            imageSize = nil
+            
+            //imageSize = nil
+            previews = nil
         }
         
         

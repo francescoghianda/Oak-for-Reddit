@@ -161,25 +161,27 @@ class ApiFetcher: NSObject{
                 error == nil
             else {
                 print(error?.localizedDescription ?? "")
-                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
-                onFail(.unexpected(code: statusCode))
+                /*if let statusCode = (response as? HTTPURLResponse)?.statusCode {
+                    onFail(.http_error(code: statusCode))
+                }*/
+                onFail(.unexpected(error: error))
+                
                 return
             }
-            
+                        
             if response.statusCode >= 400 {
                 switch response.statusCode {
                 case 400:
                     onFail(.bad_request)
-                    return
                 case 401:
                     onFail(.unauthorized)
-                    return
                 case 403:
                     onFail(.forbidden)
                 default:
-                    onFail(.unexpected(code: response.statusCode))
-                    return
+                    onFail(.http_error(code: response.statusCode))
                 }
+                
+                return
             }
             
             self.updateRateLimits(response: response)
@@ -227,7 +229,9 @@ enum FetchError: Error {
     case parser_error
     case login_error
     case forbidden
-    case unexpected(code: Int)
+    case http_error(code: Int)
+    case no_connection
+    case unexpected(error: Error?)
     
 }
 

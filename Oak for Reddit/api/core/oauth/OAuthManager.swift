@@ -31,6 +31,8 @@ class OAuthManager: ObservableObject {
     private var errorMessage = ""
     
     @Published public var authorizationSheetIsPresented = false
+    private(set) var authSheetStartTabIndex: Int = 0
+    
     
     private var loginStatus: LoginStatus = .initialized {
         didSet {
@@ -128,15 +130,20 @@ class OAuthManager: ObservableObject {
     }
     
     
-    func startAuthorization(onCompletion: ((LoginStatus) -> Void)? = nil) {
+    func startAuthorization(startTabIndex: Int = 0, onCompletion: ((LoginStatus) -> Void)? = nil) {
         semaphore.wait()
         if(authorizationSheetIsPresented){
             return
         }
+        self.authSheetStartTabIndex = startTabIndex
         self.onLoginCompletion = onCompletion
         updateStateParameter()
         loginStatus = .pending
-        authorizationSheetIsPresented = true
+        
+        Task { @MainActor in
+            authorizationSheetIsPresented = true
+        }
+        
         semaphore.signal()
     }
     
@@ -208,6 +215,21 @@ class OAuthManager: ObservableObject {
         }
 
     }
+    
+    /*func getAuthorizedRequest(url: URL, then: @escaping (URLRequest) -> Void, onFail: @escaping () -> Void) {
+        
+        getValidAccount { account in
+            let token = account.authData.accessToken
+            var request = URLRequest(url: url)
+            
+            request.setValue(ApiFetcher.USER_AGENT, forHTTPHeaderField: "User-Agent")
+            request.setValue("bearer \(token)", forHTTPHeaderField: "Authorization")
+            
+            then(request)
+        } onFail: {
+            onFail()
+        }
+    }*/
     
     private func buildAuthorizationRequest(type: AuthorizationRequestType, codeParameter: String? = nil, refreshToken: String? = nil) -> URLRequest? {
         

@@ -237,9 +237,8 @@ struct AccountInfoView: View {
         }
         else {
             
-            Button("Add account") {
-                
-                OAuthManager.shared.startAuthorization()
+            LoginWithRedditButton {
+                OAuthManager.shared.startAuthorization(startTabIndex: 1)
             }
             
         }

@@ -22,16 +22,8 @@ fileprivate struct MediaSheetView: View {
             //PhotoViewerView(url: post.url)
             ZStack{
                 
-                let height: CGFloat = {
-                    if let imageSize = post.imageSize {
-                        let val = contentWidth / CGFloat(imageSize.aspectRatio)
-                        return min(val, 600)
-                    }
-                    return 600
-                }()
-                
                 ZoomableScrollView {
-                    PostMediaViewer(post: post, currentImage: $image, width: contentWidth, height: height)
+                    PostMediaViewer(post: post, currentImage: $image, width: $contentWidth)
                 }
                 .onZoomChange { zoomScale in
                     withAnimation {
@@ -92,10 +84,6 @@ fileprivate struct MediaSheetView: View {
 }
 
 struct PostThumbnailView: View {
-    
-    //@Environment(\.namespace) var namespace
-    @EnvironmentObject var mediaViewerModel: MediaViewerModel
-    @EnvironmentObject var namespaceWrapper: NamespaceWrapper
     
     @Binding var mediaSheetIsPresented: Bool
     
@@ -171,7 +159,7 @@ struct PostThumbnailView: View {
 
 struct CompactPostCardView: View {
     
-    @EnvironmentObject var mediaViewerModel: MediaViewerModel
+    //@EnvironmentObject var mediaViewerModel: MediaViewerModel
 
     
     let post: Post

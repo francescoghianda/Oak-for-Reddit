@@ -12,7 +12,6 @@ struct LoginView: View {
         VStack(alignment: .center){
             
             
-            
             Button("Sign In with Reddit"){
                 
             }

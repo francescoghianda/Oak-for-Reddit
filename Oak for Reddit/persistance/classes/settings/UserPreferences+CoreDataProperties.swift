@@ -25,6 +25,7 @@ extension UserPreferences {
     @NSManaged public var postsCardSize: PostCardSize
     @NSManaged public var commentsPreferredOrder: CommentsOrder
     @NSManaged public var commentsViewMode: CommentsViewMode
+    @NSManaged public var mediaQuality: PostPreviewResolution
     
     var postPreferredOrder: PostListingOrder {
         get {

@@ -59,7 +59,7 @@ struct LinkAndThumbnailView: View {
                         
                     
                 }
-                .frame(width: .infinity)
+                .frame(maxWidth: .infinity)
                 
             }
             .cornerRadius(10)
@@ -287,15 +287,15 @@ struct LargePostCardView: View {
                     }
                     else {
                         
-                        let height: CGFloat = {
+                        /*let height: CGFloat = {
                             if let imageSize = post.imageSize {
                                 let val = contentWidth / CGFloat(imageSize.aspectRatio)
                                 return min(val, 600)
                             }
                             return 600
-                        }()
+                        }()*/
                         
-                        PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true, width: contentWidth, height: height)
+                        PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true, width: $contentWidth)
                             .padding(.bottom)
                             /*.overlay {
                                 

@@ -56,15 +56,15 @@ struct PostView: View {
                 
                 if post.containsMedia {
                     
-                    let height: CGFloat = {
+                    /*let height: CGFloat = {
                         if let imageSize = post.imageSize {
                             let val = contentWidth / CGFloat(imageSize.aspectRatio)
                             return min(val, 600)
                         }
                         return 600
-                    }()
+                    }()*/
                     
-                    PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true, width: contentWidth, height: height)
+                    PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true, width: $contentWidth)
                         //.scaledToFit()
                         //.matchedGeometryEffect(id: "postmedia\(post.uuid)", in: namespace!, properties: .position, anchor: .center)
                 }

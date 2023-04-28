@@ -34,6 +34,7 @@
         <attribute name="commentsPreferredOrder" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="commentsViewMode" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="loadNewPostsAutomatically" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="mediaQuality" attributeType="Integer 64" defaultValueString="2" usesScalarValueType="YES"/>
         <attribute name="postPreferredOrderStr" attributeType="String" defaultValueString="best"/>
         <attribute name="postsCardSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="showOver18Posts" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
@@ -44,6 +45,6 @@
         <element name="Account" positionX="-36" positionY="90" width="128" height="134"/>
         <element name="AuthorizationData" positionX="138.9405517578125" positionY="230.96728515625" width="128" height="134"/>
         <element name="SubredditEntity" positionX="-189.6002197265625" positionY="26.94549560546875" width="128" height="164"/>
-        <element name="UserPreferences" positionX="-585.4842529296875" positionY="284.0109252929688" width="128" height="178"/>
+        <element name="UserPreferences" positionX="-585.4842529296875" positionY="284.0109252929688" width="128" height="179"/>
     </elements>
 </model>

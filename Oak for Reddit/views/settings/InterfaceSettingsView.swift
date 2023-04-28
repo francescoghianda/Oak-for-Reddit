@@ -313,6 +313,24 @@ struct InterfaceSettingsView: View {
                     .onChange(of: userPreferences.loadNewPostsAutomatically) { newValue in
                         try? moc.save()
                     }
+                
+                VStack(alignment: .leading){
+                    Picker("Images load quality", selection: $userPreferences.mediaQuality) {
+                        ForEach(PostPreviewResolution.allCases) { res in
+                            Text(res.text)
+                                .tag(res)
+                        }
+                    }
+                    .onChange(of: userPreferences.mediaQuality) { _ in
+                        try? moc.save()
+                    }
+                    
+                    if userPreferences.mediaQuality == .original {
+                        Text("Loading images with original relosolution may cause slow application performace and higher loading time.")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
+                }
             }
             
             Section("COMMENTS") {

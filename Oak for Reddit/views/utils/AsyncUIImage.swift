@@ -46,7 +46,7 @@ fileprivate class ImageCache {
     
 }
 
-fileprivate class AsyncImageLoader: ObservableObject {
+class AsyncImageLoader: ObservableObject {
     
     @Published var image: UIImage? = nil
     @Published var error: Bool? = nil
@@ -62,7 +62,9 @@ fileprivate class AsyncImageLoader: ObservableObject {
             return
         }
         
-        let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
+        var request = URLRequest(url: url)
+        
+        request.cachePolicy = .returnCacheDataElseLoad
         
         let cached: Bool = URLCache.shared.cachedResponse(for: request) != nil
         
@@ -114,9 +116,9 @@ struct AsyncUIImage<Content: View>: View {
     @StateObject fileprivate var loader = AsyncImageLoader()
     
     private var imageBinding: Binding<UIImage?>?
-    
+        
     let url: URL
-    let onFirstLoad: ((UIImage) -> Void)?
+    private(set) var onFirstLoad: ((UIImage) -> Void)?
     
     init(url: URL, image: Binding<UIImage?>? = nil,
          @ViewBuilder content: @escaping (_ image: UIImage?, _ error: Bool?) -> Content,
@@ -126,11 +128,12 @@ struct AsyncUIImage<Content: View>: View {
         self.url = url
         self.imageBinding = image
         self.onFirstLoad = onFirstLoad
-        
     }
     
     func onFirstLoad(_ perform: ((UIImage) -> Void)? = nil) -> AsyncUIImage<Content> {
-        return AsyncUIImage(url: url, image: imageBinding, content: content, onFirstLoad: perform)
+        var view = self
+        view.onFirstLoad = perform
+        return view
     }
     
     var body: some View {
