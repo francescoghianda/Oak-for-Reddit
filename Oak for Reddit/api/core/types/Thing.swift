@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreData
 
 protocol Votable {
     var ups: Int { get }
@@ -50,7 +51,7 @@ class Thing: Identifiable, Equatable, ObservableObject {
         self.kind = kind
     }
     
-    public static func build<T: Thing>(from: [String : Any], fromListing: Bool = true) -> T { //TODO togliere fromListing e recuperare id e name sempre da data
+    public static func build<T: Thing>(from: [String : Any], fromListing: Bool = true) -> T { // TODO togliere fromListing e recuperare id e name sempre da data
         
         let data = from["data"] as! [String : Any]
         let kind = from["kind"] as! String

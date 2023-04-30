@@ -105,7 +105,7 @@ struct SubredditListView: View {
                     }
                     
                 }
-                //.id(UUID())
+                .id(model.uuid)
                 .listStyle(.plain)
                 .transition(.asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing)))
                 .animation(.spring(), value: model.subreddits)

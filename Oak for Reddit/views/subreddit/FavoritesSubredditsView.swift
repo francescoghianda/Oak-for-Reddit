@@ -38,11 +38,11 @@ struct FavoritesSubredditsView: View {
             
             TextField("Search", text: $searchText)
             
-            /*TextField(text: $searchText, prompt: nil) {
-                Label("Search", systemName: "magnifyingglass")
-            }*/
             
-            ForEach(subreddits) { subreddit in
+            /*ForEach(subreddits.indices, id: \.self) { index in
+                
+                let subreddit = subreddits[index]
+                
                 NavigationLink(tag: subreddit.name, selection: $selected) {
                     PostListView(subreddit: subreddit)
                 } label: {
@@ -58,8 +58,40 @@ struct FavoritesSubredditsView: View {
                     .tint(.red)
                 }
                 
-            }
+            }*/
             //.animation(.easeInOut, value: subreddits)
+            
+            ForEach(favorites) { subreddit in
+                
+                NavigationLink(tag: subreddit.thingName!, selection: $selected) {
+                    PostListView(subredditNamePrefixed: subreddit.displayNamePrefixed!)
+                } label: {
+                    //SubredditItemView(subreddit: subreddit, isFavorite: false)
+                    Label {
+                        Text(subreddit.displayName!)
+                    } icon: {
+                        AsyncImage(url: subreddit.iconImageUrl) { image in
+                            image
+                                .resizable()
+                                .frame(width: 48, height: 48)
+                                .scaledToFill()
+                        } placeholder: {
+                            ProgressView()
+                        }
+                    }
+
+                }
+                .swipeActions {
+                    Button{
+                        removeFavorite(subreddit.thingId!)
+                    } label: {
+                        Image(systemName: "trash.fill")
+                            .foregroundColor(.white)
+                    }
+                    .tint(.red)
+                }
+                
+            }
             
             
         }
@@ -67,7 +99,9 @@ struct FavoritesSubredditsView: View {
             
             ZStack {
                 
-                List(subreddits) { subreddit in
+                List(subreddits.indices, id: \.self) { index in
+                    
+                    let subreddit = subreddits[index]
                     
                     NavigationLink {
                         PostListView(subreddit: subreddit)

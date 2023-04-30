@@ -17,6 +17,7 @@ class SubrettitListModel: ObservableObject {
     @Published private(set) var loadingMore: Bool = false
     @Published private(set) var error: Error? = nil
     @Published private(set) var errorLoadingMore: Error? = nil
+    @Published private(set) var uuid: UUID = UUID()
     
     func save() {
         saved = subreddits
@@ -76,6 +77,7 @@ class SubrettitListModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     self?.subreddits = subreddits
                     self?.loading = false
+                    self?.uuid = UUID()
                 }
             }
             catch{
@@ -89,7 +91,7 @@ class SubrettitListModel: ObservableObject {
     
     func loadMore(order: SubredditListingOrder = .normal) {
         
-        if loadingMore {
+        if loadingMore || !subreddits.hasThingsAfter  {
             return
         }
         

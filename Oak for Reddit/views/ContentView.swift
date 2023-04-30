@@ -49,147 +49,136 @@ struct ContentView: View {
     
     @State var sizeClass: UserInterfaceSizeClass = .compact
     
+
+    init() {
+        print("CONTENT VIEW INIT")
+    }
+    
     var body: some View {
         
         
-        if horizontalSizeClass == .compact {
-            
-            let selectedTab = Binding<String> {
+        Group {
+            if horizontalSizeClass == .compact {
                 
-                if Tabs.isTab(selected) {
-                    return selected!
+                let selectedTab = Binding<String> {
+                    if Tabs.isTab(selected) {
+                        return selected!
+                    }
+                    return Tabs.favorites
+                    
+                } set: { value in
+                    selected = value
                 }
-                return Tabs.favorites
-                
-                
-            } set: { value in
-                
-                print("set: \(value)")
-                
-                selected = value
-            }
 
-            
-            TabView(selection: selectedTab){
                 
-                NavigationView{
-                    FavoritesSubredditsView(selected: $selected)
-                }
-                .tabItem {
-                    Image(systemName: "star.fill")
-                    Text("Favorites")
-                }
-                .tag(Tabs.favorites)
-                //.tag(0)
-                
-                NavigationView{
-                    SearchableView {
-                        SubredditListView()
-                    }
-                }
-                .tabItem {
-                    Image(systemName: "list.dash")
-                    Text("Subreddits")
-                }
-                .tag(Tabs.subreddits)
-                //.tag(1)
-                
-                NavigationView{
-                    PostListView()
-                }
-                .tabItem {
-                    Image(systemName: "list.bullet.below.rectangle")
-                    Text("Posts")
-                }
-                .tag(Tabs.posts)
-                //.tag(2)
-                
-                NavigationView {
-                    SettingsView()
-                }
-                .tabItem {
-                    Image(systemName: "gear")
-                    Text("Settings")
-                }
-                .tag(Tabs.settings)
-                //.tag(3)
-            }
-            .onAppear{
-                if let sizeClass = horizontalSizeClass {
-                    self.sizeClass = sizeClass
-                }
-            }
-            .sheet(isPresented: $oauthManager.authorizationSheetIsPresented) {
-                OAuthManager.shared.onAuthorizationSheetDismissed()
-            } content: {
-                AuthorizationSheet()
-            }
-            .environmentObject(userPreferences.first!)
-            
-        }
-        else {
-            
-            NavigationView {
-                List {
+                TabView(selection: selectedTab){
                     
-                    NavigationLink(tag: Tabs.subreddits, selection: $selected) {
-                        Tab {
-                            SearchableView {
-                                SubredditListView()
-                            }
+                    NavigationView{
+                        FavoritesSubredditsView(selected: $selected)
+                    }
+                    .tabItem {
+                        Image(systemName: "star.fill")
+                        Text("Favorites")
+                    }
+                    .tag(Tabs.favorites)
+                    //.tag(0)
+                    
+                    NavigationView{
+                        SearchableView {
+                            SubredditListView()
                         }
-                    } label: {
-                        Label("Subreddits", systemImage: "list.dash")
                     }
+                    .tabItem {
+                        Image(systemName: "list.dash")
+                        Text("Subreddits")
+                    }
+                    .tag(Tabs.subreddits)
+                    //.tag(1)
                     
-                    
-                    NavigationLink(tag: Tabs.posts, selection: $selected){
+                    NavigationView{
                         PostListView()
-                    } label: {
-                        Label("Posts", systemImage: "list.bullet.below.rectangle")
                     }
+                    .tabItem {
+                        Image(systemName: "list.bullet.below.rectangle")
+                        Text("Posts")
+                    }
+                    .tag(Tabs.posts)
+                    //.tag(2)
                     
-                    NavigationLink(tag: Tabs.settings, selection: $selected) {
-                        
+                    NavigationView {
                         SettingsView()
-                        
-                    } label: {
-                        Label("Settings", systemImage: "gear")
+                    }
+                    .tabItem {
+                        Image(systemName: "gear")
+                        Text("Settings")
                     }
                     .tag(Tabs.settings)
-                    
-                    
-                    Section("Favorites") {
-                        FavoritesSubredditsView(sidebar: true, selected: $selected)
+                    //.tag(3)
+                }
+                
+            }
+            else {
+                
+                let selectedTab = Binding<String?> {
+                    return selected
+                } set: { value in
+                    if let value = value {
+                        selected = value
                     }
+                }
+                
+                NavigationView {
+                    List {
+                        
+                        NavigationLink(tag: Tabs.subreddits, selection: selectedTab) {
+                            Tab {
+                                SearchableView {
+                                    SubredditListView()
+                                }
+                            }
+                        } label: {
+                            Label("Subreddits", systemImage: "list.dash")
+                        }
+                        
+                        
+                        NavigationLink(tag: Tabs.posts, selection: selectedTab){
+                            PostListView()
+                        } label: {
+                            Label("Posts", systemImage: "list.bullet.below.rectangle")
+                        }
+                        
+                        NavigationLink(tag: Tabs.settings, selection: selectedTab) {
+                            
+                            SettingsView()
+                            
+                        } label: {
+                            Label("Settings", systemImage: "gear")
+                        }
+                        .tag(Tabs.settings)
+                        
+                        
+                        Section("Favorites") {
+                            FavoritesSubredditsView(sidebar: true, selected: selectedTab)
+                        }
+                        
+                    }
+                    .listStyle(SidebarListStyle())
+                    .navigationTitle("Menu")
+                
                     
                 }
-                .listStyle(SidebarListStyle())
-                .navigationTitle("Menu")
-            
+                .navigationViewStyle(.columns)
+                
                 
             }
-            .navigationViewStyle(.columns)
-            .onAppear{
-                if let sizeClass = horizontalSizeClass {
-                    self.sizeClass = sizeClass
-                }
-            }
-            //SidebarTabView()
-            .sheet(isPresented: $oauthManager.authorizationSheetIsPresented) {
-                OAuthManager.shared.onAuthorizationSheetDismissed()
-            } content: {
-                AuthorizationSheet()
-            }
-            .environmentObject(userPreferences.first!)
-            
-            
         }
-        
-                
-        
-
-        
+        //.animation(.none, value: horizontalSizeClass)
+        .sheet(isPresented: $oauthManager.authorizationSheetIsPresented) {
+            OAuthManager.shared.onAuthorizationSheetDismissed()
+        } content: {
+            AuthorizationSheet()
+        }
+        .environmentObject(userPreferences.first!)
         
         
     }
