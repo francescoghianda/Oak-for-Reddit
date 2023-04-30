@@ -48,8 +48,11 @@ fileprivate class ImageCache {
 
 class AsyncImageLoader: ObservableObject {
     
-    @Published var image: UIImage? = nil
-    @Published var error: Bool? = nil
+    @Published private(set) var image: UIImage? = nil
+    @Published private(set) var error: Bool? = nil
+    @Published private(set) var progress: Double = .zero
+    
+    private var observation: NSKeyValueObservation? = nil
     
     //private static var cachedImages: [URL : UIImage] = [:]
     private static var imageCache = ImageCache()
@@ -68,7 +71,7 @@ class AsyncImageLoader: ObservableObject {
         
         let cached: Bool = URLCache.shared.cachedResponse(for: request) != nil
         
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard
                 let data = data,
                 let response = response as? HTTPURLResponse,
@@ -103,8 +106,20 @@ class AsyncImageLoader: ObservableObject {
                 }
             }
             
-        }.resume()
+        }
         
+        observation = task.progress.observe(\.fractionCompleted) { [weak self] progress, _ in
+            DispatchQueue.main.async {
+                self?.progress = progress.fractionCompleted
+            }
+        }
+        
+        task.resume()
+        
+    }
+    
+    deinit {
+        observation?.invalidate()
     }
     
 }
@@ -157,23 +172,28 @@ struct AsyncUIImage<Content: View>: View {
 
 class ImageSaver: NSObject {
     
-    var onImageSaved: (() -> Void)?
-    var onError: ((Error) -> Void)?
+    private var onImageSavedHandler: (() -> Void)?
+    private var onError: ((Error) -> Void)?
     
     init(onImageSaved: (() -> Void)? = nil, onError: ((Error) -> Void)? = nil) {
-        self.onImageSaved = onImageSaved
+        self.onImageSavedHandler = onImageSaved
         self.onError = onError
     }
 
     func saveImage(image: UIImage) {
         UIImageWriteToSavedPhotosAlbum(image, self, #selector(saveCompleted), nil)
     }
+    
+    func onImageSaved(_ perform: @escaping () -> Void) -> ImageSaver {
+        self.onImageSavedHandler = perform
+        return self
+    }
 
     @objc func saveCompleted(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
         if let error = error {
             onError?(error)
         } else {
-            onImageSaved?()
+            onImageSavedHandler?()
         }
     }
 }

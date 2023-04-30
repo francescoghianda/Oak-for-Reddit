@@ -17,10 +17,26 @@ class NamespaceWrapper: ObservableObject {
     
 }
 
+fileprivate struct Tabs {
+    static let posts = "posts"
+    static let subreddits = "subreddits"
+    static let settings = "settings"
+    static let favorites = "favorites"
+    
+    static func isTab(_ tag: String?) -> Bool {
+        guard let tag = tag else {
+            return false
+        }
+
+        return tag == Tabs.posts || tag == Tabs.subreddits || tag == Tabs.settings || tag == Tabs.favorites
+    }
+}
+
 struct ContentView: View {
 
     
     @State var selectedTab: Int = 2
+    @State var selected: String? = Tabs.posts
     
     @ObservedObject var oauthManager = OAuthManager.shared
     
@@ -35,18 +51,36 @@ struct ContentView: View {
     
     var body: some View {
         
-        if sizeClass == .compact {
+        
+        if horizontalSizeClass == .compact {
             
-            TabView(selection: $selectedTab){
+            let selectedTab = Binding<String> {
+                
+                if Tabs.isTab(selected) {
+                    return selected!
+                }
+                return Tabs.favorites
+                
+                
+            } set: { value in
+                
+                print("set: \(value)")
+                
+                selected = value
+            }
+
+            
+            TabView(selection: selectedTab){
                 
                 NavigationView{
-                    FavoritesSubredditsView()
+                    FavoritesSubredditsView(selected: $selected)
                 }
                 .tabItem {
                     Image(systemName: "star.fill")
                     Text("Favorites")
                 }
-                .tag(0)
+                .tag(Tabs.favorites)
+                //.tag(0)
                 
                 NavigationView{
                     SearchableView {
@@ -57,7 +91,8 @@ struct ContentView: View {
                     Image(systemName: "list.dash")
                     Text("Subreddits")
                 }
-                .tag(1)
+                .tag(Tabs.subreddits)
+                //.tag(1)
                 
                 NavigationView{
                     PostListView()
@@ -66,7 +101,8 @@ struct ContentView: View {
                     Image(systemName: "list.bullet.below.rectangle")
                     Text("Posts")
                 }
-                .tag(2)
+                .tag(Tabs.posts)
+                //.tag(2)
                 
                 NavigationView {
                     SettingsView()
@@ -75,7 +111,8 @@ struct ContentView: View {
                     Image(systemName: "gear")
                     Text("Settings")
                 }
-                .tag(3)
+                .tag(Tabs.settings)
+                //.tag(3)
             }
             .onAppear{
                 if let sizeClass = horizontalSizeClass {
@@ -95,14 +132,7 @@ struct ContentView: View {
             NavigationView {
                 List {
                     
-                    let selected = Binding<Int?> {
-                        Optional(selectedTab)
-                    } set: {
-                        selectedTab = $0 ?? 2
-                    }
-                    
-                    
-                    NavigationLink {
+                    NavigationLink(tag: Tabs.subreddits, selection: $selected) {
                         Tab {
                             SearchableView {
                                 SubredditListView()
@@ -113,30 +143,29 @@ struct ContentView: View {
                     }
                     
                     
-                    NavigationLink{
+                    NavigationLink(tag: Tabs.posts, selection: $selected){
                         PostListView()
                     } label: {
                         Label("Posts", systemImage: "list.bullet.below.rectangle")
                     }
                     
-                    NavigationLink {
+                    NavigationLink(tag: Tabs.settings, selection: $selected) {
                         
                         SettingsView()
                         
                     } label: {
                         Label("Settings", systemImage: "gear")
                     }
+                    .tag(Tabs.settings)
                     
                     
                     Section("Favorites") {
-                        FavoritesSubredditsView(sidebar: true)
+                        FavoritesSubredditsView(sidebar: true, selected: $selected)
                     }
                     
                 }
                 .listStyle(SidebarListStyle())
                 .navigationTitle("Menu")
-            
-                
             
                 
             }

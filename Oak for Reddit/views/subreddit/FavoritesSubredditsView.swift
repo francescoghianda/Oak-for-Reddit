@@ -17,6 +17,7 @@ struct FavoritesSubredditsView: View {
     @State var searchText: String = ""
     
     var sidebar: Bool = false
+    @Binding var selected: String?
     
     var body: some View {
         
@@ -42,7 +43,7 @@ struct FavoritesSubredditsView: View {
             }*/
             
             ForEach(subreddits) { subreddit in
-                NavigationLink {
+                NavigationLink(tag: subreddit.name, selection: $selected) {
                     PostListView(subreddit: subreddit)
                 } label: {
                     SubredditItemView(subreddit: subreddit, isFavorite: false)
@@ -117,6 +118,6 @@ struct FavoritesSubredditsView: View {
 
 struct FavoritesSubredditsView_Previews: PreviewProvider {
     static var previews: some View {
-        FavoritesSubredditsView()
+        FavoritesSubredditsView(selected: Binding.constant(""))
     }
 }

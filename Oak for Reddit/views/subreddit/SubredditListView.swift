@@ -16,16 +16,12 @@ private struct OrderSelectorMenu: View {
         
         Menu {
             
-            ForEach(SubredditListingOrder.allCases, id: \.id) { item in
-                
-                Button {
-                    order.wrappedValue = item
-                    
-                } label: {
+            Picker("Order", selection: order) {
+                ForEach(SubredditListingOrder.allCases, id: \.id) { item in
                     Label(title: {Text(item.text)}, icon: {item.icon})
                         .foregroundColor(item.color)
+                        .tag(item)
                 }
-                
             }
 
         } label: {
@@ -41,7 +37,8 @@ struct SubredditListView: View {
     @StateObject var model = SubrettitListModel()
     
     @State var order: SubredditListingOrder = .normal
-    
+    @State private var loadingToastPresenting: Bool = false
+        
     @Environment(\.isSearching) private var isSearching
     @Environment(\.searchText) private var searchText
     
@@ -59,8 +56,9 @@ struct SubredditListView: View {
                 
                 List {
                     
-                    ForEach(model.subreddits) { subreddit in
+                    ForEach(model.subreddits.indices, id: \.self) { index in
                         
+                        let subreddit = model.subreddits[index]
                         let isFavorite = isFavorite(subreddit.thingId)
                         
                         NavigationLink {
@@ -68,7 +66,6 @@ struct SubredditListView: View {
                         } label: {
                             SubredditItemView(subreddit: subreddit, isFavorite: isFavorite)
                         }
-                        //.transition(.slide)
                         .swipeActions{
                             Button{
                                 if isFavorite {
@@ -108,8 +105,10 @@ struct SubredditListView: View {
                     }
                     
                 }
+                //.id(UUID())
                 .listStyle(.plain)
-                //.animation(.spring(), value: model.subreddits)
+                .transition(.asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing)))
+                .animation(.spring(), value: model.subreddits)
                 .refreshable{
                     if !isSearching {
                         model.load(order: order)
@@ -128,12 +127,19 @@ struct SubredditListView: View {
                 .onChange(of: order) { newOrder in
                     model.load(order: newOrder)
                 }
-                .opacity(model.loading ? 0 : 1)
-                
-                
-                if model.loading {
+                .onChange(of: model.loading){ loading in
+                    loadingToastPresenting = loading
+                }
+                .disabled(model.loading)
+                .toast(isPresenting: $loadingToastPresenting, autoClose: false) {
                     ProgressView()
                 }
+                //.opacity(model.loading ? 0 : 1)
+                
+                
+                /*if model.loading {
+                    ProgressView()
+                }*/
                 
             }
             .navigationTitle("Subreddits")

@@ -15,7 +15,69 @@ private struct OrderSelectorView: View {
         
         Menu {
             
-            ForEach(PostListingOrder.allCases, id: \.id) { item in
+            Picker("", selection: $order) {
+                
+                ForEach(PostListingOrder.allCases, id: \.id) { item in
+                    
+                    switch item {
+                    case .top, .controversial:
+                        Menu {
+                            
+                            Picker("", selection: $order) {
+                                
+                                ForEach(TimeRange.allCases, id: \.id) { range in
+                                    
+                                    let tag: PostListingOrder = {
+                                        if case .top = item {
+                                            return .top(range: range)
+                                        }
+                                        else {
+                                            return .controversial(range: range)
+                                        }
+                                    }()
+                                    
+                                    Text(range.rawValue)
+                                        .tag(tag)
+                                }
+                                
+                            }
+                        } label: {
+                            
+                            Label {
+                                
+                                let showCheckmark: Bool = {
+                                    if case .top = order, case .top = item{
+                                        return true
+                                    }
+                                    if case .controversial = order, case .controversial = item {
+                                        return true
+                                    }
+                                    return false
+                                }()
+                                
+                                HStack {
+                                    if showCheckmark {
+                                        Image(systemName: "checkmark") // TODO: il checkmark non si vede
+                                        Text("Selected")
+                                    }
+                                    Text(item.text)
+                                }
+                            } icon: {
+                                Image(systemName: item.systemImage)
+                            }
+
+                        }
+
+                    default:
+                        Label(item.text, systemImage: item.systemImage)
+                            .tag(item)
+                    }
+                    
+                }
+                
+            }
+            
+            /*ForEach(PostListingOrder.allCases, id: \.id) { item in
                 
                 switch item {
                 case .top, .controversial:
@@ -46,7 +108,7 @@ private struct OrderSelectorView: View {
                     }
                 }
                 
-            }
+            }*/
 
         } label: {
             Label("Order", systemImage: "arrow.up.arrow.down")
