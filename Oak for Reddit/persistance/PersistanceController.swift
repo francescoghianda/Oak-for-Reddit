@@ -22,6 +22,15 @@ struct PersistenceController {
         }
         
         do {
+            try container.persistentStoreCoordinator.addPersistentStore(type: .inMemory, configuration: "InMemory", at: URL(string: "/dev/null")!, options: nil)
+        }
+        catch {
+            fatalError("Failed to load in-memory store")
+        }
+        
+        
+        
+        do {
             try loadRequieredData(container: container)
         }
         catch {

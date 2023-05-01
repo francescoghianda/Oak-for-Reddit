@@ -65,6 +65,12 @@
         <attribute name="showOver18Subreddits" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="subredditsPreferredOrder" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
+    <configuration name="InMemory">
+        <memberEntity name="Thing"/>
+        <memberEntity name="Subreddit"/>
+        <memberEntity name="Post"/>
+        <memberEntity name="Comment"/>
+    </configuration>
     <elements>
         <element name="Account" positionX="-36" positionY="90" width="128" height="134"/>
         <element name="AuthorizationData" positionX="138.9405517578125" positionY="230.96728515625" width="128" height="134"/>

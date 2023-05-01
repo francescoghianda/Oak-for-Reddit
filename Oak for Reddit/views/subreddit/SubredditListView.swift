@@ -195,10 +195,15 @@ struct SubredditListView: View {
     
     func removeFavorite(_ entity: Subreddit) {
         
-        moc.delete(entity)
-                
-        if moc.hasChanges {
-            try? moc.save()
+        if let entity = favorites.first(where: { subreddit in
+            subreddit.name == entity.name
+        })
+        {
+            moc.delete(entity)
+                    
+            if moc.hasChanges {
+                try? moc.save()
+            }
         }
         
     }
