@@ -29,27 +29,65 @@ enum ThingKind: String {
     case comment = "t1", account = "t2", link = "t3", message = "t4", subreddit = "t5", award = "t6" // t1, t2, t3, t4, t5, t6
 }
 
-class Thing: Identifiable, Equatable, ObservableObject {
+@objc(Thing)
+public class Thing: NSManagedObject, Identifiable/*, Equatable, ObservableObject*/ {
     
     
     /// Return the name of the Thing (eg. "t3_15bfi0")
-    var id: String {
+    public var id: String {
         return name
     }
         
     /// The id of the Thing (eg. "15bfi0")
-    let thingId: String
+    @NSManaged private(set) var thingId: String
     
     /// The id prefixed with the type of the Thing (eg. "t3_15bfi0")
-    let name: String
+    @NSManaged private(set) var name: String
     
-    let kind: String
+    @NSManaged private(set) var kind: String
+    
+    private(set) var childContext: NSManagedObjectContext? = nil
         
-    required init(id: String, name: String, kind: String, data: [String : Any]){
+    required init(id: String, name: String, kind: String, data: [String : Any]) {
+        
+        let moc = PersistenceController.shared.container.viewContext
+        guard let entityDesc = NSEntityDescription.entity(forEntityName: "Thing", in: moc)
+        else {
+            fatalError("Thing entity not found!")
+        }
+        
+        let childContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        childContext.parent = moc
+        
+        super.init(entity: entityDesc, insertInto: childContext)
+        
+        self.childContext = childContext
+        
         self.thingId = id
         self.name = name
         self.kind = kind
     }
+    
+    required init(entityDecription: NSEntityDescription, id: String, name: String, kind: String, data: [String : Any]) {
+         
+        let moc = PersistenceController.shared.container.viewContext
+        let childContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        childContext.parent = moc
+        
+        super.init(entity: entityDecription, insertInto: childContext)
+        
+        self.childContext = childContext
+        //super.init(entity: entityDecription, insertInto: nil)
+        
+        self.thingId = id
+        self.name = name
+        self.kind = kind
+    }
+    
+    required override init(entity: NSEntityDescription, insertInto: NSManagedObjectContext?) {
+        super.init(entity: entity, insertInto: insertInto)
+    }
+    
     
     public static func build<T: Thing>(from: [String : Any], fromListing: Bool = true) -> T { // TODO togliere fromListing e recuperare id e name sempre da data
         

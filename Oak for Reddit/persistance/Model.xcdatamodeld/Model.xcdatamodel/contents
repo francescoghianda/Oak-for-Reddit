@@ -18,6 +18,16 @@
         <attribute name="tokenType" attributeType="String"/>
         <relationship name="account" optional="YES" maxCount="1" deletionRule="Deny" destinationEntity="Account" inverseName="authData" inverseEntity="Account"/>
     </entity>
+    <entity name="Comment" representedClassName="Comment" parentEntity="Thing" syncable="YES"/>
+    <entity name="Post" representedClassName="Post" parentEntity="Thing" syncable="YES"/>
+    <entity name="Subreddit" representedClassName="Subreddit" parentEntity="Thing" syncable="YES">
+        <attribute name="bannerImageUrl" optional="YES" attributeType="URI" preserveAfterDeletion="YES"/>
+        <attribute name="displayName" attributeType="String" preserveAfterDeletion="YES"/>
+        <attribute name="displayNamePrefixed" attributeType="String" preserveAfterDeletion="YES"/>
+        <attribute name="iconImageUrl" optional="YES" attributeType="URI" preserveAfterDeletion="YES"/>
+        <attribute name="over18" attributeType="Boolean" usesScalarValueType="YES" preserveAfterDeletion="YES"/>
+        <attribute name="primaryColor" attributeType="String" preserveAfterDeletion="YES"/>
+    </entity>
     <entity name="SubredditEntity" representedClassName="SubredditEntity" syncable="YES" codeGenerationType="class">
         <attribute name="bannerImageUrl" optional="YES" attributeType="URI"/>
         <attribute name="displayName" optional="YES" attributeType="String"/>
@@ -28,6 +38,20 @@
         <attribute name="primaryColor" optional="YES" attributeType="String"/>
         <attribute name="thingId" optional="YES" attributeType="String"/>
         <attribute name="thingName" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="TestParent" representedClassName="TestParent" syncable="YES">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+    </entity>
+    <entity name="TestSub" representedClassName="TestSub" parentEntity="TestParent" syncable="YES">
+        <attribute name="attr1" attributeType="String"/>
+        <attribute name="attr2" attributeType="String"/>
+        <attribute name="attr3" attributeType="String"/>
+    </entity>
+    <entity name="Thing" representedClassName="Thing" syncable="YES">
+        <attribute name="kind" attributeType="String" preserveAfterDeletion="YES"/>
+        <attribute name="name" attributeType="String" preserveAfterDeletion="YES"/>
+        <attribute name="thingId" attributeType="String" preserveAfterDeletion="YES"/>
     </entity>
     <entity name="UserPreferences" representedClassName=".UserPreferences" syncable="YES">
         <attribute name="blurOver18Images" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
@@ -44,7 +68,13 @@
     <elements>
         <element name="Account" positionX="-36" positionY="90" width="128" height="134"/>
         <element name="AuthorizationData" positionX="138.9405517578125" positionY="230.96728515625" width="128" height="134"/>
-        <element name="SubredditEntity" positionX="-189.6002197265625" positionY="26.94549560546875" width="128" height="164"/>
+        <element name="SubredditEntity" positionX="-189.6002197265625" positionY="26.94549560546875" width="128" height="14"/>
         <element name="UserPreferences" positionX="-585.4842529296875" positionY="284.0109252929688" width="128" height="179"/>
+        <element name="TestParent" positionX="-378" positionY="198" width="128" height="14"/>
+        <element name="TestSub" positionX="-369" positionY="207" width="128" height="14"/>
+        <element name="Thing" positionX="-360" positionY="207" width="128" height="74"/>
+        <element name="Subreddit" positionX="-351" positionY="216" width="128" height="119"/>
+        <element name="Comment" positionX="-342" positionY="225" width="128" height="29"/>
+        <element name="Post" positionX="-333" positionY="234" width="128" height="29"/>
     </elements>
 </model>

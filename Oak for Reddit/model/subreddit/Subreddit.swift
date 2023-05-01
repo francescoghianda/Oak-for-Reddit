@@ -8,7 +8,8 @@
 import Foundation
 import CoreData
 
-class Subreddit: Thing {
+@objc(Subreddit)
+public class Subreddit: Thing {
     
     enum CodingKeys : String, CodingKey {
         case displayName = "display_name"
@@ -21,16 +22,24 @@ class Subreddit: Thing {
         case bannerImageUrl = "banner_image_url"
     }
     
-    let displayName: String
-    let displayNamePrefixed: String
+    @NSManaged private(set) var displayName: String
+    @NSManaged private(set) var displayNamePrefixed: String
     //let subredditName: String
     //let subredditId: String
-    let over18: Bool
-    let primaryColor: String
-    let iconImageUrl: URL?
-    let bannerImageUrl: URL?
+    @NSManaged private(set) var over18: Bool
+    @NSManaged private(set) var primaryColor: String
+    @NSManaged private(set) var iconImageUrl: URL?
+    @NSManaged private(set) var bannerImageUrl: URL?
     
     required init(id: String, name: String, kind: String, data: [String : Any]) {
+        
+        let moc = PersistenceController.shared.container.viewContext
+        guard let entityDesc = NSEntityDescription.entity(forEntityName: "Subreddit", in: moc)
+        else {
+            fatalError("Thing entity not found!")
+        }
+        
+        super.init(entityDecription: entityDesc, id: id, name: name, kind: kind, data: data)
         
         displayName = data["display_name"] as! String
         displayNamePrefixed = data["display_name_prefixed"] as! String
@@ -38,7 +47,7 @@ class Subreddit: Thing {
         //subredditId = data["id"] as! String
         over18 = (data["over18"] as? Int ?? 0) != 0
         
-        if let colorHex = data["primary_color"] as? String, colorHex != ""{
+        if let colorHex = data["primary_color"] as? String, !colorHex.isEmpty{
             primaryColor = colorHex
         }
         else {
@@ -49,10 +58,18 @@ class Subreddit: Thing {
         iconImageUrl = Thing.getUrl(data: data, key: "icon_img")
         bannerImageUrl = Thing.getUrl(data: data, key: "banner_background_image")
         
-        super.init(id: id, name: name, kind: kind, data: data)
+        //super.init(id: id, name: name, kind: kind, data: data)
     }
     
     required init(entity: SubredditEntity) {
+        
+        let moc = PersistenceController.shared.container.viewContext
+        guard let entityDesc = NSEntityDescription.entity(forEntityName: "Subreddit", in: moc)
+        else {
+            fatalError("Thing entity not found!")
+        }
+        
+        super.init(entityDecription: entityDesc, id: entity.thingId!, name: entity.thingName!, kind: entity.kind!, data: [:])
         
         displayName = entity.displayName!
         displayNamePrefixed = entity.displayNamePrefixed!
@@ -63,30 +80,17 @@ class Subreddit: Thing {
         iconImageUrl = entity.iconImageUrl
         bannerImageUrl = entity.bannerImageUrl
         
-        super.init(id: entity.thingId!, name: entity.thingName!, kind: entity.kind!, data: [:])
+        //super.init(id: entity.thingId!, name: entity.thingName!, kind: entity.kind!, data: [:])
         
     }
     
-    required init(from decoder: Decoder) throws {
-        fatalError("init(from:) has not been implemented")
+    required init(entityDecription: NSEntityDescription, id: String, name: String, kind: String, data: [String : Any]) {
+        fatalError("init(entityDecription:id:name:kind:data:) has not been implemented")
     }
     
-    /*required init(from decoder: Decoder) throws {
-        
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-        
-        displayName = try values.decode(String.self, forKey: .displayName)
-        displayNamePrefixed = try values.decode(String.self, forKey: .displayNamePrefixed)
-        subredditName = try values.decode(String.self, forKey: .subredditName)
-        subredditId = try values.decode(String.self, forKey: .subredditId)
-        over18 = try values.decode(Bool.self, forKey: .over18)
-        primaryColor = try values.decode(String.self, forKey: .primaryColor)
-        iconImageUrl = try values.decode(URL.self, forKey: .iconImageUrl)
-        bannerImageUrl = try values.decode(URL.self, forKey: .bannerImageUrl)
-
-        try super.init(from: decoder)
-    }*/
-    
+    required init(entity: NSEntityDescription, insertInto: NSManagedObjectContext?) {
+        super.init(entity: entity, insertInto: insertInto)
+    }
     
     
     public static let previewSubreddit: Subreddit = {

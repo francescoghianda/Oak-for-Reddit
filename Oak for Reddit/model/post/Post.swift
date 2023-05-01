@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import CoreData
 
 class GalleryData {
     typealias Dictionary = [String : Any]
@@ -115,11 +116,18 @@ enum Tag: Equatable {
     case custom(text: String, color: Color?)
 }
 
-class Post: Thing, Votable, Created {
+@objc(Post)
+public class Post: Thing, Votable, Created {
 
-    var ups: Int
-    var downs: Int
-    @Published var likes: Bool?
+    
+    var ups: Int = 0
+    var downs: Int = 0
+    @Published var likes: Bool? = nil {
+        didSet {
+            super.willChangeValue(forKey: "likes")
+            self.objectWillChange.send()
+        }
+    }
     
     var upvoted: Bool {
         guard let likes = likes
@@ -137,37 +145,45 @@ class Post: Thing, Votable, Created {
         return !likes
     }
     
-    var created: Date
-    var createdUtc: Date
+    var created: Date = .now
+    var createdUtc: Date = .now
     
-    let author: String
-    let hidden: Bool
-    let isSelf: Bool
-    let locked: Bool
-    let numComments: Int
-    let over18: Bool
-    let score: Int
-    let selfText: String
-    let subreddit: String
-    let subredditId: String
-    let thumbnail: String
-    let thumbnailUrl: URL?
-    let title: String
-    let permalink: String
-    let url: URL?
-    let edited: TimeInterval?
-    let stickied: Bool
-    let media: Media?
-    let isGallery: Bool
-    let galleryData: GalleryData?
+    let author: String = ""
+    let hidden: Bool = false
+    let isSelf: Bool = false
+    let locked: Bool = false
+    let numComments: Int = 0
+    let over18: Bool = false
+    let score: Int = 0
+    let selfText: String = ""
+    let subreddit: String = ""
+    let subredditId: String = ""
+    let thumbnail: String = ""
+    let thumbnailUrl: URL? = nil
+    let title: String = ""
+    let permalink: String = ""
+    let url: URL? = nil
+    let edited: TimeInterval? = nil
+    let stickied: Bool = false
+    let media: Media? = nil
+    let isGallery: Bool = false
+    let galleryData: GalleryData? = nil
     //let imageSize: ImageSize?
-    let previews: PostPreviews?
-    let isSpoiler: Bool
-    let pollData: PollData?
+    let previews: PostPreviews? = nil
+    let isSpoiler: Bool = false
+    let pollData: PollData? = nil
     
     private(set) var tags: [Tag] = []
     
     required init(id: String, name: String, kind: String, data: [String : Any]) {
+        
+        let moc = PersistenceController.shared.container.viewContext
+        guard let entityDesc = NSEntityDescription.entity(forEntityName: "Post", in: moc)
+        else {
+            fatalError("Thing entity not found!")
+        }
+        
+        super.init(entityDecription: entityDesc, id: id, name: name, kind: kind, data: data)
         
         ups = data["ups"] as! Int
         downs = data["downs"] as! Int
@@ -262,12 +278,17 @@ class Post: Thing, Votable, Created {
             pollData = nil
         }
                         
-        super.init(id: id, name: name, kind: kind, data: data)
+        //super.init(id: id, name: name, kind: kind, data: data)
         
     }
     
-    required init(from decoder: Decoder) throws {
-        fatalError("init(from:) has not been implemented")
+    
+    required init(entityDecription: NSEntityDescription, id: String, name: String, kind: String, data: [String : Any]) {
+        fatalError("init(entityDecription:id:name:kind:data:) has not been implemented")
+    }
+    
+    required init(entity: NSEntityDescription, insertInto: NSManagedObjectContext?) {
+        super.init(entity: entity, insertInto: insertInto)
     }
     
 }

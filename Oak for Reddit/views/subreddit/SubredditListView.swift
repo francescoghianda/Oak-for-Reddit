@@ -44,8 +44,8 @@ struct SubredditListView: View {
     
     @Environment(\.managedObjectContext) private var moc
 
-    @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [])
-    private var favorites: FetchedResults<SubredditEntity>
+    @FetchRequest(entity: Subreddit.entity(), sortDescriptors: [])
+    private var favorites: FetchedResults<Subreddit>
     
     
     var body: some View {
@@ -69,7 +69,7 @@ struct SubredditListView: View {
                         .swipeActions{
                             Button{
                                 if isFavorite {
-                                    removeFavorite(subreddit.thingId)
+                                    removeFavorite(subreddit)
                                 }
                                 else {
                                     storeFavorite(subreddit)
@@ -185,18 +185,19 @@ struct SubredditListView: View {
             return
         }
         
-        subreddit.createEntity(context: moc)
+        try? subreddit.childContext?.save()
         
-        try? moc.save()
+        if moc.hasChanges {
+            try? moc.save()
+        }
+        
     }
     
-    func removeFavorite(_ subredditId: String) {
+    func removeFavorite(_ entity: Subreddit) {
         
-        if let entity = favorites.first(where: { entity in
-            entity.thingId == subredditId
-        })
-        {
-            moc.delete(entity)
+        moc.delete(entity)
+                
+        if moc.hasChanges {
             try? moc.save()
         }
         

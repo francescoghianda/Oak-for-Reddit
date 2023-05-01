@@ -9,10 +9,10 @@ import SwiftUI
 
 struct FavoritesSubredditsView: View {
     
-    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.managedObjectContext) private var moc
     
-    @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [], animation: .easeInOut)
-    private var favorites: FetchedResults<SubredditEntity>
+    @FetchRequest(entity: Subreddit.entity(), sortDescriptors: [], animation: .easeInOut)
+    private var favorites: FetchedResults<Subreddit>
     
     @State var searchText: String = ""
     
@@ -21,18 +21,6 @@ struct FavoritesSubredditsView: View {
     
     var body: some View {
         
-        let subreddits = favorites.map { entity in
-            Subreddit(entity: entity)
-        }
-        .filter { subreddit in
-            
-            guard let _ = subreddit.displayName.range(of: searchText, options: .caseInsensitive)
-            else {
-                return searchText.isEmpty
-            }
-            
-            return true
-        }
         
         if sidebar {
             
@@ -63,12 +51,12 @@ struct FavoritesSubredditsView: View {
             
             ForEach(favorites) { subreddit in
                 
-                NavigationLink(tag: subreddit.thingName!, selection: $selected) {
-                    PostListView(subredditNamePrefixed: subreddit.displayNamePrefixed!)
+                NavigationLink(tag: subreddit.name, selection: $selected) {
+                    PostListView(subredditNamePrefixed: subreddit.displayNamePrefixed)
                 } label: {
                     //SubredditItemView(subreddit: subreddit, isFavorite: false)
                     Label {
-                        Text(subreddit.displayName!)
+                        Text(subreddit.displayName)
                     } icon: {
                         AsyncImage(url: subreddit.iconImageUrl) { image in
                             image
@@ -83,7 +71,7 @@ struct FavoritesSubredditsView: View {
                 }
                 .swipeActions {
                     Button{
-                        removeFavorite(subreddit.thingId!)
+                        removeFavorite(subreddit)
                     } label: {
                         Image(systemName: "trash.fill")
                             .foregroundColor(.white)
@@ -99,9 +87,9 @@ struct FavoritesSubredditsView: View {
             
             ZStack {
                 
-                List(subreddits.indices, id: \.self) { index in
+                List(favorites.indices, id: \.self) { index in
                     
-                    let subreddit = subreddits[index]
+                    let subreddit = favorites[index]
                     
                     NavigationLink {
                         PostListView(subreddit: subreddit)
@@ -110,7 +98,7 @@ struct FavoritesSubredditsView: View {
                     }
                     .swipeActions {
                         Button{
-                            removeFavorite(subreddit.thingId)
+                            removeFavorite(subreddit)
                         } label: {
                             Image(systemName: "trash.fill")
                                 .foregroundColor(.white)
@@ -123,7 +111,7 @@ struct FavoritesSubredditsView: View {
                 .navigationTitle("Favorites")
                 .searchable(text: $searchText)
                 
-                if subreddits.isEmpty {
+                if favorites.isEmpty {
                     Text("There are no favorites :(")
                         .foregroundColor(.gray)
                 }
@@ -135,16 +123,12 @@ struct FavoritesSubredditsView: View {
         
     }
     
-    func removeFavorite(_ subredditId: String) {
+    func removeFavorite(_ entity: Subreddit) {
         
-        if let entity = favorites.first(where: { entity in
-            entity.thingId == subredditId
-        })
-        {
-            
-            viewContext.delete(entity)
-            try? viewContext.save()
-            
+        moc.delete(entity)
+                
+        if moc.hasChanges {
+            try? moc.save()
         }
         
     }
