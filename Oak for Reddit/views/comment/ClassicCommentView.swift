@@ -31,20 +31,7 @@ struct ClassicCommentView: View {
         
         if comment.replies.count > 0 {
             
-            
-            Button{
-                withAnimation {
-                    showReplies.toggle()
-                }
-            } label:{
-                
-                HStack{
-                    Text(showReplies ? "Hide replies" : "Show replies")
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .rotationEffect(showReplies ? .degrees(90.0) : .degrees(0.0))
-                }
-            }
+            showRepliesButton()
             
             if showReplies {
                 Divider()
@@ -55,43 +42,7 @@ struct ClassicCommentView: View {
                     
                     if comment.replies.more != nil && comment.replies.more!.count > 0 {
                         Divider()
-                        Button {
-                            loadingReplies = true
-                            error = nil
-                            Task{
-                                
-                                do {
-                                    let replies = try await CommentsModel
-                                        .loadMoreReplies(listing: comment.replies,
-                                                         count: 10,
-                                                         sort: order,
-                                                         linkId: comment.linkId,
-                                                         parentId: comment.name)
-                                    Task { @MainActor in
-                                        comment.replies = replies
-                                        loadingReplies = false
-                                    }
-                                }
-                                catch {
-                                    Task { @MainActor in
-                                        self.error = error
-                                        loadingReplies = false
-                                    }
-                                }
-                                //await comment.loadMoreReplies(sort: order)
-                                
-                            }
-                        } label: {
-                            HStack{
-                                Text("Load more")
-                                Spacer()
-                                if loadingReplies {
-                                    ProgressView()
-                                }
-                            }
-                        }
-                        .padding(.leading, 3)
-                        .disabled(loadingReplies)
+                        loadMoreButton()
                         Divider()
                             .padding(.leading, 3)
                     }
@@ -110,6 +61,66 @@ struct ClassicCommentView: View {
             
         }
         
+    }
+    
+    private func showRepliesButton() -> some View {
+        Button{
+            withAnimation {
+                showReplies.toggle()
+            }
+        } label:{
+            
+            HStack{
+                Text(showReplies ? "Hide replies" : "Show replies")
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .rotationEffect(showReplies ? .degrees(90.0) : .degrees(0.0))
+            }
+        }
+    }
+    
+    private func loadMoreButton() -> some View {
+        Button {
+            loadMore()
+        } label: {
+            HStack{
+                Text("Load more")
+                Spacer()
+                if loadingReplies {
+                    ProgressView()
+                }
+            }
+        }
+        .padding(.leading, 3)
+        .disabled(loadingReplies)
+    }
+    
+    private func loadMore() {
+        
+        loadingReplies = true
+        error = nil
+        Task{
+            
+            do {
+                let replies = try await CommentsModel
+                    .loadMoreReplies(listing: comment.replies,
+                                     count: 10,
+                                     sort: order,
+                                     linkId: comment.linkId,
+                                     parentId: comment.name)
+                Task { @MainActor in
+                    comment.replies = replies
+                    loadingReplies = false
+                }
+            }
+            catch {
+                Task { @MainActor in
+                    self.error = error
+                    loadingReplies = false
+                }
+            }
+            
+        }
     }
     
 }

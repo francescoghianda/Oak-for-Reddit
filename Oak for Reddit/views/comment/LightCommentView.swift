@@ -31,81 +31,107 @@ struct LightCommentView: View {
                 Divider()
                 CommentCard(comment: comment)
                 Divider()
+                
+                if comment.replies.count > 0 {
+                    showRepliesButton()
+                    Divider()
+                }
+                
             }
             
         }
         
-        if comment.replies.count > 0 {
+        if showReplies {
             
-            Button{
-                withAnimation {
-                    showReplies.toggle()
-                }
-            } label:{
+            CommentsView(comment.replies, level: level + 1, mode: $mode, order: $order)
+                .padding(.leading, 8)
+            
+            if comment.replies.more != nil && comment.replies.more!.count > 0 {
                 
-                HStack{
-                    Text(showReplies ? "Hide replies" : "Show replies")
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .rotationEffect(showReplies ? .degrees(90.0) : .degrees(0.0))
-                }
+                loadMoreButton()
+                    .padding(.leading, 8)
             }
             
-            if showReplies {
+        }
+
+        
+    }
+    
+    private func showRepliesButton() -> some View {
+        
+        Button{
+            withAnimation {
+                showReplies.toggle()
+            }
+        } label:{
+            
+            HStack{
+                Text(showReplies ? "Hide replies" : "Show replies")
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .rotationEffect(showReplies ? .degrees(90.0) : .degrees(0.0))
+            }
+        }
+    }
+    
+    private func loadMoreButton() -> some View {
+        
+        HStack {
+            CommentView.getLevelColor(level)
+                .frame(width: 2)
+                //.padding(.trailing, 6)
+            
+            VStack {
                 
-                CommentsView(comment.replies, level: level + 1, mode: $mode, order: $order)
-                    .padding(.leading, 8)
-                    .transition(AnyTransition.slide)
+                Divider()
                 
-                if comment.replies.more != nil && comment.replies.more!.count > 0 {
-                    Button {
-                        loadingReplies = true
-                        error = nil
-                        Task {
-                            
-                            do {
-                                let replies = try await CommentsModel
-                                    .loadMoreReplies(listing: comment.replies,
-                                                     count: 10,
-                                                     sort: order,
-                                                     linkId: comment.linkId,
-                                                     parentId: comment.name)
-                                
-                                Task { @MainActor in
-                                    comment.replies = replies
-                                    loadingReplies = false
-                                }
-                            }
-                            catch {
-                                Task { @MainActor in
-                                    self.error = error
-                                    loadingReplies = false
-                                }
-                            }
-                            
-                            
-                        }
-                    } label: {
-                        HStack{
-                            Text("Load more")
-                            Spacer()
-                            if loadingReplies {
-                                ProgressView()
-                            }
+                Button {
+                    loadMore()
+                } label: {
+                    HStack{
+                        Text("Load more")
+                        Spacer()
+                        if loadingReplies {
+                            ProgressView()
                         }
                     }
-                    .padding(.leading, 8)
-                    .disabled(loadingReplies)
-                    
-                    Divider()
-                        .padding(.leading, 8)
                 }
+                .disabled(loadingReplies)
+                
+                Divider()
                 
             }
-
         }
-
+    }
+    
+    private func loadMore() {
         
+        loadingReplies = true
+        error = nil
+        Task {
+            
+            do {
+                let replies = try await CommentsModel
+                    .loadMoreReplies(listing: comment.replies,
+                                     count: 10,
+                                     sort: order,
+                                     linkId: comment.linkId,
+                                     parentId: comment.name)
+                
+                Task { @MainActor in
+                    comment.replies = replies
+                    loadingReplies = false
+                }
+            }
+            catch {
+                Task { @MainActor in
+                    self.error = error
+                    loadingReplies = false
+                }
+            }
+            
+            
+        }
     }
     
 }
