@@ -42,8 +42,8 @@ struct ContentView: View {
     
     @Environment(\.colorScheme) var colorScheme
     
-    @FetchRequest(entity: UserPreferences.entity(), sortDescriptors: [])
-    private var userPreferences: FetchedResults<UserPreferences>
+    /*@FetchRequest(entity: UserPreferences.entity(), sortDescriptors: [])
+    private var userPreferences: FetchedResults<UserPreferences>*/
     
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
@@ -130,36 +130,37 @@ struct ContentView: View {
                 NavigationView {
                     List {
                         
-                        NavigationLink(tag: Tabs.subreddits, selection: selectedTab) {
-                            Tab {
-                                SearchableView {
-                                    SubredditListView()
-                                }
+                        NavigationLink/*(tag: Tabs.subreddits, selection: selectedTab)*/ {
+                            SearchableView {
+                                SubredditListView()
                             }
                         } label: {
                             Label("Subreddits", systemImage: "list.dash")
                         }
+                        .isDetailLink(false)
                         
                         
-                        NavigationLink(tag: Tabs.posts, selection: selectedTab){
+                        NavigationLink/*(tag: Tabs.posts, selection: selectedTab)*/{
                             PostListView()
                         } label: {
                             Label("Posts", systemImage: "list.bullet.below.rectangle")
                         }
                         
-                        NavigationLink(tag: Tabs.settings, selection: selectedTab) {
+                        NavigationLink/*(tag: Tabs.settings, selection: selectedTab)*/ {
                             
                             SettingsView()
+                                
                             
                         } label: {
                             Label("Settings", systemImage: "gear")
                         }
-                        .tag(Tabs.settings)
                         
                         
                         Section("Favorites") {
                             FavoritesSubredditsView(sidebar: true, selected: selectedTab)
                         }
+                        
+                        
                         
                     }
                     .listStyle(SidebarListStyle())
@@ -172,31 +173,17 @@ struct ContentView: View {
                 
             }
         }
+        //.environmentObject(userPreferences.first!)
         //.animation(.none, value: horizontalSizeClass)
         .sheet(isPresented: $oauthManager.authorizationSheetIsPresented) {
             OAuthManager.shared.onAuthorizationSheetDismissed()
         } content: {
             AuthorizationSheet()
         }
-        .environmentObject(userPreferences.first!)
         
         
+        
     }
-}
-
-struct Tab<Content: View>: View, Equatable {
-    
-    static func == (lhs: Tab<Content>, rhs: Tab<Content>) -> Bool {
-        true
-    }
-    
-    
-    @ViewBuilder var content: () -> Content
-    
-    var body: some View {
-        content()
-    }
-    
 }
 
 

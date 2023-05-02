@@ -11,7 +11,8 @@ import SwiftUI
 
 struct PostImageView: View {
     
-    @EnvironmentObject var userPreferences: UserPreferences
+    //@EnvironmentObject var userPreferences: UserPreferences
+    @ObservedObject var userPreferences = UserPreferences.shared
     
     let url: URL?
     let previews: PostPreviews?
@@ -47,7 +48,6 @@ struct PostImageView: View {
     
     
     var body: some View {
-        
         
         let url: URL = {
            
@@ -129,9 +129,9 @@ struct PostImageView: View {
         .toast(isPresenting: $downloadToastPresenting, autoClose: false) {
             VStack{
                 Text("Downloading...")
-                //let progress = Int(downloadProgress * 100)
-                ProgressView(value: downloadProgress)
-                //Text("\(progress)%")
+                let progress = Int(downloadProgress * 100)
+                //ProgressView(value: downloadProgress)
+                Text("\(progress)%")
             }
         }
         .onReceive(downloader.$progress) { progress in

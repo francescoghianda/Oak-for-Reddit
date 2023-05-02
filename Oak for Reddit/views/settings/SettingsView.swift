@@ -9,16 +9,11 @@ import SwiftUI
 
 struct SettingsView: View {
     
-    @Environment(\.managedObjectContext) private var moc
-
-    //@FetchRequest(entity: Settings.entity(), sortDescriptors: [])
-    //private var settings: FetchedResults<Settings>
-    
     var body: some View {
         
         List {
             
-            NavigationLink {
+            NavigationLink{
                 AccountInfoView()
             } label: {
                 Label("Account", systemImage: "person.crop.circle")
@@ -40,6 +35,7 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         
     }
+    
 }
 
 struct SettingsView_Previews: PreviewProvider {

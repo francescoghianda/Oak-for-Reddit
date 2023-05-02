@@ -172,26 +172,18 @@ struct PostListView: View, Equatable {
     let linkToSbubredditsAreActive: Bool
     
     @State private var scrollViewOffset: CGFloat = .zero
-    
     @StateObject var model: PostListModel
-    
     @State private var order: PostListingOrder = .best
-    
     @State private var offset: CGPoint = .zero
     
     private let mediaSizeCache = MediaSizeCache()
     
-    //@Namespace var namespace
-    //@State var postToShow: Post? = nil
     @State var linkIsPresented: Bool = false
-    
     @State var navbarHeight: CGFloat = .zero
-    
-    //@AppStorage("cardSize") private var cardSize: PostCardSize = PostCardSize.large
-    
     @State private var contentWidth: CGFloat = .zero
     
-    @EnvironmentObject var userPreferences: UserPreferences
+    //@EnvironmentObject var userPreferences: UserPreferences
+    @ObservedObject var userPreferences = UserPreferences.shared
     
     init(subreddit: Subreddit? = nil) {
         self.subreddit = subreddit
@@ -418,8 +410,8 @@ private struct OffsetPreferenceKey: PreferenceKey{
     static func reduce(value: inout CGPoint, nextValue: () -> CGPoint) { }
 }
 
-struct PostListView_Previews: PreviewProvider {
+/*struct PostListView_Previews: PreviewProvider {
     static var previews: some View {
-        PostListView(subreddit: Subreddit.previewSubreddit)
+        //PostListView(subreddit: Subreddit.previewSubreddit)
     }
-}
+}*/

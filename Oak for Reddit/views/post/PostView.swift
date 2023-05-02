@@ -10,9 +10,10 @@ import SwiftUI
 
 struct PostView: View {
     
-    @EnvironmentObject var userPrefereces: UserPreferences
+    //@EnvironmentObject var userPrefereces: UserPreferences
+    @ObservedObject var userPreferences = UserPreferences.shared
     
-    let post: Post
+    @ObservedObject var post: Post
     @Binding var linkIsPresented: Bool
     //var namespace: Namespace.ID? = nil
     //@Binding var postToShow: Post?
@@ -34,7 +35,7 @@ struct PostView: View {
     var body: some View {
         
         ScrollView {
-            VStack(alignment: .leading){
+            VStack(alignment: .center){
                 
                 HStack{
                     Text("Posted by u/\(post.author) ⋅ \(post.getTimeSiceCreationFormatted())")
@@ -50,23 +51,14 @@ struct PostView: View {
                 .foregroundColor(.gray)
                 .padding(.bottom)
                 
-                Text(post.title)
-                    //.matchedGeometryEffect(id: "posttitle\(post.uuid)", in: namespace!, properties: .position)
-                    .font(.headline)
+                HStack {
+                    Text(post.title)
+                        .font(.headline)
+                    Spacer()
+                }
                 
                 if post.containsMedia {
-                    
-                    /*let height: CGFloat = {
-                        if let imageSize = post.imageSize {
-                            let val = contentWidth / CGFloat(imageSize.aspectRatio)
-                            return min(val, 600)
-                        }
-                        return 600
-                    }()*/
-                    
                     PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true, width: $contentWidth)
-                        //.scaledToFit()
-                        //.matchedGeometryEffect(id: "postmedia\(post.uuid)", in: namespace!, properties: .position, anchor: .center)
                 }
                 else if post.postLinkType == .link {
                     LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!, contentWidth: $contentWidth)
@@ -83,22 +75,23 @@ struct PostView: View {
                 }
                 
                 HStack{
+                    
                     Button {
-                        
+                        post.vote(dir: .upvote)
                     } label: {
                         Image("arrowshape.up.fill")
+                            .foregroundColor(post.upvoted ? .blue : .gray)
                     }
                     
                     Text(post.ups.toKNotation())
                         .font(.system(size: 12))
                     
                     Button {
-                        
+                        post.vote(dir: .downvote)
                     } label: {
                         Image("arrowshape.up.fill")
                             .rotationEffect(.degrees(180))
-                            
-                            //.padding(.leading, 5)
+                            .foregroundColor(post.downvoted ? .red : .gray)
                     }
                     
                     HStack{
@@ -111,6 +104,8 @@ struct PostView: View {
                         }
                     }
                     .padding(.leading)
+                    
+                    Spacer()
                 }
                 .padding(.top)
                 .foregroundColor(Color.gray)
@@ -185,32 +180,16 @@ struct PostView: View {
                 } label: {
                     Label("Share", systemImage: "square.and.arrow.up")
                 }
-                
-                Menu {
-                    
-                    Picker("View mode", selection: $commentsViewMode) {
-                        Text("Classic").tag(CommentsViewMode.classic)
-                        Text("Light").tag(CommentsViewMode.light)
-                    }
-                    
-                    
-                } label: {
-                    Image(systemName: "ellipsis")
-                }
-
 
             }
             
-            
         }
         .onFirstAppear {
-            commentsViewMode = userPrefereces.commentsViewMode
-            commentsOrder = userPrefereces.commentsPreferredOrder
+            commentsViewMode = userPreferences.commentsViewMode
+            commentsOrder = userPreferences.commentsPreferredOrder
             
             model.load(sort: commentsOrder)
         }
-        
-        
         
     }
 }

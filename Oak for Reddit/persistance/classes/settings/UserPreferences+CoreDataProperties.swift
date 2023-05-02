@@ -15,6 +15,20 @@ extension UserPreferences {
     @nonobjc public class func fetchRequest() -> NSFetchRequest<UserPreferences> {
         return NSFetchRequest<UserPreferences>(entityName: "UserPreferences")
     }
+    
+    static var shared: UserPreferences {
+        let request = fetchRequest()
+        let moc = PersistenceController.shared.container.viewContext
+        
+        return moc.performAndWait {
+            if let result = try? moc.fetch(request), let preferences = result.first {
+                return preferences
+            }
+            
+            fatalError("Unable to fetch user preferences!")
+        }
+        
+    }
 
     @NSManaged public var loadNewPostsAutomatically: Bool
     @NSManaged public var postPreferredOrderStr: String

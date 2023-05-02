@@ -11,7 +11,7 @@ struct FavoritesSubredditsView: View {
     
     @Environment(\.managedObjectContext) private var viewContext
     
-    @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [], animation: .easeInOut)
+    @FetchRequest(sortDescriptors: [SortDescriptor(\.savingDate, order: .reverse)], animation: .spring())
     private var favorites: FetchedResults<SubredditEntity>
     
     @State var searchText: String = ""
@@ -21,74 +21,33 @@ struct FavoritesSubredditsView: View {
     
     var body: some View {
         
-        let subreddits = favorites.map { entity in
-            Subreddit(entity: entity)
-        }
-        .filter { subreddit in
-            
-            guard let _ = subreddit.displayName.range(of: searchText, options: .caseInsensitive)
-            else {
-                return searchText.isEmpty
-            }
-            
-            return true
+        let filtered = favorites.filter { subreddit in
+            searchText.isEmpty || subreddit.displayName.localizedCaseInsensitiveContains(searchText)
         }
         
         if sidebar {
             
             TextField("Search", text: $searchText)
             
+            if filtered.isEmpty {
+                Text("There are no favorites :(")
+                    .foregroundColor(.gray)
+            }
             
-            /*ForEach(subreddits.indices, id: \.self) { index in
+            ForEach(filtered) { subreddit in
                 
-                let subreddit = subreddits[index]
-                
-                NavigationLink(tag: subreddit.name, selection: $selected) {
-                    PostListView(subreddit: subreddit)
+                NavigationLink/*(tag: subreddit.name, selection: $selected)*/ {
+                    PostListView(subreddit: Subreddit(entity: subreddit))
                 } label: {
-                    SubredditItemView(subreddit: subreddit, isFavorite: false)
+                    SubredditItemView(subreddit: subreddit, isFavorite: false, style: .sidebar)
                 }
                 .swipeActions {
-                    Button{
-                        removeFavorite(subreddit.thingId)
+                    Button(role: .destructive){
+                        FavoriteSubreddits.remove(subreddit)
                     } label: {
                         Image(systemName: "trash.fill")
                             .foregroundColor(.white)
                     }
-                    .tint(.red)
-                }
-                
-            }*/
-            //.animation(.easeInOut, value: subreddits)
-            
-            ForEach(favorites) { subreddit in
-                
-                NavigationLink(tag: subreddit.thingName!, selection: $selected) {
-                    PostListView(subredditNamePrefixed: subreddit.displayNamePrefixed!)
-                } label: {
-                    //SubredditItemView(subreddit: subreddit, isFavorite: false)
-                    Label {
-                        Text(subreddit.displayName!)
-                    } icon: {
-                        AsyncImage(url: subreddit.iconImageUrl) { image in
-                            image
-                                .resizable()
-                                .frame(width: 48, height: 48)
-                                .scaledToFill()
-                        } placeholder: {
-                            ProgressView()
-                        }
-                    }
-
-                }
-                .swipeActions {
-                    Button{
-                        removeFavorite(subreddit.thingId!)
-                    } label: {
-                        Image(systemName: "trash.fill")
-                            .foregroundColor(.white)
-                    }
-                    .tint(.red)
                 }
                 
             }
@@ -99,23 +58,20 @@ struct FavoritesSubredditsView: View {
             
             ZStack {
                 
-                List(subreddits.indices, id: \.self) { index in
-                    
-                    let subreddit = subreddits[index]
+                List(filtered) { subreddit in
                     
                     NavigationLink {
-                        PostListView(subreddit: subreddit)
+                        PostListView(subreddit: Subreddit(entity: subreddit))
                     } label: {
                         SubredditItemView(subreddit: subreddit, isFavorite: false)
                     }
                     .swipeActions {
-                        Button{
-                            removeFavorite(subreddit.thingId)
+                        Button(role: .destructive){
+                            FavoriteSubreddits.remove(subreddit)
                         } label: {
                             Image(systemName: "trash.fill")
                                 .foregroundColor(.white)
                         }
-                        .tint(.red)
                     }
                     
                 }
@@ -123,7 +79,7 @@ struct FavoritesSubredditsView: View {
                 .navigationTitle("Favorites")
                 .searchable(text: $searchText)
                 
-                if subreddits.isEmpty {
+                if filtered.isEmpty {
                     Text("There are no favorites :(")
                         .foregroundColor(.gray)
                 }

@@ -32,7 +32,8 @@ private struct OrderSelectorMenu: View {
 
 struct SubredditListView: View {
     
-    @EnvironmentObject var userPreferences: UserPreferences
+    //@EnvironmentObject var userPreferences: UserPreferences
+    @ObservedObject var userPreferences = UserPreferences.shared
     
     @StateObject var model = SubrettitListModel()
     
@@ -66,16 +67,16 @@ struct SubredditListView: View {
                         } label: {
                             SubredditItemView(subreddit: subreddit, isFavorite: isFavorite)
                         }
+                        .isDetailLink(true)
                         .swipeActions{
-                            Button{
+                            Button {
                                 if isFavorite {
                                     removeFavorite(subreddit.thingId)
                                 }
                                 else {
-                                    storeFavorite(subreddit)
+                                    FavoriteSubreddits.add(subreddit)
                                 }
                                 
-                                //model.addFavourite(subreddit)
                             } label: {
                                 Image(systemName: isFavorite ? "trash.fill" : "star.fill")
                                     .foregroundColor(.white)
@@ -179,16 +180,6 @@ struct SubredditListView: View {
         })
     }
     
-    func storeFavorite(_ subreddit: Subreddit) {
-        
-        if isFavorite(subreddit.thingId) {
-            return
-        }
-        
-        subreddit.createEntity(context: moc)
-        
-        try? moc.save()
-    }
     
     func removeFavorite(_ subredditId: String) {
         
@@ -196,8 +187,7 @@ struct SubredditListView: View {
             entity.thingId == subredditId
         })
         {
-            moc.delete(entity)
-            try? moc.save()
+            FavoriteSubreddits.remove(entity)
         }
         
     }

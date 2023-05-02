@@ -13,6 +13,7 @@ struct GalleryView: View {
     @EnvironmentObject var userPreferences: UserPreferences
     
     let galleryData: GalleryData
+    @Binding var width: CGFloat
     let contentCornerRadius: CGFloat
     var showContextMenu: Bool = false
     
@@ -27,6 +28,8 @@ struct GalleryView: View {
     }
     
     var body: some View {
+        
+        let height = getMaxHeight()
         
         TabView(selection: $pageIndex) {
             
@@ -43,8 +46,7 @@ struct GalleryView: View {
             }
             
         }
-        .frame(idealWidth: getMaxWidth(), idealHeight: getMaxHeight())
-        .scaledToFit()
+        .frame(height: height)
         .tabViewStyle(.page)
         .indexViewStyle(.page(backgroundDisplayMode: .always))
         .overlay(alignment: .top) {
@@ -81,13 +83,16 @@ struct GalleryView: View {
     }
     
     private func getMaxHeight() -> CGFloat {
-        var max = 0
+        
+        var max: CGFloat = .zero
         for item in galleryData.items {
-            if item.height > max {
-                max = item.height
+            let height = width / item.aspectRatio
+            if height > max {
+                max = height
             }
         }
-        return CGFloat(min(500, max))
+        
+        return CGFloat(min(600, max))
     }
     
 }

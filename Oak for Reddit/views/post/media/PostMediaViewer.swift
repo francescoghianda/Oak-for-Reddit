@@ -10,7 +10,8 @@ import SwiftUI
 
 struct PostMediaViewer: View {
     
-    @EnvironmentObject var userPreferences: UserPreferences
+    //@EnvironmentObject var userPreferences: UserPreferences
+    @ObservedObject var userPreferences = UserPreferences.shared
     
     let post: Post
     var cornerRadius: CGFloat = 0
@@ -70,7 +71,7 @@ struct PostMediaViewer: View {
         
         if post.postLinkType == .gallery, let galleryData = post.galleryData {
             
-            GalleryView(galleryData: galleryData, contentCornerRadius: cornerRadius, showContextMenu: showContextMenu)
+            GalleryView(galleryData: galleryData, width: $width, contentCornerRadius: cornerRadius, showContextMenu: showContextMenu)
                 .onImageChange { image in
                     currentImage?.wrappedValue = image
                 }
@@ -93,10 +94,10 @@ struct PostMediaViewer: View {
                 }()
                 
                 RedditVideoPlayer(url: data.hlsUrl!)
-                    .scaledToFit()
+                    .frame(width: width, height: height)
+                    //.scaledToFit()
                     .blur(blurred, showHideButton: showHideButton, text: blurText)
                     .cornerRadius(cornerRadius)
-                    .frame(width: width, height: height)
                 
             case .embed(let data):
                 EmbedVideoPlayer(media: data)

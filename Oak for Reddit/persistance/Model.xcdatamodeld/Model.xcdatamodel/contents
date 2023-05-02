@@ -18,16 +18,17 @@
         <attribute name="tokenType" attributeType="String"/>
         <relationship name="account" optional="YES" maxCount="1" deletionRule="Deny" destinationEntity="Account" inverseName="authData" inverseEntity="Account"/>
     </entity>
-    <entity name="SubredditEntity" representedClassName="SubredditEntity" syncable="YES" codeGenerationType="class">
+    <entity name="SubredditEntity" representedClassName="SubredditEntity" syncable="YES">
         <attribute name="bannerImageUrl" optional="YES" attributeType="URI"/>
         <attribute name="displayName" optional="YES" attributeType="String"/>
         <attribute name="displayNamePrefixed" optional="YES" attributeType="String"/>
         <attribute name="iconImageUrl" optional="YES" attributeType="URI"/>
         <attribute name="kind" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="over18" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="primaryColor" optional="YES" attributeType="String"/>
+        <attribute name="savingDate" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="thingId" optional="YES" attributeType="String"/>
-        <attribute name="thingName" optional="YES" attributeType="String"/>
     </entity>
     <entity name="UserPreferences" representedClassName=".UserPreferences" syncable="YES">
         <attribute name="blurOver18Images" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
@@ -44,7 +45,7 @@
     <elements>
         <element name="Account" positionX="-36" positionY="90" width="128" height="134"/>
         <element name="AuthorizationData" positionX="138.9405517578125" positionY="230.96728515625" width="128" height="134"/>
-        <element name="SubredditEntity" positionX="-189.6002197265625" positionY="26.94549560546875" width="128" height="164"/>
+        <element name="SubredditEntity" positionX="-189.6002197265625" positionY="26.94549560546875" width="128" height="179"/>
         <element name="UserPreferences" positionX="-585.4842529296875" positionY="284.0109252929688" width="128" height="179"/>
     </elements>
 </model>

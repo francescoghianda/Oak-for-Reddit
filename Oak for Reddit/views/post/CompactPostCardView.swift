@@ -159,10 +159,7 @@ struct PostThumbnailView: View {
 
 struct CompactPostCardView: View {
     
-    //@EnvironmentObject var mediaViewerModel: MediaViewerModel
-
-    
-    let post: Post
+    @ObservedObject var post: Post
     let showPin: Bool
     let linkToSubredditIsActive: Bool
     
@@ -189,7 +186,7 @@ struct CompactPostCardView: View {
             }
             
             VStack{
-                HStack{
+                HStack(alignment: .top){
                     
                     NavigationLink {
                         PostView(post: post, linkIsPresented: $linkIsPresented)
@@ -197,7 +194,7 @@ struct CompactPostCardView: View {
                         Text(post.title)
                             .bold()
                             .padding(.trailing)
-                            .frame(width: .infinity, height: 60)
+                            .frame(height: 60, alignment: .top)
                     }
                     .buttonStyle(.plain)
                     
@@ -228,38 +225,38 @@ struct CompactPostCardView: View {
                     
                     Group {
                         Button {
-                            
+                            post.vote(dir: .upvote)
                         } label: {
-                         Image("arrowshape.up.fill")
-                             .foregroundColor(Color.gray)
+                            Image("arrowshape.up.fill")
+                                .foregroundColor(post.upvoted ? .blue : .gray)
                         }
                         
                         Text(post.ups.toKNotation())
                             .font(.system(size: 12))
-                            .foregroundColor(Color.gray)
+                            .foregroundColor(.gray)
                         
                         Button {
-                            
+                            post.vote(dir: .downvote)
                         } label: {
                             Image("arrowshape.up.fill")
                                 .rotationEffect(.degrees(180))
-                                .foregroundColor(Color.gray)
-                                //.padding(.leading, 5)
+                                .foregroundColor(post.downvoted ? .red : .gray)
                         }
                     }
                     
+                    
                     Group {
                         Image(systemName: "message.fill")
-                            .foregroundColor(.gray)
                         
                         Text("\(post.numComments.toKNotation())")
                             .font(.system(size: 12))
                         
                         if post.locked {
                             Image(systemName: "lock.fill")
-                                .foregroundColor(Color.yellow)
+                                .foregroundColor(.yellow)
                         }
                     }
+                    .foregroundColor(.gray)
                     
                     if post.over18 {
                         NsfwSymbol()
@@ -268,19 +265,19 @@ struct CompactPostCardView: View {
                     Spacer()
                     
                     Text(post.getTimeSiceCreationFormatted())
-                        .foregroundColor(Color.gray)
+                        .foregroundColor(.gray)
                         .font(.system(size: 12))
                         .bold()
                     
                     Text("·")
-                        .foregroundColor(Color.gray)
+                        .foregroundColor(.gray)
                     
                     NavigationLink {
                         PostListView(subredditNamePrefixed: "r/\(post.subreddit)")
                     } label: {
                         Text(post.subreddit)
                             .font(.system(size: 14))
-                            .foregroundColor(Color.gray)
+                            .foregroundColor(.gray)
                     }
                     .disabled(!linkToSubredditIsActive)
                 }

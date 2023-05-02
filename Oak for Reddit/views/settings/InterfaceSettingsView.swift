@@ -184,7 +184,8 @@ fileprivate struct SubredditPreferredOrderPicker: View {
     
     @Environment(\.managedObjectContext) private var moc
     //@ObservedObject var settings: Settings
-    @EnvironmentObject var userPreferences: UserPreferences
+    //@EnvironmentObject var userPreferences: UserPreferences
+    @ObservedObject var userPreferences = UserPreferences.shared
     
     var body: some View {
         Form {
@@ -204,7 +205,9 @@ fileprivate struct SubredditPreferredOrderPicker: View {
             }
             .pickerStyle(.inline)
             .onChange(of: userPreferences.subredditsPreferredOrder) { _ in
-                try? moc.save()
+                if moc.hasChanges {
+                    try? moc.save()
+                }
             }
         }
         .navigationTitle("Subreddits order")
@@ -216,7 +219,8 @@ fileprivate struct SubredditPreferredOrderPicker: View {
 fileprivate struct CommentsPreferredOrderPicker: View {
     
     @Environment(\.managedObjectContext) private var moc
-    @EnvironmentObject var userPreferences: UserPreferences
+    //@EnvironmentObject var userPreferences: UserPreferences
+    @ObservedObject var userPreferences = UserPreferences.shared
     
     var body: some View {
         Form {
@@ -236,7 +240,9 @@ fileprivate struct CommentsPreferredOrderPicker: View {
             }
             .pickerStyle(.inline)
             .onChange(of: userPreferences.commentsPreferredOrder) { _ in
-                try? moc.save()
+                if moc.hasChanges {
+                    try? moc.save()
+                }
             }
         }
         .navigationTitle("Comments order")
@@ -250,7 +256,8 @@ struct InterfaceSettingsView: View {
     
     @Environment(\.managedObjectContext) private var moc
     
-    @EnvironmentObject var userPreferences: UserPreferences
+    //@EnvironmentObject var userPreferences: UserPreferences
+    @ObservedObject var userPreferences: UserPreferences = UserPreferences.shared
     
     private func postOrderLabel() -> some View {
         let order = userPreferences.postPreferredOrder
@@ -286,7 +293,7 @@ struct InterfaceSettingsView: View {
                 NavigationLink {
                     PostOrderPicker(selected: $userPreferences.postPreferredOrder)
                         .onChange(of: userPreferences.postPreferredOrder) { _ in
-                            try? moc.save()
+                            save()
                         }
                 } label: {
                     postOrderLabel()
@@ -303,15 +310,14 @@ struct InterfaceSettingsView: View {
                             .tag(PostCardSize.large)
                         
                     }
-                    .pickerStyle(.segmented)
                     .onChange(of: userPreferences.postsCardSize) { _ in
-                        try? moc.save()
+                        save()
                     }
                 }
                 
                 Toggle("Load new posts automatically", isOn: $userPreferences.loadNewPostsAutomatically)
                     .onChange(of: userPreferences.loadNewPostsAutomatically) { newValue in
-                        try? moc.save()
+                        save()
                     }
                 
                 VStack(alignment: .leading){
@@ -322,7 +328,7 @@ struct InterfaceSettingsView: View {
                         }
                     }
                     .onChange(of: userPreferences.mediaQuality) { _ in
-                        try? moc.save()
+                        save()
                     }
                     
                     if userPreferences.mediaQuality == .original {
@@ -351,9 +357,8 @@ struct InterfaceSettingsView: View {
                             .tag(CommentsViewMode.light)
                         
                     }
-                    .pickerStyle(.segmented)
                     .onChange(of: userPreferences.commentsViewMode) { _ in
-                        try? moc.save()
+                        save()
                     }
                 }
             }
@@ -362,5 +367,11 @@ struct InterfaceSettingsView: View {
         .navigationTitle("Interface")
         
         
+    }
+    
+    private func save() {
+        if moc.hasChanges {
+            try? moc.save()
+        }
     }
 }

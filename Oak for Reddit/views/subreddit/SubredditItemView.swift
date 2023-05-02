@@ -7,13 +7,16 @@
 
 import SwiftUI
 
+enum SubredditCardStyle{
+    case standard, sidebar
+}
 
 struct SubredditIcon: View {
     
-    let subreddit: Subreddit
+    let subreddit: SubredditProtocol
     let background: Color?
     
-    init(subreddit: Subreddit, background: Color? = nil){
+    init(subreddit: SubredditProtocol, background: Color? = nil){
         self.subreddit = subreddit
         self.background = background
     }
@@ -52,21 +55,23 @@ struct SubredditIcon: View {
 
 struct SubredditItemView: View {
     
-    let subreddit: Subreddit
-    
-    let height: CGFloat = 80
-    
+    let subreddit: SubredditProtocol
     var isFavorite: Bool
+    var style: SubredditCardStyle = .standard
     
     var body: some View {
         HStack(alignment: .center){
+            
+            let size = CGFloat(style == .standard ? 64 : 48)
+            let paddingEdges: Edge.Set = style == .standard ? [.leading, .trailing, .top, .bottom] : [.trailing]
+            
             SubredditIcon(subreddit: subreddit)
                 .scaledToFit()
-                .frame(width: height*0.8, height: height*0.8, alignment: .center)
+                .frame(width: size, height: size, alignment: .center)
                 .clipShape(Circle())
+                .padding(paddingEdges, 10)
             
             Text(subreddit.displayName)
-                .padding(.leading)
             
             Spacer()
             
@@ -74,10 +79,6 @@ struct SubredditItemView: View {
                 VStack(){
                     HStack{
                         if subreddit.over18 {
-                            /*Image("nsfw_icon")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 18)*/
                             NsfwSymbol()
                         }
                         if isFavorite {
@@ -92,8 +93,8 @@ struct SubredditItemView: View {
             }
             
         }
-        .animation(.easeInOut, value: isFavorite)
-        .frame(height: height)
+        //.animation(.easeInOut, value: isFavorite)
+        //.frame(height: height)
         //.border(.black)
     }
 }
@@ -101,7 +102,7 @@ struct SubredditItemView: View {
 struct SubredditItemView_Previews: PreviewProvider {
     static var previews: some View {
         Group{
-            SubredditItemView(subreddit: Subreddit.previewSubreddit, isFavorite: true)
+            //SubredditItemView(subreddit: Subreddit.previewSubreddit, isFavorite: true)
             NsfwSymbol()
         }
         .previewLayout(.sizeThatFits)
