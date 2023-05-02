@@ -195,7 +195,7 @@ class Post: Thing, Votable, Created {
         thumbnail = data["thumbnail"] as! String
         thumbnailUrl = {
             let thumbnail = data["thumbnail"] as! String
-            if thumbnail == "defaults" || thumbnail == "self" || thumbnail == "image"{
+            if thumbnail == "default" || thumbnail == "self" || thumbnail == "image" || thumbnail == "nsfw" {
                 return nil
             }
             return Thing.getUrl(data: data, key: "thumbnail")
@@ -221,28 +221,14 @@ class Post: Thing, Votable, Created {
         }
         else {
             
-            /*if (data["is_gallery"] as? Int ?? 0) != 0 {
-                print(data)
-            }*/
-            
             isGallery = false
             galleryData = nil
         }
         
-        if let preview = data["preview"] as? [String : Any]
-           //let images = preview["images"] as? [[String : Any]],
-           //let img = images.first,
-           //let source = img["source"] as? [String : Any],
-           //let width = source["width"] as? Int,
-           //let height = source["height"] as? Int
-        {
+        if let preview = data["preview"] as? [String : Any]{
             self.previews = PostPreviews(previewsData: preview)
-            
-            //imageSize = ImageSize(width: width, height: height)
         }
         else {
-            
-            //imageSize = nil
             previews = nil
         }
         

@@ -14,10 +14,7 @@ struct LinkAndThumbnailView: View {
     let postUrl: URL
     @Binding var contentWidth: CGFloat
     
-    @Environment(\.colorScheme) var colorScheme
-    
-    //private let width = UIScreen.main.bounds.width * 0.7
-    //private let height = (UIScreen.main.bounds.width * 0.7) * 0.6
+    //@Environment(\.colorScheme) var colorScheme
     
     private let labelHeight = CGFloat(45)
     
@@ -77,7 +74,6 @@ struct LinkAndThumbnailView: View {
                     .foregroundColor(.orange)
                     .padding()
             }
-            .frame(width: .infinity)
             .background(.ultraThinMaterial)
             .cornerRadius(10)
             .padding()

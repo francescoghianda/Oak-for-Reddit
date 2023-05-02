@@ -42,7 +42,15 @@ struct PostMediaViewer: View {
                 let height: CGFloat = {
                     let preview = previews.preview(resolution: userPreferences.mediaQuality)
                     let val = width / CGFloat(preview.aspectRatio)
-                    return min(val, 600)
+                    
+                    
+                    let h = min(val, 600)
+                    print(preview)
+                    print(h)
+                    print("---------------------------")
+                    
+                    
+                    return h
                 }()
                 
                 PostImageView(previews: previews, showContextMenu: showContextMenu)

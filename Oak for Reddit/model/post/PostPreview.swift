@@ -66,30 +66,71 @@ struct PostPreview {
 
 struct PostPreviews {
     
-    private(set) var res: [PostPreviewResolution : PostPreview]
+    private var res: [PostPreviewResolution : PostPreview]
     
     init?(previewsData: [String : Any]) {
-        
+    
         guard let images = previewsData["images"] as? [[String : Any]],
-              let resolutions = images[0]["resolutions"] as? [[String : Any]],
               let source = images[0]["source"] as? [String : Any],
-              let original = PostPreview(source),
-              let good = PostPreview(resolutions[safe: 5]),
-              let medium = PostPreview(resolutions[safe: 3]),
-              let low = PostPreview(resolutions[safe: 1])
+              let original = PostPreview(source)
         else {
             return nil
         }
         
+        let resolutions = images[0]["resolutions"] as? [[String : Any]]
+        
         res = [:]
         res[.original] = original
-        res[.good] = good
-        res[.medium] = medium
-        res[.low] = low
+        PostPreviews.addResolutions(resolutions, to: &res)
     }
     
     func preview(resolution: PostPreviewResolution) -> PostPreview {
-        return res[resolution]!
+        
+        if let preview = res[resolution] {
+            return preview
+        }
+        else {
+            let range = resolution.rawValue..<PostPreviewResolution.original.rawValue
+            let cases = PostPreviewResolution.allCases
+            
+            for i in range {
+                if let preview = res[cases[i]] {
+                    return preview
+                }
+            }
+            
+        }
+        
+        return res[.original]!
+    }
+    
+    private static func addResolutions(_ resolutions: [[String : Any]]?, to res: inout [PostPreviewResolution : PostPreview]) {
+        
+        guard let resolutions = resolutions else {
+            return
+        }
+        
+        if resolutions.count >= 4 {
+            
+            res[.low] = PostPreview(resolutions[1])
+            
+            let midIndex = Int(ceil(Double(resolutions.count) / 2.0))
+            res[.medium] = PostPreview(resolutions[midIndex])
+            
+            res[.good] = PostPreview(resolutions.last!)
+        }
+        else {
+            
+            for index in 0..<3 {
+                
+                let resCase = PostPreviewResolution.init(rawValue: index)!
+                
+                if let resolution = resolutions[safe: index] {
+                    res[resCase] = PostPreview(resolution)
+                }
+                
+            }
+        }
     }
     
 }
