@@ -8,109 +8,10 @@
 import Foundation
 import SwiftUI
 
-class GalleryData {
-    typealias Dictionary = [String : Any]
-    
-    struct GalleryItem: Identifiable {
-        
-        let id: String
-        let caption: String?
-        let url: URL
-        let width: Int
-        let height: Int
-        
-        var aspectRatio: CGFloat {
-            CGFloat(width) / CGFloat(height)
-        }
-    }
-    
-    private static let supportedFormats: [String] = ["jpg", "png", "gif"]
-    private static let baseURL = "https://i.redd.it/"
-    
-    let items: [GalleryItem]
-    
-    init(galleryData: Dictionary, metadata: Dictionary) {
-        
-        items = {
-            
-            let items = galleryData["items"] as! [Dictionary]
-            var galleryItems: [GalleryItem] = []
-            
-            for item in items {
-                
-                let mediaId = item["media_id"] as! String
-                let caption = item["caption"] as? String
-                let mediaMetadata = metadata[mediaId] as! Dictionary
-                let source = mediaMetadata["s"] as! Dictionary
-                let width = source["x"] as! Int
-                let height = source["y"] as! Int
-                let format = String((mediaMetadata["m"] as! String).split(separator: "/", maxSplits: 1, omittingEmptySubsequences: true)[1])
-                
-                if GalleryData.supportedFormats.contains(format) {
-                    let url = URL(string: "\(GalleryData.baseURL)\(mediaId).\(format)")!
-                    galleryItems.append(GalleryItem(id: mediaId, caption: caption, url: url, width: width, height: height))
-                }
-                
-            }
-            
-            return galleryItems
-            
-        }()
-        
-    }
-    
-}
 
 enum PostLinkType{
     case image, video, gallery, media, poll, link, permalink, nolink
 }
-
-struct ImageSize {
-    let width: Int
-    let height: Int
-    
-    var aspectRatio: Double {
-        Double(width) / Double(height)
-    }
-}
-
-struct PollData {
-    
-    struct Option: Identifiable {
-        let id: Int
-        let text: String
-        var voteCount: Int
-    }
-    
-    let options: [Option]
-    let votingEndDate: Date?
-    let isPrediction: Bool
-    
-    init(pollData: [String : Any]) {
-        
-        let optionsData = pollData["options"] as! [[String : Any]]
-                
-        options = optionsData.map{ option in
-            let id = Int(option["id"] as! String) ?? 0
-            let text = option["text"] as! String
-            let voteCount = option["vote_count"] as? Int ?? 0
-            return Option(id: id, text: text, voteCount: voteCount)
-        }
-        
-        if let votingEndTimestamp = pollData["voting_end_timestamp"] as? TimeInterval {
-            votingEndDate = Date(timeIntervalSince1970: votingEndTimestamp)
-        }
-        else {
-            votingEndDate = nil
-        }
-        
-        isPrediction = (pollData["is_prediction"] as? Int ?? 0) != 0
-        
-    }
-}
-
-
-
 
 enum Tag: Equatable {
     case nsfw
@@ -164,7 +65,6 @@ class Post: Thing, Votable, Created {
     let media: Media?
     let isGallery: Bool
     let galleryData: GalleryData?
-    //let imageSize: ImageSize?
     let previews: PostPreviews?
     let isSpoiler: Bool
     let pollData: PollData?
@@ -173,49 +73,47 @@ class Post: Thing, Votable, Created {
     
     required init(id: String, name: String, kind: String, data: [String : Any]) {
         
-        ups = data["ups"] as! Int
-        downs = data["downs"] as! Int
-        likes = Thing.getBool("likes", from: data)
+        ups = data.get("ups")
+        downs = data.get("downs")
+        likes = data.getBool("likes")
         
-        let createdTI = data["created"] as! TimeInterval
-        created = Date(timeIntervalSince1970: createdTI)
+        created = data.getDate("created")
+        createdUtc = data.getDate("created_utc")
         
-        let createdUtcTI = data["created_utc"] as! TimeInterval
-        createdUtc = Date(timeIntervalSince1970: createdUtcTI)
-
-        author = data["author"] as! String
-        hidden = (data["hidden"] as? Int ?? 0) != 0
-        isSelf = (data["is_self"] as? Int ?? 0) != 0
-        locked = (data["locked"] as? Int ?? 0) != 0
-        numComments = data["num_comments"] as! Int
-        score = data["score"] as! Int
-        selfText = data["selftext"] as! String
-        subreddit = data["subreddit"] as! String
-        subredditId = data["subreddit_id"] as! String
-        thumbnail = data["thumbnail"] as! String
+        author = data.get("author")
+        hidden = data.getBool("hidden")
+        isSelf = data.getBool("is_self")
+        locked = data.getBool("locked")
+        numComments = data.get("num_comments")
+        score = data.get("score")
+        selfText = data.get("selftext")
+        subreddit = data.get("subreddit")
+        subredditId = data.get("subreddit_id")
+        
+        let thumbnail: String = data.get("thumbnail")
+        self.thumbnail = thumbnail
         thumbnailUrl = {
-            let thumbnail = data["thumbnail"] as! String
             if thumbnail == "default" || thumbnail == "self" || thumbnail == "image" || thumbnail == "nsfw" {
                 return nil
             }
-            return Thing.getUrl(data: data, key: "thumbnail")
+            return data.getUrl("thumbnail")
         }()
         
-        title = Thing.getHtmlEcodedString(data: data, key: "title")!
+        title = data.getHtmlEcodedString("title")!
         
-        permalink = data["permalink"] as! String
-        url = Thing.getUrl(data: data, key: "url") //data["url"] as! String
+        permalink = data.get("permalink")
+        url = data.getUrl("url")
         edited = nil
-        stickied = (data["stickied"] as? Int ?? 0) != 0
+        stickied = data.getBool("stickied")
         
-        media = Thing.extractMedia(data: data, key: "media")//data["media"] as? [String : Any]
+        media = data.getThingMedia("media")
         
-        if let galleryData = data["gallery_data"] as? [String : Any],
-           let metadata = data["media_metadata"] as? [String : Any],
-            (data["is_gallery"] as? Int ?? 0) != 0
+        if let galleryData = data.getDictionary("gallery_data"),
+           let metadata = data.getDictionary("media_metadata"),
+           let isGallery = data.getBool("is_gallery"), isGallery
         {
             
-            isGallery = true
+            self.isGallery = true
             self.galleryData = GalleryData(galleryData: galleryData, metadata: metadata)
             
         }
@@ -225,27 +123,27 @@ class Post: Thing, Votable, Created {
             galleryData = nil
         }
         
-        if let preview = data["preview"] as? [String : Any]{
-            self.previews = PostPreviews(previewsData: preview)
+        if let preview = data.getDictionary("preview"){
+            self.previews = PostPreviews.singleImage(previewsData: preview)
         }
         else {
             previews = nil
         }
         
         
-        over18 = (data["over_18"] as? Int ?? 0) != 0
+        over18 = data.getBool("over_18")
         
         if over18 {
             tags.append(.nsfw)
         }
         
-        isSpoiler = Thing.getBool("spoiler", from: data)
+        isSpoiler = data.getBool("spoiler")
         
         if isSpoiler {
             tags.append(.spoiler)
         }
         
-        if let pollData = data["poll_data"] as? [String : Any] {
+        if let pollData = data.getDictionary("poll_data") {
             self.pollData = PollData(pollData: pollData)
         }
         else {
@@ -254,10 +152,6 @@ class Post: Thing, Votable, Created {
                         
         super.init(id: id, name: name, kind: kind, data: data)
         
-    }
-    
-    required init(from decoder: Decoder) throws {
-        fatalError("init(from:) has not been implemented")
     }
     
 }

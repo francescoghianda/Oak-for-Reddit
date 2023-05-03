@@ -9,12 +9,10 @@ import Foundation
 import SwiftUI
 
 @objc public enum PostPreviewResolution: Int {
-    
     case low, medium, good, original
 }
 
 extension PostPreviewResolution: Identifiable {
-    
     public var id: Int {
         self.rawValue
     }
@@ -47,12 +45,12 @@ struct PostPreview {
         size.width / size.height
     }
     
-    init?(_ data: [String : Any]?) {
+    init?(_ data: [String : Any]?, with keys: PreviewsKeys) {
         
         guard let data = data,
-              let width = data["width"] as? Int,
-              let height = data["height"] as? Int,
-              let urlStr = data["url"] as? String,
+              let width = data[keys["width"]] as? Int,
+              let height = data[keys["height"]] as? Int,
+              let urlStr = data[keys["url"]] as? String,
               let url = URL(string: String(htmlEncodedString: urlStr) ?? urlStr)
         else {
             return nil
@@ -64,24 +62,63 @@ struct PostPreview {
     
 }
 
+struct PreviewsKeys {
+    
+    private let keys: [String : String]
+    
+    private init(_ keys: [String : String]) {
+        self.keys = keys
+    }
+    
+    static let singleImage = PreviewsKeys([
+        "source": "source",
+        "resolutions": "resolutions",
+        "width": "width",
+        "height": "height",
+        "url": "url"
+    ])
+    
+    static let gallery = PreviewsKeys([
+        "source": "s",
+        "resolutions": "p",
+        "width": "x",
+        "height": "y",
+        "url": "u"
+    ])
+    
+    subscript(_ key: String) -> String {
+        keys[key]!
+    }
+    
+}
+
 struct PostPreviews {
     
     private var res: [PostPreviewResolution : PostPreview]
     
-    init?(previewsData: [String : Any]) {
+    init?(imageData: [String : Any], with keys: PreviewsKeys) {
     
-        guard let images = previewsData["images"] as? [[String : Any]],
-              let source = images[0]["source"] as? [String : Any],
-              let original = PostPreview(source)
+        guard let source = imageData.getDictionary(keys["source"]),//["source"] as? [String : Any],
+              let original = PostPreview(source, with: keys)
         else {
             return nil
         }
         
-        let resolutions = images[0]["resolutions"] as? [[String : Any]]
+        let resolutions = imageData.getDictionaryArray(keys["resolutions"])//["resolutions"] as? [[String : Any]]
         
         res = [:]
         res[.original] = original
-        PostPreviews.addResolutions(resolutions, to: &res)
+        PostPreviews.addResolutions(resolutions, with: keys, to: &res)
+    }
+    
+    static func singleImage(previewsData: [String : Any]) -> PostPreviews? {
+        guard let images = previewsData.getDictionaryArray("images"),
+              let image = images[safe: 0]
+        else {
+            return nil
+        }
+        
+        return PostPreviews(imageData: image, with: .singleImage)
     }
     
     func preview(resolution: PostPreviewResolution) -> PostPreview {
@@ -104,7 +141,7 @@ struct PostPreviews {
         return res[.original]!
     }
     
-    private static func addResolutions(_ resolutions: [[String : Any]]?, to res: inout [PostPreviewResolution : PostPreview]) {
+    private static func addResolutions(_ resolutions: [[String : Any]]?, with keys: PreviewsKeys, to res: inout [PostPreviewResolution : PostPreview]) {
         
         guard let resolutions = resolutions else {
             return
@@ -112,12 +149,12 @@ struct PostPreviews {
         
         if resolutions.count >= 4 {
             
-            res[.low] = PostPreview(resolutions[1])
+            res[.low] = PostPreview(resolutions[1], with: keys)
             
             let midIndex = Int(ceil(Double(resolutions.count) / 2.0))
-            res[.medium] = PostPreview(resolutions[midIndex])
+            res[.medium] = PostPreview(resolutions[midIndex], with: keys)
             
-            res[.good] = PostPreview(resolutions.last!)
+            res[.good] = PostPreview(resolutions.last!, with: keys)
         }
         else {
             
@@ -126,7 +163,7 @@ struct PostPreviews {
                 let resCase = PostPreviewResolution.init(rawValue: index)!
                 
                 if let resolution = resolutions[safe: index] {
-                    res[resCase] = PostPreview(resolution)
+                    res[resCase] = PostPreview(resolution, with: keys)
                 }
                 
             }

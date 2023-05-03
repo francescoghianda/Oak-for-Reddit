@@ -56,7 +56,7 @@ extension Account {
                 var fullIconUrl = URLComponents(string: result["icon_img"] as! String)!
                 fullIconUrl.query = nil
                 let imageUrl = fullIconUrl.url!
-                let avatarUrl = Thing.getUrl(data: result, key: "snoovatar_img")
+                let avatarUrl = result.getUrl("snoovatar_img")
                 
                 let bannerImgUrl: URL? = {
                     

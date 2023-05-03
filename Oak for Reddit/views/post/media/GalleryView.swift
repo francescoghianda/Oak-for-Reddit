@@ -35,7 +35,7 @@ struct GalleryView: View {
             
             ForEach(0..<galleryData.items.count) { index in
                 
-                PostImageView(url: galleryData.items[index].url, showContextMenu: showContextMenu)
+                PostImageView(previews: galleryData.items[index].previews, showContextMenu: showContextMenu)
                     .onImageLoad{ image in
                         onImageChangeHandler?(image)
                     }
@@ -72,7 +72,7 @@ struct GalleryView: View {
         
     }
     
-    private func getMaxWidth() -> CGFloat {
+    /*private func getMaxWidth() -> CGFloat {
         var max = 0
         for item in galleryData.items {
             if item.width > max {
@@ -80,13 +80,14 @@ struct GalleryView: View {
             }
         }
         return CGFloat(max)
-    }
+    }*/
     
     private func getMaxHeight() -> CGFloat {
         
         var max: CGFloat = .zero
         for item in galleryData.items {
-            let height = width / item.aspectRatio
+            
+            let height = width / item.previews.preview(resolution: .original).aspectRatio
             if height > max {
                 max = height
             }

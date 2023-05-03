@@ -166,3 +166,81 @@ extension CharacterSet {
     }()
 }
 
+extension Dictionary where Key == String, Value: Any {
+    
+    func get<T>(_ key: Key) -> T? {
+        return self[key] as? T
+    }
+    
+    func get<T>(_ key: Key, defaultValue: T? = nil) -> T {
+        return self.get(key) ?? defaultValue!
+    }
+    
+    func getBool(_ key: Key) -> Bool? {
+        guard let value = self[key] as? Int else {
+            return nil
+        }
+        return value != 0
+    }
+    
+    func getBool(_ key: Key) -> Bool {
+        self.getBool(key) ?? false
+    }
+    
+    func getDate(_ key: Key) -> Date? {
+        guard let time = self[key] as? TimeInterval else {
+            return nil
+        }
+        return Date(timeIntervalSince1970: time)
+    }
+    
+    func getDate(_ key: Key) -> Date {
+        self.getDate(key)!
+    }
+    
+    func getDictionary(_ key: Key) -> [String : Any]? {
+        guard let dict = self[key] as? [String : Any] else {
+            return nil
+        }
+        return dict
+    }
+    
+    func getDictionaryArray(_ key: Key) -> [[String : Any]]? {
+        guard let array = self[key] as? [[String : Any]] else {
+            return nil
+        }
+        return array
+    }
+    
+    func getUrl(_ key: Key) -> URL? {
+        
+        guard let path = self[key] as? String else {
+            return nil
+        }
+        
+        return URL(string: path)
+    }
+    
+    func getHtmlEcodedString(_ key: String, encoding: String.Encoding = .utf16) -> String? {
+        
+        guard let encodedString = self[key] as? String,
+              let data = encodedString.data(using: encoding),
+              let attrStr = try? NSAttributedString(data: data, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil)
+        else {
+            return nil
+        }
+        
+        return attrStr.string
+    }
+    
+    func getThingMedia(_ key: String) -> Media? {
+        
+        guard let data = self[key] as? [String : Any] else {
+            return nil
+        }
+        
+        return Media.build(from: data)
+    }
+    
+}
+

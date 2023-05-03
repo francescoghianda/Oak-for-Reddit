@@ -17,7 +17,7 @@ struct RedditVideoPlayer: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> AVPlayerViewController {
         
         let controller = AVPlayerViewController()
-        
+                
         let asset = AVAsset(url: url)
         let item = AVPlayerItem(asset: asset)
         let player = AVQueuePlayer(playerItem: item)
@@ -26,7 +26,7 @@ struct RedditVideoPlayer: UIViewControllerRepresentable {
         player.actionAtItemEnd = .none
         
         controller.player = player
-        controller.videoGravity = .resizeAspectFill
+        controller.videoGravity = .resizeAspect//.resizeAspectFill
         
         controller.showsPlaybackControls = true
         
@@ -55,7 +55,9 @@ struct EmbedVideoPlayer: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> WKWebView {
-        return WKWebView()
+        let webView = WKWebView()
+        webView.scrollView.isScrollEnabled = false
+        return webView
     }
     
     func updateUIView(_ webView: WKWebView, context: Context) {

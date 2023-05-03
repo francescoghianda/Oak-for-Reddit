@@ -10,7 +10,6 @@ import SwiftUI
 
 struct PostMediaViewer: View {
     
-    //@EnvironmentObject var userPreferences: UserPreferences
     @ObservedObject var userPreferences = UserPreferences.shared
     
     let post: Post
@@ -49,7 +48,6 @@ struct PostMediaViewer: View {
                     .scaledToFit()
                     .blur(blurred, showHideButton: showHideButton, text: blurText)
                     .cornerRadius(cornerRadius)
-                    //.frame(width: width, height: height)
                     .frame(height: height)
             }
             else {
@@ -60,7 +58,6 @@ struct PostMediaViewer: View {
                     .scaledToFit()
                     .blur(blurred, showHideButton: showHideButton, text: blurText)
                     .cornerRadius(cornerRadius)
-                    //.frame(width: width, height: height)
                     .frame(height: width)
             }
             
@@ -86,22 +83,20 @@ struct PostMediaViewer: View {
             case .redditVideo(let data):
                 
                 let height: CGFloat = {
-                    if let preview = post.previews?.preview(resolution: .original) {
-                        let val = width / CGFloat(preview.aspectRatio)
-                        return min(val, 600)
-                    }
-                    return 600
+                    let val = width / CGFloat(data.aspectRatio)
+                    return min(val, 600)
                 }()
                 
+                let playerWidth: CGFloat = height * CGFloat(data.aspectRatio)
+                
                 RedditVideoPlayer(url: data.hlsUrl!)
-                    .frame(width: width, height: height)
-                    //.scaledToFit()
+                    .frame(width: playerWidth, height: height)
                     .blur(blurred, showHideButton: showHideButton, text: blurText)
                     .cornerRadius(cornerRadius)
                 
             case .embed(let data):
                 EmbedVideoPlayer(media: data)
-                    .frame(idealWidth: CGFloat(data.width), idealHeight: CGFloat(data.height))
+                    .frame(idealWidth: CGFloat(data.width), idealHeight: CGFloat(data.height), maxHeight: 600)
                     .scaledToFit()
                     .blur(blurred, showHideButton: showHideButton, text: blurText)
                     .cornerRadius(cornerRadius)

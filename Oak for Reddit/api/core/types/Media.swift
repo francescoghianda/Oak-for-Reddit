@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 enum Media {
     
@@ -30,6 +31,10 @@ enum Media {
         let isGif: Bool
         let width: Int
         let height: Int
+        
+        var aspectRatio: CGFloat {
+            CGFloat(width) / CGFloat(height)
+        }
     }
     
     static func build(from data: [String : Any]) -> Media {
@@ -37,13 +42,13 @@ enum Media {
         if let data = data["reddit_video"] as? [String : Any] {
             
             let bitrate = data["bitrate_kbps"] as? Int
-            let dashUrl = Thing.getUrl(data: data, key: "dash_url")
-            let hlsUrl = Thing.getUrl(data: data, key: "hls_url")
-            let fallbackUrl = Thing.getUrl(data: data, key: "fallback_url")
-            let scrubberMediaUrl = Thing.getUrl(data: data, key: "scrubber_media_url")
-            let isGif = (data["is_gif"] as? Int ?? 0) != 0
-            let width = data["width"] as! Int
-            let height = data["height"] as! Int
+            let dashUrl = data.getUrl("dash_url")
+            let hlsUrl = data.getUrl("hls_url")
+            let fallbackUrl = data.getUrl("fallback_url")
+            let scrubberMediaUrl = data.getUrl("scrubber_media_url")
+            let isGif: Bool = data.getBool("is_gif")
+            let width: Int = data.get("width")
+            let height: Int = data.get("height")
             
             return .redditVideo(RedditVideo(bitrateKbps: bitrate, dashUrl: dashUrl, hlsUrl: hlsUrl, fallbackUrl: fallbackUrl, scrubberMediaUrl: scrubberMediaUrl, isGif: isGif, width: width, height: height))
         }
@@ -53,10 +58,10 @@ enum Media {
             let type = data["type"] as! String
             let title = data["title"] as? String
             let providerName = data["provider_name"] as! String
-            let providerUrl = Thing.getUrl(data: data, key: "provider_url")
-            let html = Thing.getHtmlEcodedString(data: data, key: "html")!//data["html"] as! String
-            let width = data["width"] as? Int ?? 200
-            let height = data["height"] as? Int ?? 113
+            let providerUrl = data.getUrl("provider_url")
+            let html = data.getHtmlEcodedString("html")!
+            let width = data.get("width", defaultValue: Int(200))
+            let height = data.get("height", defaultValue: Int(113))
             
             return .embed(Embed(type: type, title: title, providerName: providerName, providerUrl: providerUrl, html: html, width: width, height: height))
             

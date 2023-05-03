@@ -9,7 +9,6 @@ import Foundation
 import SwiftUI
 
 
-
 class PostListModel: ObservableObject {
     
     private let api: ApiFetcher = ApiFetcher.shared

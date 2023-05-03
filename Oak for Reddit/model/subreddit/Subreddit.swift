@@ -35,11 +35,12 @@ class Subreddit: Thing, SubredditProtocol {
     
     required init(id: String, name: String, kind: String, data: [String : Any]) {
         
-        displayName = data["display_name"] as! String
-        displayNamePrefixed = data["display_name_prefixed"] as! String
-        over18 = (data["over18"] as? Int ?? 0) != 0
+        displayName = data.get("display_name")
+        displayNamePrefixed = data.get("display_name_prefixed")
+        over18 = data.getBool("over18")
         
-        if let colorHex = data["primary_color"] as? String, colorHex != ""{
+        
+        if let colorHex: String = data.get("primary_color"), colorHex != ""{
             primaryColor = colorHex
         }
         else {
@@ -47,8 +48,8 @@ class Subreddit: Thing, SubredditProtocol {
         }
         
         
-        iconImageUrl = Thing.getUrl(data: data, key: "icon_img")
-        bannerImageUrl = Thing.getUrl(data: data, key: "banner_background_image")
+        iconImageUrl = data.getUrl("icon_img")
+        bannerImageUrl = data.getUrl("banner_background_image")
         
         super.init(id: id, name: name, kind: kind, data: data)
     }

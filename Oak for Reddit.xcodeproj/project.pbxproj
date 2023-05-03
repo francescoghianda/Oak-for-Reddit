@@ -27,6 +27,8 @@
 		13467DC229FFFE8E003E38A9 /* SubredditEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13467DC029FFFE8E003E38A9 /* SubredditEntity+CoreDataClass.swift */; };
 		13467DC329FFFE8E003E38A9 /* SubredditEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13467DC129FFFE8E003E38A9 /* SubredditEntity+CoreDataProperties.swift */; };
 		13467DC62A0020C5003E38A9 /* FavoriteSubreddits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13467DC52A0020C5003E38A9 /* FavoriteSubreddits.swift */; };
+		13467DC82A029FC1003E38A9 /* GalleryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13467DC72A029FC0003E38A9 /* GalleryData.swift */; };
+		13467DCA2A029FF1003E38A9 /* PollData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13467DC92A029FF1003E38A9 /* PollData.swift */; };
 		1353A4D729F0160C005CAD81 /* SubredditListingOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1353A4D629F0160C005CAD81 /* SubredditListingOrder.swift */; };
 		1353A4DC29F027E4005CAD81 /* PostListingOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1353A4DB29F027E4005CAD81 /* PostListingOrder.swift */; };
 		1353A4DF29F16D08005CAD81 /* UserPreferences+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1353A4DD29F16D08005CAD81 /* UserPreferences+CoreDataClass.swift */; };
@@ -237,6 +239,8 @@
 		13467DC029FFFE8E003E38A9 /* SubredditEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SubredditEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
 		13467DC129FFFE8E003E38A9 /* SubredditEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SubredditEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		13467DC52A0020C5003E38A9 /* FavoriteSubreddits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteSubreddits.swift; sourceTree = "<group>"; };
+		13467DC72A029FC0003E38A9 /* GalleryData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryData.swift; sourceTree = "<group>"; };
+		13467DC92A029FF1003E38A9 /* PollData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollData.swift; sourceTree = "<group>"; };
 		1353A4D629F0160C005CAD81 /* SubredditListingOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubredditListingOrder.swift; sourceTree = "<group>"; };
 		1353A4DB29F027E4005CAD81 /* PostListingOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListingOrder.swift; sourceTree = "<group>"; };
 		1353A4DD29F16D08005CAD81 /* UserPreferences+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserPreferences+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -469,6 +473,8 @@
 				13AE9E0C29CA4A1000242EE5 /* PostListModel.swift */,
 				1353A4DB29F027E4005CAD81 /* PostListingOrder.swift */,
 				136D687329FBE92C00CD4358 /* PostPreview.swift */,
+				13467DC72A029FC0003E38A9 /* GalleryData.swift */,
+				13467DC92A029FF1003E38A9 /* PollData.swift */,
 			);
 			path = post;
 			sourceTree = "<group>";
@@ -838,6 +844,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1353A4DF29F16D08005CAD81 /* UserPreferences+CoreDataClass.swift in Sources */,
+				13467DCA2A029FF1003E38A9 /* PollData.swift in Sources */,
 				136FB3DB29C200FE00C3FCF4 /* ContentView.swift in Sources */,
 				135BFFA429E99AEF00C98978 /* CommentCard.swift in Sources */,
 				13E954D329F43F3700135FDA /* SidebarTabView.swift in Sources */,
@@ -899,6 +906,7 @@
 				1337E97F29D0B93500D9E63B /* VideoPlayerView.swift in Sources */,
 				136D687229FB382200CD4358 /* LoginWithRedditButton.swift in Sources */,
 				139A62AF29EEE32C009D1105 /* Account+CoreDataClass.swift in Sources */,
+				13467DC82A029FC1003E38A9 /* GalleryData.swift in Sources */,
 				135BFF9E29E99A3800C98978 /* CommentListView.swift in Sources */,
 				136FB3D929C200FE00C3FCF4 /* Oak_for_RedditApp.swift in Sources */,
 				1337E97929CE44F300D9E63B /* ZoomableScrollView.swift in Sources */,
