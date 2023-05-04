@@ -15,7 +15,7 @@ class SubrettitListModel: ObservableObject {
     @Published var subreddits: Listing<Subreddit> = Listing.empty()
     @Published private(set) var loading: Bool = false
     @Published private(set) var loadingMore: Bool = false
-    @Published private(set) var error: Error? = nil
+    @Published private(set) var error: FetchError? = nil
     @Published private(set) var errorLoadingMore: Error? = nil
     @Published private(set) var uuid: UUID = UUID()
     
@@ -51,7 +51,7 @@ class SubrettitListModel: ObservableObject {
                 }
                 
             }
-            catch {
+            catch let error as FetchError {
                 Task { @MainActor [weak self] in
                     self?.error = error
                     self?.loading = false
@@ -80,7 +80,8 @@ class SubrettitListModel: ObservableObject {
                     self?.uuid = UUID()
                 }
             }
-            catch{
+            catch let error as FetchError  {
+                
                 Task { @MainActor [weak self] in
                     self?.error = error
                     self?.loading = false

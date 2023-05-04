@@ -48,43 +48,47 @@ struct SubredditListView: View {
     @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [])
     private var favorites: FetchedResults<SubredditEntity>
     
+    @ViewBuilder
+    var subredditCards: some View {
+        ForEach(model.subreddits.indices, id: \.self) { index in
+            
+            let subreddit = model.subreddits[index]
+            let isFavorite = isFavorite(subreddit.thingId)
+            
+            NavigationLink {
+                PostListView(subreddit: subreddit)
+            } label: {
+                SubredditItemView(subreddit: subreddit, isFavorite: isFavorite)
+            }
+            .isDetailLink(true)
+            .swipeActions{
+                Button {
+                    if isFavorite {
+                        removeFavorite(subreddit.thingId)
+                    }
+                    else {
+                        FavoriteSubreddits.add(subreddit)
+                    }
+                    
+                } label: {
+                    Image(systemName: isFavorite ? "trash.fill" : "star.fill")
+                        .foregroundColor(.white)
+                }
+                .tint(isFavorite ? .red : .yellow)
+            }
+
+        }
+    }
     
     var body: some View {
                 
         ZStack{
             
-            ZStack{
+            List {
                 
-                List {
+                if model.error == nil {
                     
-                    ForEach(model.subreddits.indices, id: \.self) { index in
-                        
-                        let subreddit = model.subreddits[index]
-                        let isFavorite = isFavorite(subreddit.thingId)
-                        
-                        NavigationLink {
-                            PostListView(subreddit: subreddit)
-                        } label: {
-                            SubredditItemView(subreddit: subreddit, isFavorite: isFavorite)
-                        }
-                        .isDetailLink(true)
-                        .swipeActions{
-                            Button {
-                                if isFavorite {
-                                    removeFavorite(subreddit.thingId)
-                                }
-                                else {
-                                    FavoriteSubreddits.add(subreddit)
-                                }
-                                
-                            } label: {
-                                Image(systemName: isFavorite ? "trash.fill" : "star.fill")
-                                    .foregroundColor(.white)
-                            }
-                            .tint(isFavorite ? .red : .yellow)
-                        }
-
-                    }
+                    subredditCards
                     
                     if(!model.subreddits.isEmpty){
                         HStack{
@@ -104,44 +108,37 @@ struct SubredditListView: View {
                             Spacer()
                         }
                     }
-                    
                 }
-                .id(model.uuid)
-                .listStyle(.plain)
-                .transition(.asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing)))
-                .animation(.spring(), value: model.subreddits)
-                .refreshable{
-                    if !isSearching {
-                        model.load(order: order)
-                    }
-                }
-                .onChange(of: isSearching, perform: { isSearching in
-                    
-                    if isSearching {
-                        model.save()
-                    }
-                    else {
-                        model.restore()
-                    }
-                    
-                })
-                .onChange(of: order) { newOrder in
-                    model.load(order: newOrder)
-                }
-                .onChange(of: model.loading){ loading in
-                    loadingToastPresenting = loading
-                }
-                .disabled(model.loading)
-                .toast(isPresenting: $loadingToastPresenting, autoClose: false) {
-                    ProgressView()
-                }
-                //.opacity(model.loading ? 0 : 1)
                 
+            }
+            .id(model.uuid)
+            .listStyle(.plain)
+            .transition(.asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing)))
+            .animation(.spring(), value: model.subreddits)
+            .refreshable{
+                if !isSearching {
+                    model.load(order: order)
+                }
+            }
+            .disabled(model.loading)
+            .onChange(of: isSearching, perform: { isSearching in
                 
-                /*if model.loading {
-                    ProgressView()
-                }*/
+                if isSearching {
+                    model.save()
+                }
+                else {
+                    model.restore()
+                }
                 
+            })
+            .onChange(of: order) { newOrder in
+                model.load(order: newOrder)
+            }
+            .onChange(of: model.loading){ loading in
+                loadingToastPresenting = loading
+            }
+            .toast(isPresenting: $loadingToastPresenting, autoClose: false) {
+                ProgressView()
             }
             .navigationTitle("Subreddits")
             .toolbar {
@@ -150,7 +147,11 @@ struct SubredditListView: View {
                 }
             }
             
-            if isSearching && model.subreddits.isEmpty && !model.loading {
+            if let error = model.error {
+                FetchErrorView(error: error)
+            }
+            
+            if isSearching && model.subreddits.isEmpty && !model.loading && model.error == nil {
                 Image(systemName: "magnifyingglass")
                     .resizable()
                     .foregroundColor(.gray)

@@ -15,10 +15,10 @@ class PostListModel: ObservableObject {
     
     let subredditNamePrefixed: String
     
-    @Published var posts: Listing<Post>? = nil
+    @Published var posts: Listing<Post> = Listing.empty()
     @Published private(set) var loading: Bool = false
     @Published private(set) var loadingMore: Bool = false
-    @Published private(set) var error: Error? = nil
+    @Published private(set) var error: FetchError? = nil
     @Published private(set) var loadingMoreError: Error? = nil
     
     init(subredditNamePrefixed: String? = nil){
@@ -51,7 +51,7 @@ class PostListModel: ObservableObject {
                     self?.loading = false
                 }
             }
-            catch {
+            catch let error as FetchError {
                 Task { @MainActor [weak self] in
                     self?.error = error
                     self?.loading = false
@@ -71,32 +71,25 @@ class PostListModel: ObservableObject {
         loadingMore = true
         loadingMoreError = nil
        
-        if let posts = self.posts {
+        Task {
             
-            Task {
+            do {
+                let after = posts.after ?? posts.last?.subredditId ?? ""
                 
-                do {
-                    let after = posts.after ?? posts.last?.subredditId ?? ""
-                    
-                    let newPosts: Listing<Post> = try await api.fetchListing(.postListing(order: order, subredditName: subredditNamePrefixed, after: after, count: posts.count))
-                    
-                    Task { @MainActor [weak self] in
-                        self?.posts! += newPosts
-                        self?.loadingMore = false
-                    }
-                }
-                catch {
-                    Task { @MainActor [weak self] in
-                        self?.loadingMoreError = error
-                        self?.loadingMore = false
-                    }
-                }
+                let newPosts: Listing<Post> = try await api.fetchListing(.postListing(order: order, subredditName: subredditNamePrefixed, after: after, count: posts.count))
                 
+                Task { @MainActor [weak self] in
+                    self?.posts += newPosts
+                    self?.loadingMore = false
+                }
+            }
+            catch let error as FetchError {
+                Task { @MainActor [weak self] in
+                    self?.loadingMoreError = error
+                    self?.loadingMore = false
+                }
             }
             
-        }
-        else {
-            self.load(order: order)
         }
        
     }

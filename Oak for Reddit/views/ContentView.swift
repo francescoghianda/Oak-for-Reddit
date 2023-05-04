@@ -40,19 +40,9 @@ struct ContentView: View {
     
     @ObservedObject var oauthManager = OAuthManager.shared
     
-    @Environment(\.colorScheme) var colorScheme
-    
-    /*@FetchRequest(entity: UserPreferences.entity(), sortDescriptors: [])
-    private var userPreferences: FetchedResults<UserPreferences>*/
-    
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     @State var sizeClass: UserInterfaceSizeClass = .compact
-    
-
-    init() {
-        print("CONTENT VIEW INIT")
-    }
     
     var body: some View {
         
@@ -173,14 +163,6 @@ struct ContentView: View {
                 
             }
         }
-        //.environmentObject(userPreferences.first!)
-        //.animation(.none, value: horizontalSizeClass)
-        .sheet(isPresented: $oauthManager.authorizationSheetIsPresented) {
-            OAuthManager.shared.onAuthorizationSheetDismissed()
-        } content: {
-            AuthorizationSheet()
-        }
-        
         
         
     }

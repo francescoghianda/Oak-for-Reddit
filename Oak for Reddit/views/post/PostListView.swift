@@ -182,6 +182,8 @@ struct PostListView: View, Equatable {
     @State var navbarHeight: CGFloat = .zero
     @State private var contentWidth: CGFloat = .zero
     
+    @State var loadingToastIsPresenting: Bool = false
+    
     //@EnvironmentObject var userPreferences: UserPreferences
     @ObservedObject var userPreferences = UserPreferences.shared
     
@@ -205,71 +207,69 @@ struct PostListView: View, Equatable {
                 
         ZStack{
             
-            if let posts = model.posts {
+            if model.error == nil {
                 
                 ScrollView(showsIndicators: false) /*SPostListView*/ {
                     
                     LazyVStack {
-                        if !model.loading {
-                            ForEach(posts) { post in
-                                Divider()
-                                
-                                switch userPreferences.postsCardSize {
-                                case .large:
-                                    LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.id], linkToSubredditIsActive: linkToSbubredditsAreActive, contentWidth: $contentWidth)
-                                case .compact:
-                                    CompactPostCardView(post: post, showPin: order == .hot, linkToSubredditIsActive: linkToSbubredditsAreActive)
-                                }
-                                
-                                
-                            }
-                            //.opacity(postToShow != nil ? 0 : 1)
-                            
+                        
+                        ForEach(model.posts) { post in
                             Divider()
+                            
+                            switch userPreferences.postsCardSize {
+                            case .large:
+                                LargePostCardView(post: post, showPin: order == .hot, mediaSize: mediaSizeCache[post.id], linkToSubredditIsActive: linkToSbubredditsAreActive, contentWidth: $contentWidth)
+                            case .compact:
+                                CompactPostCardView(post: post, showPin: order == .hot, linkToSubredditIsActive: linkToSbubredditsAreActive)
+                            }
+                            
+                        }
+                        //.opacity(postToShow != nil ? 0 : 1)
+                        
+                        Divider()
 
-                            if(!posts.isEmpty){
-                                HStack{
-                                    Spacer()
-                                    if(posts.hasThingsAfter){
+                        if(!model.posts.isEmpty){
+                            HStack{
+                                Spacer()
+                                if(model.posts.hasThingsAfter){
+                                    
+                                    if userPreferences.loadNewPostsAutomatically {
+                                        ProgressView()
+                                            .onAppear {
+                                                model.loadMore(order: order)
+                                            }
+                                    }
+                                    else {
                                         
-                                        if userPreferences.loadNewPostsAutomatically {
+                                        if model.loadingMore {
                                             ProgressView()
-                                                .onAppear {
-                                                    model.loadMore(order: order)
-                                                }
                                         }
                                         else {
-                                            
-                                            if model.loadingMore {
-                                                ProgressView()
+                                            Button {
+                                                model.loadMore(order: order)
+                                            } label: {
+                                                Text("Load more")
                                             }
-                                            else {
-                                                Button {
-                                                    model.loadMore(order: order)
-                                                } label: {
-                                                    Text("Load more")
-                                                }
-                                            }
-                                            
-                                            
                                         }
-
+                                        
                                         
                                     }
-                                    else{
-                                        Text("You have reached the end")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.gray)
-                                            .padding()
-                                    }
-                                    Spacer()
+
+                                    
                                 }
-                                
-                                Divider()
-                                
+                                else{
+                                    Text("You have reached the end")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.gray)
+                                        .padding()
+                                }
+                                Spacer()
                             }
+                            
+                            Divider()
                         }
                     }
+                    .disabled(model.loading)
                     .overlay {
                         GeometryReader { geo in
                             Color.clear
@@ -287,28 +287,31 @@ struct PostListView: View, Equatable {
                 }
                 
                 
-                if (!model.loading && posts.isEmpty){
+                if (!model.loading && model.posts.isEmpty){
                     Text("There is nothing here :(")
                         .foregroundColor(Color.gray)
                 }
                 
             }
-            
-            if(model.loading){
-                ProgressView()
-                    /*.onAppear {
-                        api.load(order: order)
-                    }*/
+            else {
+                
+                FetchErrorView(error: model.error!) {
+                    model.load(order: order)
+                }
+                
             }
             
             
         }
         .navigationBarHidden(false)
         .navigationBarTitle(subredditNamePrefixed ?? "Posts", displayMode: .inline)
-        .onChange(of: order, perform: { newValue in
+        .onChange(of: order) { newValue in
             //loading = true
             model.load(order: newValue)
-        })
+        }
+        .onChange(of: model.loading) { _ in
+            loadingToastIsPresenting = model.loading
+        }
         //.navigationBarHidden(postToShow != nil)
         .transition(.opacity)
         .toolbar {
@@ -328,9 +331,9 @@ struct PostListView: View, Equatable {
             }
             
         }
-        /*.onAppear {
-            api.load(order: order)
-        }*/
+        .toast(isPresenting: $loadingToastIsPresenting, autoClose: false) {
+            ProgressView()
+        }
         .onFirstAppear {
             order = userPreferences.postPreferredOrder
             model.load(order: order)

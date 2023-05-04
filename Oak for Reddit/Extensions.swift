@@ -9,6 +9,32 @@ import Foundation
 import UIKit
 import SwiftUI
 
+extension URL {
+    
+    func getQueryParameter(_ named: String) -> String? {
+        guard let components = URLComponents(string: absoluteString) else { return nil }
+        return components.queryItems?.first(where: { $0.name == named })?.value
+    }
+}
+
+extension URLError {
+    
+    func toFetchError() -> FetchError {
+        
+        switch errorCode {
+        case NSURLErrorCannotConnectToHost, NSURLErrorNetworkConnectionLost, NSURLErrorNotConnectedToInternet,
+            NSURLErrorInternationalRoamingOff, NSURLErrorTimedOut:
+            return .no_connection
+            
+        default:
+            return .unexpected(error: self)
+        }
+        
+        
+    }
+    
+}
+
 extension Array {
     
     func split(at index: Int) -> (left: [Element], right: [Element]) {

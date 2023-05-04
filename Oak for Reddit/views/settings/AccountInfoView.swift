@@ -59,7 +59,6 @@ struct AccountInfoView: View {
     
     @Environment(\.managedObjectContext) private var moc
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @Environment(\.colorScheme) private var colorScheme
     
     @State var confirmDialogPresented: Bool = false
     
@@ -230,7 +229,7 @@ struct AccountInfoView: View {
                 Spacer()
                 
             }
-            .background(colorScheme == .dark ? Color(UIColor.systemGray6) : .white)
+            //.background(colorScheme == .dark ? Color(UIColor.systemGray6) : .white)
             .ignoresSafeArea()
             
             
@@ -238,7 +237,7 @@ struct AccountInfoView: View {
         else {
             
             LoginWithRedditButton {
-                OAuthManager.shared.startAuthorization(startTabIndex: 1)
+                OAuthManager.shared.authenticate()
             }
             
         }

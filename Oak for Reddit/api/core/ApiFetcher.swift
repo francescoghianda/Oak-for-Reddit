@@ -129,14 +129,16 @@ class ApiFetcher: NSObject{
                     print("Invalid access token.")
                     print("Trying to refresh the access token")
                     
-                    self.oauth.refreshToken(account: account, onSuccess: { refreshedAccount in
+                    self.oauth.refreshToken(account: account) { refreshedAccount in
                         let accessToken = refreshedAccount.authData.accessToken
                         request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
                         self.makeRequest(request: request, parser: parser, onSuccess: onSuccess) { cause in
                             onFail?(cause)
                             //print("Error calling api")
                         }
-                    })
+                    } onFail: { error in
+                        onFail?(error)
+                    }
                 default:
                     onFail?(fetchError)
                     return
@@ -157,15 +159,14 @@ class ApiFetcher: NSObject{
             
             guard
                 let data = data,
-                let response = response as? HTTPURLResponse,
-                error == nil
+                let response = response as? HTTPURLResponse
             else {
-                print(error?.localizedDescription ?? "")
-                /*if let statusCode = (response as? HTTPURLResponse)?.statusCode {
-                    onFail(.http_error(code: statusCode))
-                }*/
-                onFail(.unexpected(error: error))
-                
+                //print(error?.localizedDescription ?? "")
+                guard let urlError = error as? URLError else {
+                    onFail(.unexpected(error: error))
+                    return
+                }
+                onFail(urlError.toFetchError())
                 return
             }
                         
@@ -196,7 +197,7 @@ class ApiFetcher: NSObject{
                 }
             }
             catch {
-                print("Parser error: \(error.localizedDescription)")
+                //print("Parser error: \(error.localizedDescription)")
                 onFail(.parser_error)
                 return
             }

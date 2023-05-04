@@ -7,62 +7,35 @@
 
 import Foundation
 import CoreData
+import AuthenticationServices
 
 class OAuthManager: ObservableObject {
     
     public static let shared = OAuthManager()
     
-    private static let AUTHORIZE_URL = "https://www.reddit.com/api/v1/authorize"
+    private static let AUTHORIZE_URL = "https://www.reddit.com/api/v1/authorize.compact" //"https://old.reddit.com/v1/api/authorize"
     private static let TOKEN_REQUEST_URL = "https://www.reddit.com/api/v1/access_token"
     public static let CALLBACK_URL_SCHEME = "oakforreddit"
     public static let CALLBACK_URL = "\(CALLBACK_URL_SCHEME)://oauth"
     
-    private let deviceId: String
+    private let deviceId: String = OAuthManager.getDeviceId()
     
     private let defaultsAuthorizationDataKey = "authorizationData"
     
-    private let semaphore = DispatchSemaphore(value: 1)
-    
     private var scopeParameters = ["read", "identity", "vote"]
-    private var stateParameter = ""
     private var responseTypeParameter = "code"
     private var tokenDurationParameter = "permanent"
     
-    private var errorMessage = ""
-    
-    @Published public var authorizationSheetIsPresented = false
-    private(set) var authSheetStartTabIndex: Int = 0
-    
-    
-    private var loginStatus: LoginStatus = .initialized {
-        didSet {
-            if [.completed, .canceled, .failed].contains(loginStatus) {
-                Task {
-                    onLoginCompletion?(loginStatus)
-                }
-            }
-        }
-    }
-    
-    private var onLoginCompletion: ((LoginStatus) -> Void)? = nil
+    private var authenticationSession: ASWebAuthenticationSession? = nil
     
     private let accountsManager = AccountsManager.shared
-    
     private var authorizationData: AuthorizationData? {
-        
         return AccountsManager.shared.any?.authData
-        
     }
-    
     private var moc: NSManagedObjectContext {
         PersistenceController.shared.container.viewContext
     }
     
-    private init(){
-        
-        deviceId = OAuthManager.getDeviceId()
-        
-    }
     
     private static func getDeviceId() -> String {
         let defaults = UserDefaults.standard
@@ -89,12 +62,14 @@ class OAuthManager: ObservableObject {
             
             // The access token is expired
             
-            refreshToken(account: account, onSuccess: onSuccess)
+            refreshToken(account: account, onSuccess: onSuccess) { error in
+                onFail()
+            }
         }
         else if needsLogin {
             
-            startAuthorization { status in
-                if status == .completed {
+            authenticate { error in
+                if error == nil {
                     if let account = self.accountsManager.logged {
                         onSuccess(account)
                     }
@@ -109,12 +84,14 @@ class OAuthManager: ObservableObject {
             fetchAuthorizationData(type: .installed_client) { authorizationData in
                 let account = self.accountsManager.createGuestAccount(authData: authorizationData)
                 onSuccess(account)
+            } onFail: { error in
+                onFail()
             }
         }
         
     }
     
-    public func refreshToken(account: Account, onSuccess: @escaping (Account) -> Void){
+    func refreshToken(account: Account, onSuccess: @escaping (Account) -> Void, onFail: @escaping (FetchError) -> Void){
         let refreshToken: String? = account.authData.refreshToken
         let requestType: AuthorizationRequestType = refreshToken != nil ? .refresh : .installed_client
         
@@ -126,72 +103,54 @@ class OAuthManager: ObservableObject {
                 try? self.moc.save()
             }
             onSuccess(account)
-        }
-    }
-    
-    
-    func startAuthorization(startTabIndex: Int = 0, onCompletion: ((LoginStatus) -> Void)? = nil) {
-        semaphore.wait()
-        if(authorizationSheetIsPresented){
-            return
-        }
-        self.authSheetStartTabIndex = startTabIndex
-        self.onLoginCompletion = onCompletion
-        updateStateParameter()
-        loginStatus = .pending
-        
-        Task { @MainActor in
-            authorizationSheetIsPresented = true
-        }
-        
-        semaphore.signal()
-    }
-    
-    func onAuthorizationSheetDismissed() {
-        
-        if loginStatus == .pending {
-            loginStatus = .canceled
-        }
-        
-    }
-    
-    private func failAuthorization(message: String){
-        print("Authorization failed: \(message)")
-        errorMessage = message
-        loginStatus = .failed
-        authorizationSheetIsPresented = false
-    }
-    
-    private func updateStateParameter(){
-        stateParameter = UUID.init().uuidString
-    }
-    
-    private func getQueryStringParameter(url: URL, param: String) -> String? {
-        guard let url = URLComponents(string: url.absoluteString) else { return nil }
-        return url.queryItems?.first(where: { $0.name == param })?.value
-    }
-    
-    
-    func buildAuthorizationUrl() -> URL {
-        let scopes = scopeParameters.joined(separator: ",")
-        let urlStr = "\(OAuthManager.AUTHORIZE_URL)?client_id=\(ApiFetcher.API_CLIENT_ID)&response_type=\(responseTypeParameter)&duration=\(tokenDurationParameter)&state=\(stateParameter)&redirect_uri=\(OAuthManager.CALLBACK_URL)&scope=\(scopes)"
-        return URL(string: urlStr)!
-    }
-    
-    
-    func onCallbackUrl(url: URL){
-        
-        guard let stateParam = getQueryStringParameter(url: url, param: "state"),
-              stateParam == stateParameter
-        else {
             
-            failAuthorization(message: "Invalid state parameter")
+        } onFail: { error in
+            onFail(error)
+        }
+    }
+    
+    func authenticate(completionHandler: ((AuthenticationError?) -> Void)? = nil) {
+        
+        if let session = authenticationSession {
+            session.cancel()
+        }
+        
+        let state = UUID.init().uuidString
+        let authUrl = buildAuthorizationUrl(state: state)
+        authenticationSession = ASWebAuthenticationSession(url: authUrl, callbackURLScheme: OAuthManager.CALLBACK_URL_SCHEME) { [weak self] callbackUrl, error in
+            guard let callbackUrl = callbackUrl  else {
+                completionHandler?(.authentication_session_error(error))
+                return
+            }
+            
+            self?.completeAuthentication(callbackUrl: callbackUrl, state: state) { error in
+                if let error = error {
+                    completionHandler?(error)
+                }
+                else {
+                    completionHandler?(nil)
+                }
+            }
+            
+        }
+        let contextProvider = AuthenticationViewController()
+        authenticationSession?.presentationContextProvider = contextProvider
+        authenticationSession?.prefersEphemeralWebBrowserSession = true
+        authenticationSession?.start()
+    }
+    
+    private func completeAuthentication(callbackUrl: URL, state: String, completionHandler: @escaping (AuthenticationError?) -> Void) {
+        
+        guard let stateParam = callbackUrl.getQueryParameter("state"),
+              stateParam == state
+        else {
+            completionHandler(.invalid_state_parameter)
             return
         }
         
-        guard let codeParam = getQueryStringParameter(url: url, param: "code")
+        guard let codeParam = callbackUrl.getQueryParameter("code")
         else {
-            failAuthorization(message: "Invalid code parameter")
+            completionHandler(.missing_code_parameter)
             return
         }
         
@@ -207,29 +166,19 @@ class OAuthManager: ObservableObject {
                 try? self.moc.save()
             }
             
-            self.loginStatus = .completed
+            completionHandler(nil)
             
-            DispatchQueue.main.async {
-                self.authorizationSheetIsPresented = false
-            }
+        } onFail: { error in
+            completionHandler(.fetch_authorization_data_error(error))
         }
-
     }
     
-    /*func getAuthorizedRequest(url: URL, then: @escaping (URLRequest) -> Void, onFail: @escaping () -> Void) {
-        
-        getValidAccount { account in
-            let token = account.authData.accessToken
-            var request = URLRequest(url: url)
-            
-            request.setValue(ApiFetcher.USER_AGENT, forHTTPHeaderField: "User-Agent")
-            request.setValue("bearer \(token)", forHTTPHeaderField: "Authorization")
-            
-            then(request)
-        } onFail: {
-            onFail()
-        }
-    }*/
+    private func buildAuthorizationUrl(state: String) -> URL {
+        let scopes = scopeParameters.joined(separator: ",")
+        let urlStr = "\(OAuthManager.AUTHORIZE_URL)?client_id=\(ApiFetcher.API_CLIENT_ID)&response_type=\(responseTypeParameter)&duration=\(tokenDurationParameter)&state=\(state)&redirect_uri=\(OAuthManager.CALLBACK_URL)&scope=\(scopes)"
+        return URL(string: urlStr)!
+    }
+    
     
     private func buildAuthorizationRequest(type: AuthorizationRequestType, codeParameter: String? = nil, refreshToken: String? = nil) -> URLRequest? {
         
@@ -288,17 +237,33 @@ class OAuthManager: ObservableObject {
         return request
     }
     
-    private func fetchAuthorizationData(type: AuthorizationRequestType, codeParameter: String? = nil, refreshToken: String? = nil, onSuccess: @escaping (AuthorizationData) -> Void) {
+    private func fetchAuthorizationData(type: AuthorizationRequestType, codeParameter: String? = nil, refreshToken: String? = nil, onSuccess: @escaping (AuthorizationData) -> Void, onFail: @escaping (FetchError) -> Void) {
         
         let request = buildAuthorizationRequest(type: type, codeParameter: codeParameter, refreshToken: refreshToken)!
         
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             guard
                 let data = data,
-                let response = response as? HTTPURLResponse,
-                error == nil
+                let response = response as? HTTPURLResponse
             else {
-                self.failAuthorization(message: "Error: \(error ?? URLError(.badServerResponse))")
+                onFail(.unexpected(error: error))
+                
+                //self.failAuthorization(message: "Error: \(error ?? URLError(.badServerResponse))")
+                return
+            }
+            
+            if response.statusCode >= 400 {
+                switch response.statusCode {
+                case 400:
+                    onFail(.bad_request)
+                case 401:
+                    onFail(.unauthorized)
+                case 403:
+                    onFail(.forbidden)
+                default:
+                    onFail(.http_error(code: response.statusCode))
+                }
+                
                 return
             }
             
@@ -326,11 +291,14 @@ class OAuthManager: ObservableObject {
                         onSuccess(authData)
                     }
                 }
+                else {
+                    onFail(.parser_error)
+                }
                 
             }
             catch {
-                self.failAuthorization(message: "Invalid authorization data")
-                print(error)
+                onFail(.parser_error)
+                //print(error)
                 return
             }
             
@@ -339,6 +307,13 @@ class OAuthManager: ObservableObject {
         task.resume()
     }
     
+}
+
+enum AuthenticationError: Error {
+    case invalid_state_parameter
+    case missing_code_parameter
+    case fetch_authorization_data_error(_ error: FetchError)
+    case authentication_session_error(_ error: Error?)
 }
 
 class MissingAuthorizationData: Error{
@@ -355,4 +330,20 @@ enum AuthorizationStatus {
 
 enum LoginStatus {
     case initialized, pending, completed, failed, canceled
+}
+
+class AuthenticationViewController: UIViewController, ASWebAuthenticationPresentationContextProviding
+{
+    var window: UIWindow? {
+        guard let scene = UIApplication.shared.connectedScenes.first,
+              let windowSceneDelegate = scene.delegate as? UIWindowSceneDelegate,
+              let window = windowSceneDelegate.window else {
+            return nil
+        }
+        return window
+    }
+    
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        return window ?? ASPresentationAnchor()
+    }
 }
