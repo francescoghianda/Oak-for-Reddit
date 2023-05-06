@@ -304,7 +304,7 @@ struct PostListView: View, Equatable {
             
         }
         .navigationBarHidden(false)
-        .navigationBarTitle(subredditNamePrefixed ?? "Posts", displayMode: .inline)
+        .navigationBarTitle(subredditNamePrefixed ?? String(localized: "Posts"), displayMode: .inline)
         .onChange(of: order) { newValue in
             //loading = true
             model.load(order: newValue)

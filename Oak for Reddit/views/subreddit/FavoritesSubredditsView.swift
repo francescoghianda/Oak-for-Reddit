@@ -27,7 +27,8 @@ struct FavoritesSubredditsView: View {
         
         if sidebar {
             
-            TextField("Search", text: $searchText)
+            //TextField("Search", text: $searchText)
+            SearchBar(text: $searchText)
             
             if filtered.isEmpty {
                 Text("There are no favorites :(")
@@ -36,7 +37,7 @@ struct FavoritesSubredditsView: View {
             
             ForEach(filtered) { subreddit in
                 
-                NavigationLink/*(tag: subreddit.name, selection: $selected)*/ {
+                NavigationLink(tag: subreddit.name, selection: $selected) {
                     PostListView(subreddit: Subreddit(entity: subreddit))
                 } label: {
                     SubredditItemView(subreddit: subreddit, isFavorite: false, style: .sidebar)

@@ -15,6 +15,8 @@ class ApiFetcher: NSObject{
     typealias JSONObject = [String : Any]
     typealias JSONArray = [JSONObject]
     
+    private static let PRINT_RAW_DATA: Bool = true
+    
     public static let shared: ApiFetcher = ApiFetcher()
     
     private static let APP_VERSION: String = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String)!
@@ -115,6 +117,14 @@ class ApiFetcher: NSObject{
                 return
             }
             
+            let accountScopes = Set(account.authData.scopes)
+            let requiredScopes = Set(endpoint.scopes)
+            guard requiredScopes.isSubset(of: accountScopes) else {
+                let missing = requiredScopes.subtracting(accountScopes)
+                onFail?(.missing_scope(missing: Array(missing)))
+                return
+            }
+            
             let accessToken = account.authData.accessToken
             
             print("Making API request to: \(request.url!)")
@@ -187,6 +197,15 @@ class ApiFetcher: NSObject{
             
             self.updateRateLimits(response: response)
             
+            
+            if ApiFetcher.PRINT_RAW_DATA {
+                print("----------------------------------------")
+                print("NEW DATA: \n")
+                print(String(decoding: data, as: UTF8.self))
+                print("\n----------------------------------------")
+            }
+            
+            
             do {
                 if let parsed = try parser(data) {
                     onSuccess(parsed)
@@ -224,6 +243,7 @@ class ApiFetcher: NSObject{
 
 enum FetchError: Error {
     
+    case missing_scope(missing: [Scope])
     case unauthorized
     case invalid_request
     case bad_request

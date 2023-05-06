@@ -7,10 +7,23 @@
 
 import SwiftUI
 
+enum NewCommentStatus {
+    case submitted(comment: Comment), canceled
+}
+
 struct CommentCard: View {
     
-    let comment: Comment
+    @State private var replySheetPresented: Bool = false
+    @State private var newCommentStatus: NewCommentStatus = .canceled
+    private let showContextMenu: Bool
+    
+    @ObservedObject var comment: Comment
     @EnvironmentObject var post: Post
+    
+    init(comment: Comment, showContextMenu: Bool = true) {
+        self.comment = comment
+        self.showContextMenu = showContextMenu
+    }
     
     private func authorLabel() -> some View {
         HStack{
@@ -50,6 +63,26 @@ struct CommentCard: View {
             
             Text((try? AttributedString(markdown: comment.body)) ?? "Error loading comment")
                 .fixedSize(horizontal: false, vertical: true)
+        }
+        .sheet(isPresented: $replySheetPresented, onDismiss: {
+            
+            if case .submitted(let comment) = newCommentStatus {
+                self.comment.replies += comment
+            }
+            
+        }, content: {
+            NewCommentForm(parentId: comment.name, parentComment: comment, status: $newCommentStatus)
+        })
+        .contentShape(Rectangle())
+        .contextMenu {
+            if showContextMenu {
+                LoggedActionButton {
+                    replySheetPresented = true
+                } label: {
+                    Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
+                }
+                .disabled(!comment.sendReplies)
+            }
         }
         
     }

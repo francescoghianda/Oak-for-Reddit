@@ -48,6 +48,7 @@ struct SubredditListView: View {
     @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [])
     private var favorites: FetchedResults<SubredditEntity>
     
+    
     @ViewBuilder
     var subredditCards: some View {
         ForEach(model.subreddits.indices, id: \.self) { index in

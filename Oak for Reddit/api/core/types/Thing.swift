@@ -65,6 +65,10 @@ class Thing: Identifiable, Equatable, ObservableObject {
     }
     
     static func == (left: Thing, right: Thing) -> Bool {
-        return left.name == right.name
+        return left.isEqual(to: right)
+    }
+    
+    func isEqual(to other: Thing) -> Bool {
+        self.name == other.name
     }
 }

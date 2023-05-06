@@ -13,11 +13,11 @@ enum Media {
     case redditVideo(_ data: RedditVideo), embed(_ data: Embed), unknown
     
     struct Embed {
-        let type: String
+        let type: String?
         let title: String?
-        let providerName: String
+        let providerName: String?
         let providerUrl: URL?
-        let html: String
+        let html: String?
         let width: Int
         let height: Int
     }
@@ -55,11 +55,11 @@ enum Media {
         else if let data = data["oembed"] as? [String : Any] {
 
             
-            let type = data["type"] as! String
+            let type = data["type"] as? String
             let title = data["title"] as? String
-            let providerName = data["provider_name"] as! String
+            let providerName = data["provider_name"] as? String
             let providerUrl = data.getUrl("provider_url")
-            let html = data.getHtmlEcodedString("html")!
+            let html = data.getHtmlEcodedString("html")
             let width = data.get("width", defaultValue: Int(200))
             let height = data.get("height", defaultValue: Int(113))
             

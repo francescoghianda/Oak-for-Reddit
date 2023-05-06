@@ -49,7 +49,12 @@ struct EmbedVideoPlayer: UIViewRepresentable {
     let html: String
     
     init(media: Media.Embed) {
-        self.html = EmbedVideoPlayer.styleString + media.html
+        guard let html = media.html else {
+            self.html = ""
+            return
+        }
+        
+        self.html = EmbedVideoPlayer.styleString + html
             .replacingOccurrences(of: String(media.width), with: "100%")
             .replacingOccurrences(of: String(media.height), with: "100%")
     }

@@ -26,7 +26,6 @@ struct ClassicCommentView: View {
             Divider()
             CommentCard(comment: comment)
             Divider()
-            
         }
         
         if comment.replies.count > 0 {

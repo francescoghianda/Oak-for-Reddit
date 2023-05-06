@@ -56,6 +56,12 @@ final class Listing<T: Thing>: Sequence, RandomAccessCollection, Equatable {
         left = left ++ right
     }
     
+    static func +=<T: Thing>(left: inout Listing<T>, right: T) {
+        var children = left.children
+        children.append(right)
+        left = Listing<T>(before: left.before, after: left.after, children: children, more: left.more)
+    }
+    
     public static func empty<T: Thing>() -> Listing<T> {
         return Listing<T>(before: nil, after: nil, children: [])
     }

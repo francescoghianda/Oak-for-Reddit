@@ -16,7 +16,7 @@ struct CommentView: View {
         CommentView.levelColors[level % CommentView.levelColors.count]
     }
     
-    @StateObject var comment: Comment
+    @ObservedObject var comment: Comment
     let level: Int
     
     let ligthMode: Bool = true

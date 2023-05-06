@@ -39,4 +39,17 @@ extension Endpoint {
         return Endpoint(method: .post, scopes: [.read], needsAccount: false, path: path, parameters: parameters)
     }
     
+    static func submitComment(parentFullname: String, text: String) -> Endpoint {
+        
+        let path = "/api/comment"
+        
+        let parameters: ParameterDictionary = [
+            "api_type": "json",
+            "text": text,
+            "thing_id": parentFullname
+        ]
+        
+        return Endpoint(method: .post, scopes: [.submit], needsAccount: true, path: path, parameters: parameters)
+    }
+    
 }

@@ -21,6 +21,8 @@ struct PostView: View {
     @State var commentsOrder: CommentsOrder = .confidence
     @State var showCommentsOrderPicker: Bool = false
     @State private var commentsViewMode: CommentsViewMode = .classic
+    @State private var newCommentSheetPresenting: Bool = false
+    @State private var newCommentStatus: NewCommentStatus = .canceled
     //@State private var loadingMoreComments: Bool = false
     
     @State private var contentWidth: CGFloat = .zero
@@ -110,25 +112,32 @@ struct PostView: View {
                 .padding(.top)
                 .foregroundColor(Color.gray)
                 
-                HStack{
+                HStack(spacing: 20){
                     Text("Comments")
                         .font(.title)
                         .padding([.top, .bottom])
                     Spacer()
                     
+                    LoggedActionButton {
+                        newCommentSheetPresenting = true
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                    }
+                    .disabled(post.locked)
+                    
                     Button {
                         showCommentsOrderPicker.toggle()
                     } label: {
                         HStack{
-                            Label("Sort: \(commentsOrder.text)", systemImage: "arrow.up.arrow.down")
+                            Label(commentsOrder.text, systemImage: "arrow.up.arrow.down")
                             //Spacer()
                             Image(systemName: "chevron.right")
                                 .rotationEffect(showCommentsOrderPicker ? .degrees(90.0) : .degrees(0.0))
                         }
                     }
-                    .disabled(model.loading)
-
+                    
                 }
+                .disabled(model.loading)
                 
                 if showCommentsOrderPicker {
                     
@@ -190,6 +199,17 @@ struct PostView: View {
             
             model.load(sort: commentsOrder)
         }
+        .sheet(isPresented: $newCommentSheetPresenting, onDismiss: {
+            
+            if case .submitted(let comment) = newCommentStatus {
+                var children = model.comments.children
+                children.insert(comment, at: 0)
+                model.comments = Listing(before: model.comments.before, after: model.comments.after, children: children, more: model.comments.more)
+            }
+            
+        }, content: {
+            NewCommentForm(parentId: post.name, status: $newCommentStatus)
+        })
         
     }
 }

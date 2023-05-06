@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Scope: String {
+enum Scope: String, CaseIterable {
     
     case any
     case account

@@ -30,6 +30,14 @@ class Comment: Thing, Votable, Created {
     let score: Int?
     @Published var replies: Listing<Comment>
     
+    override func isEqual(to other: Thing) -> Bool {
+        guard let other = other as? Comment else {
+            return false
+        }
+        
+        return super.isEqual(to: other) && replies == other.replies
+    }
+    
     required init(id: String, name: String, kind: String, data: [String : Any]) {
         
         ups = data.get("ups", defaultValue: 0)

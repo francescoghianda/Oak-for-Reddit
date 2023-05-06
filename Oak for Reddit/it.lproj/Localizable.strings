@@ -5,3 +5,46 @@
   Created by Francesco Ghianda on 24/04/23.
   
 */
+
+"Search" = "Cerca";
+"Settings" = "Impostazioni";
+"Posts" = "Post";
+"Subreddits" = "Subreddit";
+"Favorites" = "Preferiti";
+"There are no favorites :(" = "Non ci sono preferiti :(";
+"Show more" = "Espandi";
+"Account" = "Account";
+"Interface" = "Interfaccia";
+"Notifications" = "Notifiche";
+"Subreddits preferred order" = "Ordine predefinito dei subreddit";
+"Posts preferred order" = "Ordine predefinito dei post";
+"Post view mode" = "Modalità visualizzazione post";
+"Load new post automatically" = "Carica nuovi post automaticamente";
+"Images load quality" = "Qualità caricamento immagini";
+"Comments preferred order" = "Ordine predefinito commenti";
+"Comments view mode" = "Modalità visualizzazione commenti";
+"Default" = "Default";
+"Popular" = "Popolari";
+"New" = "Novità";
+"Best" = "Migliori";
+"Hot" = "Di tendenza";
+"Rising" = "In crescita";
+"Top" = "Top";
+"Controversial" = "Controversi";
+"Hour" = "Ora";
+"Day" = "Giorno";
+"Week" = "Settimana";
+"Month" = "Mese";
+"Year" = "Anno";
+"All" = "Di sempre";
+"Low" = "Bassa";
+"Medium" = "Media";
+"Good" = "Buona";
+"Original" = "Originale";
+"Classic" = "Classica";
+"Ligth" = "Leggera";
+"Karma" = "Karma";
+"Cake day" = "Giorno della torta";
+"Sign in with Reddit" = "Entra con Reddit";
+"You are not allowed to view this content" = "Non hai i permessi per vedere questo contenuto";
+"Connection error" = "Errore di connessione";

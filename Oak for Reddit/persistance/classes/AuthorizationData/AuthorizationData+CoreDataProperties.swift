@@ -34,7 +34,21 @@ extension AuthorizationData {
     @NSManaged public var refreshToken: String?
     @NSManaged public var expireDate: Date
     @NSManaged public var account: Account?
-
+    
+    
+    var scopes: [Scope] {
+        
+        if scope == "*" {
+            return Scope.allCases
+        }
+        
+        let scopesRaw = scope.split(separator: " ")
+        return scopesRaw.compactMap { scopeRaw in
+            Scope(rawValue: String(scopeRaw))
+        }
+    }
+    
+    
 }
 
 extension AuthorizationData : Identifiable {

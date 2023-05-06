@@ -17,7 +17,7 @@ class NamespaceWrapper: ObservableObject {
     
 }
 
-fileprivate struct Tabs {
+struct Tabs {
     static let posts = "posts"
     static let subreddits = "subreddits"
     static let settings = "settings"
@@ -109,18 +109,21 @@ struct ContentView: View {
             }
             else {
                 
-                let selectedTab = Binding<String?> {
+                /*let selectedTab = Binding<String?> {
                     return selected
                 } set: { value in
                     if let value = value {
                         selected = value
                     }
-                }
+                    else {
+                        selected = Tabs.subreddits
+                    }
+                }*/
                 
                 NavigationView {
                     List {
                         
-                        NavigationLink/*(tag: Tabs.subreddits, selection: selectedTab)*/ {
+                        NavigationLink(tag: Tabs.subreddits, selection: $selected) {
                             SearchableView {
                                 SubredditListView()
                             }
@@ -128,15 +131,23 @@ struct ContentView: View {
                             Label("Subreddits", systemImage: "list.dash")
                         }
                         .isDetailLink(false)
+                        .onTapGesture {
+                            selected = nil
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                selected = Tabs.subreddits
+                            }
+                            // Prevent the navigation to pop back after selecting a subreddit
+                        }
                         
                         
-                        NavigationLink/*(tag: Tabs.posts, selection: selectedTab)*/{
+                        
+                        NavigationLink(tag: Tabs.posts, selection: $selected){
                             PostListView()
                         } label: {
                             Label("Posts", systemImage: "list.bullet.below.rectangle")
                         }
                         
-                        NavigationLink/*(tag: Tabs.settings, selection: selectedTab)*/ {
+                        NavigationLink(tag: Tabs.settings, selection: $selected) {
                             
                             SettingsView()
                                 
@@ -147,7 +158,7 @@ struct ContentView: View {
                         
                         
                         Section("Favorites") {
-                            FavoritesSubredditsView(sidebar: true, selected: selectedTab)
+                            FavoritesSubredditsView(sidebar: true, selected: $selected)
                         }
                         
                         

@@ -22,7 +22,7 @@ class OAuthManager: ObservableObject {
     
     private let defaultsAuthorizationDataKey = "authorizationData"
     
-    private var scopeParameters = ["read", "identity", "vote"]
+    private var scopeParameters = ["read", "identity", "vote", "submit"]
     private var responseTypeParameter = "code"
     private var tokenDurationParameter = "permanent"
     
