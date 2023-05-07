@@ -15,7 +15,7 @@ class ApiFetcher: NSObject{
     typealias JSONObject = [String : Any]
     typealias JSONArray = [JSONObject]
     
-    private static let PRINT_RAW_DATA: Bool = true
+    private static let PRINT_RAW_DATA: Bool = false
     
     public static let shared: ApiFetcher = ApiFetcher()
     

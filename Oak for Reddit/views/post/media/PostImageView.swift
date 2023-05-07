@@ -8,7 +8,6 @@
 import Foundation
 import SwiftUI
 
-
 struct PostImageView: View {
     
     //@EnvironmentObject var userPreferences: UserPreferences
@@ -40,12 +39,11 @@ struct PostImageView: View {
     }
     
     
-    func onImageLoad(_ perform: @escaping (_ image: UIImage) -> Void) -> some View {
+    func onImageLoad(_ perform: @escaping (_ image: UIImage) -> Void) -> Self {
         var newView = self
         newView.onImageLoadHandler = perform
         return newView
     }
-    
     
     var body: some View {
         

@@ -9,75 +9,130 @@ import SwiftUI
 
 fileprivate struct MediaSheetView: View {
     
+    @ObservedObject var userPreferences = UserPreferences.shared
+    
     let post: Post
     
     @State var showDots: Bool = false
     @State var image: UIImage? = nil
     
     @State var contentWidth: CGFloat = .zero
+    @State var imageSavedToastPresenting: Bool = false
+    @State var errorToastPresenting: Bool = false
+    
+    @StateObject var imageLoader = AsyncImageLoader()
     
     var body: some View{
         
-        if post.postLinkType == .image || post.postLinkType == .gallery {
-            //PhotoViewerView(url: post.url)
-            ZStack{
-                
-                ZoomableScrollView {
-                    PostMediaViewer(post: post, currentImage: $image, width: $contentWidth)
-                }
-                .onZoomChange { zoomScale in
-                    withAnimation {
-                        showDots = zoomScale > 1
-                    }
-                }
-                
-                
-                VStack{
-                    HStack(alignment: .center){
-                        Spacer()
-                        Image(systemName: "ellipsis")
-                            .foregroundColor(.gray)
-                            .font(.title)
-                            .opacity(showDots ? 1 : 0)
-                        Spacer()
-                        
-                        if let image = image {
-                            
-                            Button {
-                                ImageSaver()
-                                    .saveImage(image: image)
-
-                            } label: {
-                                Image(systemName: "square.and.arrow.down")
-                                    .foregroundColor(.gray)
-                            }
-                            
-                        }
-
-                    }
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    
-                    Spacer()
-                }
-               
-                
+        ZStack {
+            
+            ZoomableScrollView {
+                PostMediaViewer(post: post, currentImage: $image, width: $contentWidth)
             }
-            .overlay {
-                GeometryReader { geo in
-                    Color.clear
-                        .onAppear {
-                            contentWidth = geo.size.width
-                        }
-                        .onChange(of: geo.size.width) { newWidth in
-                            contentWidth = newWidth
-                        }
+            .onZoomChange { zoomScale in
+                withAnimation {
+                    showDots = zoomScale > 1
                 }
             }
             
+            
+            VStack {
+                HStack(alignment: .center){
+                    
+                    Spacer()
+                    
+                    if userPreferences.mediaQuality != .original {
+                        Menu {
+                            
+                            Button {
+                                saveOriginal()
+                            } label: {
+                                Label {
+                                    Text("Original quality")
+                                } icon: {
+                                    EnchantedDownloadIcon()
+                                }
+                            }
+                            
+                        } label: {
+                            Image(systemName: "square.and.arrow.down")
+                        } primaryAction: {
+                            saveImage(image)
+                        }
+                        .disabled(image == nil)
+
+                    }
+
+                }
+                .padding()
+                .frame(height: 48)
+                .background(.thinMaterial)
+                .overlay(alignment: .top) {
+                    Capsule()
+                        .foregroundColor(.gray)
+                        .frame(width: 30, height: 5)
+                        .padding(.top, 4)
+                }
+                
+                Spacer()
+            }
+           
+            
         }
-        else if post.postLinkType == .video, let media = post.media {
-            VideoPlayerView(media: media)
+        .overlay {
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear {
+                        contentWidth = geo.size.width
+                    }
+                    .onChange(of: geo.size.width) { newWidth in
+                        contentWidth = newWidth
+                    }
+            }
+        }
+        .toast(isPresenting: $imageSavedToastPresenting) {
+            Text("Image saved")
+        }
+        .toast(isPresenting: $imageLoader.isLoading, autoClose: false) {
+            VStack{
+                Text("Download")
+                let progress = Int(imageLoader.progress * 100)
+                Text("\(progress)%")
+            }
+        }
+        .toast(isPresenting: $errorToastPresenting) {
+            Text("An error occured")
+        }
+        
+    }
+    
+    private func saveImage(_ image: UIImage?) {
+        if let image = image {
+            ImageSaver()
+                .onImageSaved {
+                    DispatchQueue.main.async {
+                        imageSavedToastPresenting = true
+                    }
+                }
+                .saveImage(image: image)
+        }
+    }
+    
+    private func saveOriginal() {
+        if let url = post.previews?.preview(resolution: .original).url {
+            imageLoader.load(url: url) { image, error, cached in
+                guard let image = image else {
+                    DispatchQueue.main.async {
+                        errorToastPresenting = true
+                    }
+                    return
+                }
+                
+                saveImage(image)
+            }
+        }
+        else {
+            errorToastPresenting = true
         }
         
     }
@@ -164,8 +219,6 @@ struct CompactPostCardView: View {
     let linkToSubredditIsActive: Bool
     
     @State var photoIsPresented: Bool = false
-    @State var linkIsPresented: Bool = false
-    
     
     var body: some View {
             
@@ -189,7 +242,7 @@ struct CompactPostCardView: View {
                 HStack(alignment: .top){
                     
                     NavigationLink {
-                        PostView(post: post, linkIsPresented: $linkIsPresented)
+                        PostView(post: post)
                     } label: {
                         Text(post.title)
                             .bold()
@@ -201,24 +254,25 @@ struct CompactPostCardView: View {
 
                     Spacer()
                     
-                    
-                    PostThumbnailView(mediaSheetIsPresented: $photoIsPresented, post: post, size: 60)
-                        .cornerRadius(10)
-                        .onTapGesture {
-                            if post.postLinkType == .image || post.postLinkType == .gallery || post.postLinkType == .video {
-                                
-                                /*withAnimation(.spring()) {
-                                    mediaViewerModel.post = post
-                                }*/
-                                photoIsPresented = true
-                            }
-                            else if post.postLinkType == .link {
-                                linkIsPresented = true
-                            }
+                    if post.postLinkType == .link {
+                        NavigationLink {
+                            SafariView(url: post.url!)
+                                .navigationBarHidden(true)
+                        } label: {
+                            PostThumbnailView(mediaSheetIsPresented: $photoIsPresented, post: post, size: 60)
+                                .cornerRadius(10)
                         }
-                        //.clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                    else {
+                        PostThumbnailView(mediaSheetIsPresented: $photoIsPresented, post: post, size: 60)
+                            .cornerRadius(10)
+                            .onTapGesture {
+                                if post.containsMedia {
+                                    photoIsPresented = true
+                                }
+                            }
+                    }
                             
-                    
                     
                 }
                 HStack{
@@ -283,13 +337,9 @@ struct CompactPostCardView: View {
                 }
             }
         }
+        
         .sheet(isPresented: $photoIsPresented) {
-            
             MediaSheetView(post: post)
-            
-        }
-        .fullScreenCover(isPresented: $linkIsPresented) {
-            SafariView(url: post.url!)
         }
     
     

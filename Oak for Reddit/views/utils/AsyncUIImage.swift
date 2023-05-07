@@ -51,17 +51,32 @@ class AsyncImageLoader: ObservableObject {
     @Published private(set) var image: UIImage? = nil
     @Published private(set) var error: Bool? = nil
     @Published private(set) var progress: Double = .zero
+    @Published private var _isLoading: Bool = false
+    
+    var isLoading: Bool {
+        get {
+            _isLoading
+        }
+        set {
+            // Ignore new values
+        }
+    }
+    
     
     private var observation: NSKeyValueObservation? = nil
     
     //private static var cachedImages: [URL : UIImage] = [:]
     private static var imageCache = ImageCache()
     
+    
     public func load(url: URL, then: ((_ image: UIImage?, _ error: Bool?, _ cached: Bool) -> Void)? = nil) {
-                
+        
+        _isLoading = true
+        
         if let image = AsyncImageLoader.imageCache[url] {
             then?(image, nil, true)
             self.image = image
+            _isLoading = false
             return
         }
         
@@ -79,6 +94,7 @@ class AsyncImageLoader: ObservableObject {
             else {
                 DispatchQueue.main.async {
                     self?.error = true
+                    self?._isLoading = false
                     then?(nil, true, cached)
                 }
                 return
@@ -87,6 +103,7 @@ class AsyncImageLoader: ObservableObject {
             if response.statusCode >= 400 {
                 DispatchQueue.main.async {
                     self?.error = true
+                    self?._isLoading = false
                     then?(nil, true, cached)
                 }
                 return
@@ -96,12 +113,14 @@ class AsyncImageLoader: ObservableObject {
                 //AsyncImageLoader.imageCache[url] = image
                 DispatchQueue.main.async {
                     self?.image = image
+                    self?._isLoading = false
                     then?(image, nil, cached)
                 }
             }
             else {
                 DispatchQueue.main.async {
                     self?.error = true
+                    self?._isLoading = false
                     then?(nil, true, cached)
                 }
             }

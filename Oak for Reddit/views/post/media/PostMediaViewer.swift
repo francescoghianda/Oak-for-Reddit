@@ -45,6 +45,9 @@ struct PostMediaViewer: View {
                 }()
                 
                 PostImageView(previews: previews, showContextMenu: showContextMenu)
+                    .onImageLoad{ image in
+                        currentImage?.wrappedValue = image
+                    }
                     .scaledToFit()
                     .blur(blurred, showHideButton: showHideButton, text: blurText)
                     .cornerRadius(cornerRadius)

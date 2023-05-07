@@ -189,21 +189,11 @@ struct LargePostCardView: View {
     @StateObject var mediaSize: MediaSize
     let linkToSubredditIsActive: Bool
     @Binding var contentWidth: CGFloat
-    //@Binding var postToShow: Post?
-    //let namespace: Namespace.ID
         
-    @State var linkIsPresented: Bool = false
+    //@State var linkIsPresented: Bool = false
     @State private var showMedia: Bool = false
     @State private var maxY: CGFloat = .zero
     @State private var selfTextLineLimit: Int = 10
-    
-    //@Namespace private var namespace
-    /*init(post: Post, showPin: Bool, mediaSize: MediaSize){
-        self.post = post
-        self.showPin = showPin
-        
-        self._mediaSize = StateObject(wrappedValue: mediaSize)
-    }*/
     
     var body: some View {
 
@@ -232,7 +222,7 @@ struct LargePostCardView: View {
                 VStack{
                     
                     NavigationLink {
-                        PostView(post: post, linkIsPresented: $linkIsPresented)
+                        PostView(post: post)
                     } label: {
                        
                         ZStack(alignment: .leading){
@@ -271,11 +261,15 @@ struct LargePostCardView: View {
                         
                     }
                     else if post.postLinkType == .link { // external link
-                        LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!, contentWidth: _contentWidth)
-                            .onTapGesture {
-                                linkIsPresented.toggle()
-                            }
-                            .padding(.bottom)
+                        
+                        NavigationLink {
+                            SafariView(url: post.url!)
+                                .navigationBarHidden(true)
+                        } label: {
+                            LinkAndThumbnailView(thumbnailUrl: post.thumbnailUrl, postUrl: post.url!, contentWidth: _contentWidth)
+                                .padding(.bottom)
+                        }
+                        
                     }
                     else if post.postLinkType == .poll {
                         PollView(pollData: post.pollData!)
@@ -283,25 +277,8 @@ struct LargePostCardView: View {
                     }
                     else {
                         
-                        /*let height: CGFloat = {
-                            if let imageSize = post.imageSize {
-                                let val = contentWidth / CGFloat(imageSize.aspectRatio)
-                                return min(val, 600)
-                            }
-                            return 600
-                        }()*/
-                        
                         PostMediaViewer(post: post, cornerRadius: 10, showContextMenu: true, width: $contentWidth)
                             .padding(.bottom)
-                            /*.overlay {
-                                
-                                if let imageSize = post.imageSize {
-                                    Text("width: \(imageSize.width), height: \(imageSize.height)")
-                                        .font(.title)
-                                        .background(.ultraThinMaterial)
-                                }
-                                
-                            }*/
                     }
                     
                 }
@@ -328,7 +305,7 @@ struct LargePostCardView: View {
                     }
                     
                     NavigationLink {
-                        PostView(post: post, linkIsPresented: $linkIsPresented)
+                        PostView(post: post)
                     } label: {
                         HStack{
                             Image(systemName: "message.fill")
@@ -367,10 +344,6 @@ struct LargePostCardView: View {
                 .lineLimit(1)
             }
         }
-        .fullScreenCover(isPresented: $linkIsPresented) {
-            SafariView(url: post.url!)
-        }
-        
     
     
     }
@@ -381,48 +354,8 @@ struct LargePostCardView: View {
 
 /*struct LargePostCardView_Previews: PreviewProvider {
     
-    
-    
-    static let media: [String : Any] = [
-        "reddit_video": [
-            "bitrate_kbps": 1200,
-            "dash_url": "https://v.redd.it/o7ckl9gcjvpa1/DASHPlaylist.mpd?a=1682335733%2CY2NhODRjMmI4OTg3YzEyNDdiMjEyZjE4MzE0MDdhOTIzYWJmYjA0YzljNDBkZGVkZmUyMzcyOTUwMThiMWYxYw%3D%3D&amp;v=1&amp;f=sd",
-            "duration": 29,
-            "fallback_url": "https://v.redd.it/o7ckl9gcjvpa1/DASH_480.mp4?source=fallback",
-            "hls_url": "https://v.redd.it/o7ckl9gcjvpa1/HLSPlaylist.m3u8?a=1682335733%2CM2ZjYWFiNWI2NDUxYmY2ZjE0YjNmMDc2Zjc1NjMwMTE3YzIzMzYzMWVlYmE0MjIwYjMzNWQxNGI0YjE1MGE4Yw%3D%3D&amp;v=1&amp;f=sd",
-            "is_gif": 0,
-            "scrubber_media_url": "https://v.redd.it/o7ckl9gcjvpa1/DASH_96.mp4",
-            "width": 384,
-            "height": 480
-        ]
-    ]
-    
-    static let postData: [String : Any] = [
-        "ups": 100000,
-        "downs": 2,
-        "likes": 0,
-        "created": 0.0,
-        "created_utc": 0.0,
-        "author": "author",
-        "hidden": 0,
-        "is_self": 0,
-        "locked": 1,
-        "num_comments": 20,
-        "over_18": 1,
-        "score": 8,
-        "selftext": "Testo di prova",
-        "subreddit": "subreddit",
-        "subreddit_id": "1234",
-        "thumbnail": "image",
-        "title": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
-        "permalink": "aaaa",
-        "url": "https://www.zooplus.it/magazine/wp-content/uploads/2020/05/1-32.jpg",
-        "stickied": 1
-        //"media": media
-    ]
-    
     static var previews: some View {
-        LargePostCardView(post: Post(id: nil, name: nil, kind: "", data: postData), showPin: true)
+        LargePostCardView(post: PostsPreviewData.post, showPin: true)
             .previewLayout(.sizeThatFits)
     }
 }*/

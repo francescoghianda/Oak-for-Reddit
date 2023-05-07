@@ -555,7 +555,6 @@
 		135BFF9629E984FA00C98978 /* utils */ = {
 			isa = PBXGroup;
 			children = (
-				1337E97E29D0B93500D9E63B /* VideoPlayerView.swift */,
 				1337E97829CE44F300D9E63B /* ZoomableScrollView.swift */,
 				1337E9B129D737D300D9E63B /* AsyncUIImage.swift */,
 				1337E9AF29D7244E00D9E63B /* SafariView.swift */,
@@ -568,6 +567,7 @@
 		135BFF9829E9856900C98978 /* media */ = {
 			isa = PBXGroup;
 			children = (
+				1337E97E29D0B93500D9E63B /* VideoPlayerView.swift */,
 				135BFFA529E99B2500C98978 /* CommentsOrderPicker.swift */,
 				1337E9B529D9D92400D9E63B /* PostMediaViewer.swift */,
 				13E954D729F58CAE00135FDA /* PollView.swift */,
