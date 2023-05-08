@@ -21,10 +21,8 @@ struct PostImageView: View {
     @State var image: UIImage? = nil
     
     @State var toastPresenting: Bool = false
-    @State var downloadToastPresenting: Bool = false
     
-    @State var downloader: AsyncImageLoader = AsyncImageLoader()
-    @State var downloadProgress: Double = .zero
+    @StateObject var downloader: AsyncImageLoader = AsyncImageLoader()
     
     init(url: URL, showContextMenu: Bool = false) {
         self.url = url
@@ -81,11 +79,7 @@ struct PostImageView: View {
             if showContextMenu {
                 
                 Button {
-                    ImageSaver()
-                        .onImageSaved {
-                            toastPresenting = true
-                        }
-                        .saveImage(image: image!)
+                    saveImage(image)
                 } label: {
                     Label("Save image", systemImage: "square.and.arrow.down")
                 }
@@ -124,39 +118,40 @@ struct PostImageView: View {
         .toast(isPresenting: $toastPresenting) {
             Text("Image saved")
         }
-        .toast(isPresenting: $downloadToastPresenting, autoClose: false) {
+        .toast(isPresenting: $downloader.isLoading, autoClose: false) {
             VStack{
                 Text("Downloading...")
-                let progress = Int(downloadProgress * 100)
+                let progress = Int(downloader.progress * 100)
                 //ProgressView(value: downloadProgress)
                 Text("\(progress)%")
             }
-        }
-        .onReceive(downloader.$progress) { progress in
-            downloadProgress = progress
         }
         
         
     }
     
-    func saveOriginal() {
+    private func saveImage(_ image: UIImage?) {
+        if let image = image {
+            ImageSaver()
+                .onImageSaved {
+                    DispatchQueue.main.async {
+                        toastPresenting = true
+                    }
+                }
+                .saveImage(image: image)
+        }
+    }
+    
+    private func saveOriginal() {
         if let previews = previews {
             
-            downloader = AsyncImageLoader()
-            
-            downloadToastPresenting = true
-            
-            downloader.load(url: previews.preview(resolution: .original).url) { image, error, cached in
-                if let image = image {
-                    ImageSaver()
-                        .onImageSaved {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                downloadToastPresenting = false
-                                toastPresenting = true
-                            }
-                        }
-                        .saveImage(image: image)
+            downloader.load(url: previews.preview(resolution: .original).url) { image, error in
+                guard let image = image else {
+                    // TODO show error toast
+                    return
                 }
+                
+                saveImage(image)
             }
             
         }

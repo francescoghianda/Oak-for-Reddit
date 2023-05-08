@@ -48,8 +48,8 @@ fileprivate class ImageCache {
 
 class AsyncImageLoader: ObservableObject {
     
-    @Published private(set) var image: UIImage? = nil
-    @Published private(set) var error: Bool? = nil
+    //@Published private(set) var image: UIImage? = nil
+    //@Published private(set) var error: Bool? = nil
     @Published private(set) var progress: Double = .zero
     @Published private var _isLoading: Bool = false
     
@@ -66,25 +66,18 @@ class AsyncImageLoader: ObservableObject {
     private var observation: NSKeyValueObservation? = nil
     
     //private static var cachedImages: [URL : UIImage] = [:]
-    private static var imageCache = ImageCache()
+    //private static var imageCache = ImageCache()
     
     
-    public func load(url: URL, then: ((_ image: UIImage?, _ error: Bool?, _ cached: Bool) -> Void)? = nil) {
+    public func load(url: URL, then: ((_ image: UIImage?, _ error: Error?) -> Void)? = nil) {
         
         _isLoading = true
-        
-        if let image = AsyncImageLoader.imageCache[url] {
-            then?(image, nil, true)
-            self.image = image
-            _isLoading = false
-            return
-        }
         
         var request = URLRequest(url: url)
         
         request.cachePolicy = .returnCacheDataElseLoad
         
-        let cached: Bool = URLCache.shared.cachedResponse(for: request) != nil
+        //let cached: Bool = URLCache.shared.cachedResponse(for: request) != nil
         
         let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard
@@ -93,18 +86,18 @@ class AsyncImageLoader: ObservableObject {
                 error == nil
             else {
                 DispatchQueue.main.async {
-                    self?.error = true
+                    //self?.error = true
                     self?._isLoading = false
-                    then?(nil, true, cached)
+                    then?(nil, error)
                 }
                 return
             }
             
             if response.statusCode >= 400 {
                 DispatchQueue.main.async {
-                    self?.error = true
+                    //self?.error = true
                     self?._isLoading = false
-                    then?(nil, true, cached)
+                    then?(nil, ImageLoaderError.response_error(code: response.statusCode))
                 }
                 return
             }
@@ -112,16 +105,16 @@ class AsyncImageLoader: ObservableObject {
             if let image = UIImage(data: data){
                 //AsyncImageLoader.imageCache[url] = image
                 DispatchQueue.main.async {
-                    self?.image = image
+                    //self?.image = image
                     self?._isLoading = false
-                    then?(image, nil, cached)
+                    then?(image, nil)
                 }
             }
             else {
                 DispatchQueue.main.async {
-                    self?.error = true
+                    //self?.error = true
                     self?._isLoading = false
-                    then?(nil, true, cached)
+                    then?(nil, ImageLoaderError.invalid_data)
                 }
             }
             
@@ -143,46 +136,45 @@ class AsyncImageLoader: ObservableObject {
     
 }
 
+enum ImageLoaderError: Error {
+    case invalid_data
+    case response_error(code: Int)
+}
+
 struct AsyncUIImage<Content: View>: View {
     
-    @ViewBuilder private let content: (_ image: UIImage?, _ error: Bool?) -> Content
+    @ViewBuilder private let content: (_ image: UIImage?, _ error: Error?) -> Content
     
     @StateObject fileprivate var loader = AsyncImageLoader()
     
     private var imageBinding: Binding<UIImage?>?
+    
+    @State private var image: UIImage? = nil
+    @State private var error: Error? = nil
         
     let url: URL
-    private(set) var onFirstLoad: ((UIImage) -> Void)?
     
     init(url: URL, image: Binding<UIImage?>? = nil,
-         @ViewBuilder content: @escaping (_ image: UIImage?, _ error: Bool?) -> Content,
+         @ViewBuilder content: @escaping (_ image: UIImage?, _ error: Error?) -> Content,
          onFirstLoad: ((UIImage) -> Void)? = nil) {
 
         self.content = content
         self.url = url
         self.imageBinding = image
-        self.onFirstLoad = onFirstLoad
-    }
-    
-    func onFirstLoad(_ perform: ((UIImage) -> Void)? = nil) -> AsyncUIImage<Content> {
-        var view = self
-        view.onFirstLoad = perform
-        return view
     }
     
     var body: some View {
         
-        content(loader.image, loader.error)
+        content(image, error)
             .onAppear {
-                loader.load(url: url) { (image, error, cached) in
-                    if let image = image{
-                        imageBinding?.wrappedValue = image
-                        
-                        if !cached{
-                            onFirstLoad?(image)
-                        }
+                loader.load(url: url) { image, error in
+                    guard let image = image else {
+                        self.error = error
+                        return
                     }
                     
+                    imageBinding?.wrappedValue = image
+                    self.image = image
                 }
             }
         

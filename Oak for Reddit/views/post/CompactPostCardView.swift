@@ -120,7 +120,7 @@ fileprivate struct MediaSheetView: View {
     
     private func saveOriginal() {
         if let url = post.previews?.preview(resolution: .original).url {
-            imageLoader.load(url: url) { image, error, cached in
+            imageLoader.load(url: url) { image, error in
                 guard let image = image else {
                     DispatchQueue.main.async {
                         errorToastPresenting = true
