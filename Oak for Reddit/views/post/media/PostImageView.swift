@@ -22,7 +22,7 @@ struct PostImageView: View {
     
     @State var toastPresenting: Bool = false
     
-    @StateObject var downloader: AsyncImageLoader = AsyncImageLoader()
+    @StateObject var imageLoader: AsyncImageLoader = AsyncImageLoader()
     
     init(url: URL, showContextMenu: Bool = false) {
         self.url = url
@@ -118,10 +118,10 @@ struct PostImageView: View {
         .toast(isPresenting: $toastPresenting) {
             Text("Image saved")
         }
-        .toast(isPresenting: $downloader.isLoading, autoClose: false) {
+        .toast(isPresenting: $imageLoader.isLoading, autoClose: false) {
             VStack{
                 Text("Downloading...")
-                let progress = Int(downloader.progress * 100)
+                let progress = Int(imageLoader.progress * 100)
                 //ProgressView(value: downloadProgress)
                 Text("\(progress)%")
             }
@@ -145,7 +145,7 @@ struct PostImageView: View {
     private func saveOriginal() {
         if let previews = previews {
             
-            downloader.load(url: previews.preview(resolution: .original).url) { image, error in
+            imageLoader.load(url: previews.preview(resolution: .original).url) { image, error in
                 guard let image = image else {
                     // TODO show error toast
                     return

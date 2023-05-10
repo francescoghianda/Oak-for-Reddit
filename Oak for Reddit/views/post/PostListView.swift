@@ -36,7 +36,7 @@ private struct OrderSelectorView: View {
                                         }
                                     }()
                                     
-                                    Text(range.rawValue)
+                                    Text(LocalizedStringKey(range.rawValue))
                                         .tag(tag)
                                 }
                                 
@@ -58,9 +58,9 @@ private struct OrderSelectorView: View {
                                 HStack {
                                     if showCheckmark {
                                         Image(systemName: "checkmark") // TODO: il checkmark non si vede
-                                        Text("Selected")
+                                        //Text("Selected")
                                     }
-                                    Text(item.text)
+                                    Text(LocalizedStringKey(item.text))
                                 }
                             } icon: {
                                 Image(systemName: item.systemImage)
@@ -69,46 +69,13 @@ private struct OrderSelectorView: View {
                         }
 
                     default:
-                        Label(item.text, systemImage: item.systemImage)
+                        Label(LocalizedStringKey(item.text), systemImage: item.systemImage)
                             .tag(item)
                     }
                     
                 }
                 
             }
-            
-            /*ForEach(PostListingOrder.allCases, id: \.id) { item in
-                
-                switch item {
-                case .top, .controversial:
-                    Menu {
-                        ForEach(TimeRange.allCases, id: \.id) { range in
-                            Button {
-                                if case .top = item {
-                                    $order.wrappedValue = .top(range: range)
-                                }
-                                else {
-                                    $order.wrappedValue = .controversial(range: range)
-                                }
-                            } label: {
-                                Text(range.rawValue)
-                            }
-                        }
-                    } label: {
-                        Label(item.text, systemImage: item.systemImage)
-                    }
-
-                default:
-                    Button {
-                        $order.wrappedValue = item
-                        //bindListing.wrappedValue = api.getListing(order: item)
-                        
-                    } label: {
-                        Label(item.text, systemImage: item.systemImage)
-                    }
-                }
-                
-            }*/
 
         } label: {
             Label("Order", systemImage: "arrow.up.arrow.down")
@@ -187,19 +154,20 @@ struct PostListView: View, Equatable {
     //@EnvironmentObject var userPreferences: UserPreferences
     @ObservedObject var userPreferences = UserPreferences.shared
     
-    init(subreddit: Subreddit? = nil) {
+    init(service: PostService = NetworkPostService(), subreddit: Subreddit? = nil) {
         self.subreddit = subreddit
         self.subredditNamePrefixed = subreddit?.displayNamePrefixed
         self.linkToSbubredditsAreActive = subreddit == nil
-        self._model = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subreddit?.displayNamePrefixed))
+        self._model = StateObject(wrappedValue: PostListModel(service: service, subredditNamePrefixed: subreddit?.displayNamePrefixed))
+        //self._model = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subreddit?.displayNamePrefixed))
     }
     
-    init(subredditNamePrefixed: String) {
+    init(service: PostService = NetworkPostService(), subredditNamePrefixed: String) {
         self.subreddit = nil
         self.subredditNamePrefixed = subredditNamePrefixed
         self.linkToSbubredditsAreActive = false
-        self._model = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subredditNamePrefixed))
-        
+        self._model = StateObject(wrappedValue: PostListModel(service: service, subredditNamePrefixed: subredditNamePrefixed))
+        //self._model = StateObject(wrappedValue: PostListModel(subredditNamePrefixed: subredditNamePrefixed))
     }
     
     
@@ -413,8 +381,13 @@ private struct OffsetPreferenceKey: PreferenceKey{
     static func reduce(value: inout CGPoint, nextValue: () -> CGPoint) { }
 }
 
-/*struct PostListView_Previews: PreviewProvider {
+struct PostListView_Previews: PreviewProvider {
+    
     static var previews: some View {
-        //PostListView(subreddit: Subreddit.previewSubreddit)
+        NavigationView {
+            PostListView(service: MockPostService())
+        }
+        .navigationViewStyle(.stack)
     }
-}*/
+    
+}

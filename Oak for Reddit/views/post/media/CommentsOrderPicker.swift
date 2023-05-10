@@ -39,7 +39,7 @@ struct CommentsOrderPicker: View {
                                 }
                                 .frame(width: 16, height: 16)
                             
-                            Text(item.text)
+                            Text(LocalizedStringKey(item.text))
                                 .padding(.leading)
                             
                             Spacer()

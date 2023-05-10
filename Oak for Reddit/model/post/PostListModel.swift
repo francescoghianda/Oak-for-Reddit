@@ -8,11 +8,10 @@
 import Foundation
 import SwiftUI
 
-
 class PostListModel: ObservableObject {
     
-    private let api: ApiFetcher = ApiFetcher.shared
-    
+
+    private let service: PostService
     let subredditNamePrefixed: String
     
     @Published var posts: Listing<Post> = Listing.empty()
@@ -21,7 +20,9 @@ class PostListModel: ObservableObject {
     @Published private(set) var error: FetchError? = nil
     @Published private(set) var loadingMoreError: Error? = nil
     
-    init(subredditNamePrefixed: String? = nil){
+    init(service: PostService = NetworkPostService(), subredditNamePrefixed: String? = nil){
+        
+        self.service = service
         
         if let subredditNamePrefixed = subredditNamePrefixed {
             self.subredditNamePrefixed = "/\(subredditNamePrefixed)"
@@ -44,7 +45,7 @@ class PostListModel: ObservableObject {
         Task {
             
             do {
-                let posts: Listing<Post> = try await api.fetchListing(.postListing(order: order, subredditName: subredditNamePrefixed))
+                let posts: Listing<Post> = try await service.fetch(order: order, subredditName: subredditNamePrefixed)
                 
                 Task { @MainActor [weak self] in
                     self?.posts = posts
@@ -76,7 +77,7 @@ class PostListModel: ObservableObject {
             do {
                 let after = posts.after ?? posts.last?.subredditId ?? ""
                 
-                let newPosts: Listing<Post> = try await api.fetchListing(.postListing(order: order, subredditName: subredditNamePrefixed, after: after, count: posts.count))
+                let newPosts: Listing<Post> = try await service.fetchMore(order: order, subredditName: subredditNamePrefixed, after: after, count: posts.count)
                 
                 Task { @MainActor [weak self] in
                     self?.posts += newPosts

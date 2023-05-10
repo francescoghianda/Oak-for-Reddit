@@ -18,7 +18,7 @@ private struct OrderSelectorMenu: View {
             
             Picker("Order", selection: order) {
                 ForEach(SubredditListingOrder.allCases, id: \.id) { item in
-                    Label(title: {Text(item.text)}, icon: {item.icon})
+                    Label(title: {Text(LocalizedStringKey(item.text))}, icon: {item.icon})
                         .foregroundColor(item.color)
                         .tag(item)
                 }
@@ -35,7 +35,7 @@ struct SubredditListView: View {
     //@EnvironmentObject var userPreferences: UserPreferences
     @ObservedObject var userPreferences = UserPreferences.shared
     
-    @StateObject var model = SubrettitListModel()
+    @StateObject var model: SubrettitListModel
     
     @State var order: SubredditListingOrder = .normal
     @State private var loadingToastPresenting: Bool = false
@@ -47,6 +47,10 @@ struct SubredditListView: View {
 
     @FetchRequest(entity: SubredditEntity.entity(), sortDescriptors: [])
     private var favorites: FetchedResults<SubredditEntity>
+    
+    init(service: SubredditService = NetworkSubredditService()) {
+        self._model = StateObject(wrappedValue: SubrettitListModel(service: service))
+    }
     
     
     @ViewBuilder
@@ -210,6 +214,10 @@ struct Subreddits_Previews: PreviewProvider {
     
     
     static var previews: some View {
-        SubredditListView()
+        NavigationView {
+            SearchableView {
+                SubredditListView(service: MockSubredditService())
+            }
+        }
     }
 }

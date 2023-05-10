@@ -8,9 +8,8 @@
 import Foundation
 
 class SubrettitListModel: ObservableObject {
-        
-    private let api: ApiFetcher = ApiFetcher.shared
     
+    private let service: SubredditService
     private var saved: Listing<Subreddit> = Listing.empty()
     @Published var subreddits: Listing<Subreddit> = Listing.empty()
     @Published private(set) var loading: Bool = false
@@ -18,6 +17,10 @@ class SubrettitListModel: ObservableObject {
     @Published private(set) var error: FetchError? = nil
     @Published private(set) var errorLoadingMore: Error? = nil
     @Published private(set) var uuid: UUID = UUID()
+    
+    init(service: SubredditService = NetworkSubredditService()) {
+        self.service = service
+    }
     
     func save() {
         saved = subreddits
@@ -32,6 +35,7 @@ class SubrettitListModel: ObservableObject {
         return saved.isEmpty && subreddits.isEmpty
     }
     
+    
     func search(sort: SubredditSearchSort, query: String) {
         
         if loading {
@@ -43,7 +47,7 @@ class SubrettitListModel: ObservableObject {
         
         Task {
             do {
-                let subreddits: Listing<Subreddit> = try await api.fetchListing(.subredditSearch(sort: sort, query: query))
+                let subreddits: Listing<Subreddit> = try await service.search(sort: sort, query: query)
                 
                 Task { @MainActor [weak self] in
                     self?.subreddits = subreddits
@@ -72,7 +76,7 @@ class SubrettitListModel: ObservableObject {
         
         Task {
             do {
-                let subreddits: Listing<Subreddit> = try await api.fetchListing(.subredditListing(order: order))
+                let subreddits: Listing<Subreddit> = try await service.fetch(order: order)
                 
                 Task { @MainActor [weak self] in
                     self?.subreddits = subreddits
@@ -102,7 +106,7 @@ class SubrettitListModel: ObservableObject {
         Task {
             
             do {
-                let subreddits: Listing<Subreddit> = try await api.fetchListing(.subredditListing(order: order, after: self.subreddits.after ?? "", count: self.subreddits.count))
+                let subreddits: Listing<Subreddit> = try await service.fetchMore(order: order, after: subreddits.after ?? "", count: subreddits.count)
                 
                 Task { @MainActor [weak self] in
                     self?.subreddits += subreddits

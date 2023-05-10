@@ -55,7 +55,7 @@ struct CommentsView: View {
 
 struct PostCommentsView: View {
     
-    @StateObject var model: CommentsModel
+    @ObservedObject var model: CommentsModel
     //var model: ObservedObject<CommentsModel>
     @Binding var viewMode: CommentsViewMode
     @Binding var order: CommentsOrder
@@ -66,13 +66,14 @@ struct PostCommentsView: View {
     var body: some View {
         
         CommentsView(model.comments, mode: $viewMode, order: $order)
+            .environmentObject(model)
         
         if model.comments.more != nil && model.comments.more!.count > 0 {
             Button{
                 loadingMoreComments = true
                 Task {
                     do {
-                        let newComments = try await CommentsModel
+                        let newComments = try await model
                             .loadMoreReplies(listing: model.comments,
                                              count: 50,
                                              sort: order,

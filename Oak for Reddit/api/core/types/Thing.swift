@@ -8,17 +8,9 @@
 import Foundation
 import CoreData
 
-protocol Votable {
-    var ups: Int { get }
-    var downs: Int { get }
-    var likes: Bool? { get }
-    
-}
 
-protocol Created {
-    var created: Date { get }
-    var createdUtc: Date { get }
-}
+
+
 
 protocol ThingFactory{
     associatedtype T

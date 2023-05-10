@@ -129,7 +129,7 @@ class ApiFetcher: NSObject{
             
             print("Making API request to: \(request.url!)")
             
-            //print(accessToken)
+            print(accessToken)
             
             request.setValue("bearer \(accessToken)", forHTTPHeaderField: "Authorization")
             

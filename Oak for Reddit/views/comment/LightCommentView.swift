@@ -9,6 +9,8 @@ import SwiftUI
 
 struct LightCommentView: View {
     
+    @EnvironmentObject var model: CommentsModel
+    
     @ObservedObject var comment: Comment
     let level: Int
     @Binding var showReplies: Bool
@@ -111,7 +113,7 @@ struct LightCommentView: View {
         Task {
             
             do {
-                let replies = try await CommentsModel
+                let replies = try await model
                     .loadMoreReplies(listing: comment.replies,
                                      count: 10,
                                      sort: order,

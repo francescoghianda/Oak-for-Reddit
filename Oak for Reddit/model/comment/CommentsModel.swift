@@ -98,7 +98,8 @@ extension CommentsOrder: ViewRappresentable {
 
 class CommentsModel: ObservableObject {
         
-    private let api = ApiFetcher.shared
+    //private let api = ApiFetcher.shared
+    private let service: CommentService
     
     @Published var comments: Listing<Comment> = Listing.empty()
     @Published private(set) var loading: Bool = false
@@ -107,19 +108,12 @@ class CommentsModel: ObservableObject {
     private let postId: String
     private let subredditName: String?
     
-    init(postId: String, subredditName: String? = nil) {
+    init(service: CommentService = NetworkCommentService(), postId: String, subredditName: String? = nil) {
+        self.service = service
         self.postId = postId
         self.subredditName = subredditName
     }
     
-    private func fetch(sort: CommentsOrder) async throws -> Listing<Comment> {
-        
-        let result = try await api.fetchJsonArray(.commentListing(order: sort, postId: postId, subredditName: subredditName ?? ""))
-        
-        let comments: Listing<Comment> = Listing.build(from: result[1])
-                
-        return comments
-    }
     
     func load(sort: CommentsOrder) {
         
@@ -132,7 +126,7 @@ class CommentsModel: ObservableObject {
         Task {
             
             do {
-                let comments = try await fetch(sort: sort)
+                let comments = try await service.fetch(order: sort, postId: postId, subredditName: subredditName ?? "")
                 
                 Task { @MainActor [weak self] in
                     self?.comments = comments
@@ -150,7 +144,7 @@ class CommentsModel: ObservableObject {
     }
     
     
-    static func loadMoreReplies(listing: Listing<Comment>, count: Int, sort: CommentsOrder, linkId: String, parentId: String) async throws -> Listing<Comment> {
+    func loadMoreReplies(listing: Listing<Comment>, count: Int, sort: CommentsOrder, linkId: String, parentId: String) async throws -> Listing<Comment> {
         
         guard let more = listing.more,
               more.count > 0
@@ -162,14 +156,14 @@ class CommentsModel: ObservableObject {
         let toLoad = splitted.left
         //let remaining = splitted.right
         
-        let endpoint = Endpoint.moreChildren(order: sort, linkId: linkId, children: toLoad)
+        //let endpoint = Endpoint.moreChildren(order: sort, linkId: linkId, children: toLoad)
         
-        let result = try await ApiFetcher.shared.fetch(endpoint: endpoint, parser: Parsers.moreCommentsParser)
+        let result = try await service.fetchChildren(order: sort, linkId: linkId, childrenIds: toLoad)//try await ApiFetcher.shared.fetch(endpoint: endpoint, parser: Parsers.moreCommentsParser)
         
         let newComments = result.comments
         let newMores = result.mores
         
-        let newReplies = listing.children + CommentsModel.buildCommentsTree(from: newComments, mores: newMores, parentId: parentId)
+        let newReplies = listing.children + buildCommentsTree(from: newComments, mores: newMores, parentId: parentId)
         
         let newIds = newComments.map { comment in
             comment.thingId
@@ -196,7 +190,7 @@ class CommentsModel: ObservableObject {
         
     }
     
-    private static func buildCommentsTree(from comments: [Comment], mores: [More], parentId: String) -> [Comment] {
+    private func buildCommentsTree(from comments: [Comment], mores: [More], parentId: String) -> [Comment] {
         
         let root = comments.filter { comment in
             comment.parentId == parentId

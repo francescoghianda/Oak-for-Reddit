@@ -92,7 +92,7 @@ private struct PostOrderPicker: View {
                                 
                             } label: {
                                 Label {
-                                    Text(range.rawValue)
+                                    Text(LocalizedStringKey(range.rawValue))
                                         .foregroundColor(.primary)
                                 } icon: {
                                     Image(systemName: range.systemImage)
@@ -104,7 +104,7 @@ private struct PostOrderPicker: View {
                     } label: {
                         HStack{
                             Label {
-                                Text(sort.text)
+                                Text(LocalizedStringKey(sort.text))
                             } icon: {
                                 Image(systemName: sort.systemImage)
                                     .foregroundColor(sort.color)
@@ -123,7 +123,7 @@ private struct PostOrderPicker: View {
                         selected = sort
                     } label: {
                         Label {
-                            Text(sort.text)
+                            Text(LocalizedStringKey(sort.text))
                                 .foregroundColor(.primary)
                         } icon: {
                             Image(systemName: sort.systemImage)
@@ -160,10 +160,10 @@ struct PostOrderPicker_Previews: PreviewProvider {
 
 struct LabelWithValue: View {
     
-    let text: String
+    let text: LocalizedStringKey
     let value: String
     
-    init(_ text: String, value: String){
+    init(_ text: LocalizedStringKey, value: String){
         self.text = text
         self.value = value
     }
@@ -172,7 +172,7 @@ struct LabelWithValue: View {
         HStack{
             Text(text)
             Spacer()
-            Text(value)
+            Text(LocalizedStringKey(value))
                 .foregroundColor(.gray)
         }
     }
@@ -193,7 +193,7 @@ fileprivate struct SubredditPreferredOrderPicker: View {
                 ForEach(SubredditListingOrder.allCases) { sort in
                     
                     Label {
-                        Text(sort.text)
+                        Text(LocalizedStringKey(sort.text))
                             .foregroundColor(.primary)
                     } icon: {
                         sort.icon
@@ -228,7 +228,7 @@ fileprivate struct CommentsPreferredOrderPicker: View {
                 ForEach(CommentsOrder.allCases) { sort in
                     
                     Label {
-                        Text(sort.text)
+                        Text(LocalizedStringKey(sort.text))
                             .foregroundColor(.primary)
                     } icon: {
                         sort.icon
@@ -281,7 +281,7 @@ struct InterfaceSettingsView: View {
         
         Form {
             
-            Section("SUBREDDITS") {
+            Section(header: Text("Subreddits").textCase(.uppercase)) {
                 NavigationLink {
                     SubredditPreferredOrderPicker()
                 } label: {
@@ -289,7 +289,7 @@ struct InterfaceSettingsView: View {
                 }
             }
             
-            Section("POSTS") {
+            Section(header: Text("Posts").textCase(.uppercase)) {
                 NavigationLink {
                     PostOrderPicker(selected: $userPreferences.postPreferredOrder)
                         .onChange(of: userPreferences.postPreferredOrder) { _ in
@@ -323,7 +323,7 @@ struct InterfaceSettingsView: View {
                 VStack(alignment: .leading){
                     Picker("Images load quality", selection: $userPreferences.mediaQuality) {
                         ForEach(PostPreviewResolution.allCases) { res in
-                            Text(res.text)
+                            Text(LocalizedStringKey(res.text))
                                 .tag(res)
                         }
                     }
@@ -339,7 +339,7 @@ struct InterfaceSettingsView: View {
                 }
             }
             
-            Section("COMMENTS") {
+            Section(header: Text("Comments").textCase(.uppercase)) {
                 NavigationLink {
                     CommentsPreferredOrderPicker()
                 } label: {

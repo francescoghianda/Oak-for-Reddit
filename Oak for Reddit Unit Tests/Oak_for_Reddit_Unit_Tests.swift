@@ -1,14 +1,13 @@
 //
-//  Oak_for_RedditTests.swift
-//  Oak for RedditTests
+//  Oak_for_Reddit_Unit_Tests.swift
+//  Oak for Reddit Unit Tests
 //
-//  Created by Francesco Ghianda on 15/03/23.
+//  Created by Francesco Ghianda on 08/05/23.
 //
 
 import XCTest
-@testable import Oak_for_Reddit
 
-class Oak_for_RedditTests: XCTestCase {
+class Oak_for_Reddit_Unit_Tests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -28,7 +27,7 @@ class Oak_for_RedditTests: XCTestCase {
 
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
-        self.measure {
+        measure {
             // Put the code you want to measure the time of here.
         }
     }

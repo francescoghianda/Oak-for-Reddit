@@ -157,7 +157,7 @@ struct ContentView: View {
                         }
                         
                         
-                        Section("Favorites") {
+                        Section(header: Text("Favorites")) {
                             FavoritesSubredditsView(sidebar: true, selected: $selected)
                         }
                         

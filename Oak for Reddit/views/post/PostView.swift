@@ -21,9 +21,9 @@ struct PostView: View {
     @State private var newCommentStatus: NewCommentStatus = .canceled
     @State private var contentWidth: CGFloat = .zero
     
-    init(post: Post) {
+    init(service: CommentService = NetworkCommentService(), post: Post) {
         self.post = post
-        self._model = StateObject(wrappedValue: CommentsModel(postId: post.thingId))
+        self._model = StateObject(wrappedValue: CommentsModel(service: service, postId: post.thingId))
     }
     
     var body: some View {
@@ -32,7 +32,10 @@ struct PostView: View {
             VStack(alignment: .center){
                 
                 HStack{
-                    Text("Posted by u/\(post.author) ⋅ \(post.getTimeSiceCreationFormatted())")
+                    HStack(spacing: 0) {
+                        Text("Posted by ")
+                        Text("u/\(post.author) ⋅ \(post.getTimeSiceCreationFormatted())")
+                    }
                         
                     Spacer()
                     
@@ -125,7 +128,7 @@ struct PostView: View {
                         showCommentsOrderPicker.toggle()
                     } label: {
                         HStack{
-                            Label(commentsOrder.text, systemImage: "arrow.up.arrow.down")
+                            Label(LocalizedStringKey(commentsOrder.text), systemImage: "arrow.up.arrow.down")
                             //Spacer()
                             Image(systemName: "chevron.right")
                                 .rotationEffect(showCommentsOrderPicker ? .degrees(90.0) : .degrees(0.0))
@@ -216,10 +219,8 @@ struct PostView_Previews: PreviewProvider {
     static var previews: some View {
         
         NavigationView {
-            PostView(post: PostsPreviewData.post)
+            PostView(service: MockCommentService(), post: PostsPreviewData.post)
         }
-        
-        /*CommentsOrderPicker(commentsOrder: Binding.constant(.top), showPicker: Binding.constant(true))
-            .previewLayout(PreviewLayout.sizeThatFits)*/
+        .navigationViewStyle(.stack)
     }
 }

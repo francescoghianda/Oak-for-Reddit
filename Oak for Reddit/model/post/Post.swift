@@ -26,22 +26,6 @@ class Post: Thing, Votable, Created {
     var downs: Int
     @Published var likes: Bool?
     
-    var upvoted: Bool {
-        guard let likes = likes
-        else {
-            return false
-        }
-        return likes
-    }
-    
-    var downvoted: Bool {
-        guard let likes = likes
-        else {
-            return false
-        }
-        return !likes
-    }
-    
     var created: Date
     var createdUtc: Date
     
