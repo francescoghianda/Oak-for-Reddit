@@ -118,7 +118,7 @@ struct NewCommentForm: View {
                 
             }
             .disabled(submitting)
-            .toast(isPresenting: $submitting, autoClose: false) {
+            .toast(isPresenting: $submitting, duration: .permanent) {
                 ProgressView()
             }
             .toast(isPresenting: $error) {

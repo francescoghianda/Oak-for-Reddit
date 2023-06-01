@@ -7,6 +7,7 @@
 
 import XCTest
 import SwiftUI
+@testable import Oak_for_Reddit
 
 class ColorExtensions_Tests: XCTestCase {
     

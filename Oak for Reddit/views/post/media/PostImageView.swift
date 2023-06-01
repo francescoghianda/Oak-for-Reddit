@@ -118,7 +118,7 @@ struct PostImageView: View {
         .toast(isPresenting: $toastPresenting) {
             Text("Image saved")
         }
-        .toast(isPresenting: $imageLoader.isLoading, autoClose: false) {
+        .toast(isPresenting: $imageLoader.isLoading, duration: .permanent) {
             VStack{
                 Text("Downloading...")
                 let progress = Int(imageLoader.progress * 100)

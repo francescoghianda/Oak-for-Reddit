@@ -10,7 +10,7 @@ import Combine
 import SwiftUI
 
 
-class ApiFetcher: NSObject{
+class ApiFetcher: NSObject {
     typealias Parser<T> = (_ data: Data) throws -> T?
     typealias JSONObject = [String : Any]
     typealias JSONArray = [JSONObject]
@@ -255,25 +255,5 @@ enum FetchError: Error {
     case unexpected(error: Error?)
     
 }
-
-/*class ApiFetchError: Error {
-    let cause: ApiFetchFailCause
-    let localizedDescription: String
-    
-    init(cause: ApiFetchFailCause){
-        self.cause = cause
-        self.localizedDescription = {
-            cause.rawValue
-        }()
-    }
-}
-
-enum ApiFetchFailCause: String {
-    case unauthorized, bad_response, unknown
-}
-
-class UnauthorizedError: Error{
-    
-}*/
 
 

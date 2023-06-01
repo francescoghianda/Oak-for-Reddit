@@ -6,6 +6,7 @@
 //
 
 import XCTest
+@testable import Oak_for_Reddit
 
 class DictionaryExtensions_Tests: XCTestCase {
 

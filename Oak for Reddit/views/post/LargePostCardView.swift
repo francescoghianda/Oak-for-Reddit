@@ -285,7 +285,7 @@ struct LargePostCardView: View {
                     
                 HStack{
                     Button {
-                        post.vote(dir: .upvote)
+                        post.vote(direction: .upvote)
                     } label: {
                      Image("arrowshape.up.fill")
                             .foregroundColor(post.upvoted ? Color.blue : Color.gray)
@@ -296,7 +296,7 @@ struct LargePostCardView: View {
                         .foregroundColor(Color.gray)
                     
                     Button {
-                        post.vote(dir: .downvote)
+                        post.vote(direction: .downvote)
                     } label: {
                         Image("arrowshape.up.fill")
                             .rotationEffect(.degrees(180))

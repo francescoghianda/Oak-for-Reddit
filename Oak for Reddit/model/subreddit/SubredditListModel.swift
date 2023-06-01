@@ -36,7 +36,7 @@ class SubrettitListModel: ObservableObject {
     }
     
     
-    func search(sort: SubredditSearchSort, query: String) {
+    func search(sort: SubredditSearchSort, query: String, completion: ((_ results: Listing<Subreddit>?) -> Void)? = nil) {
         
         if loading {
             return
@@ -52,6 +52,7 @@ class SubrettitListModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     self?.subreddits = subreddits
                     self?.loading = false
+                    completion?(subreddits)
                 }
                 
             }
@@ -59,13 +60,14 @@ class SubrettitListModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     self?.error = error
                     self?.loading = false
+                    completion?(nil)
                 }
             }
         }
         
     }
     
-    func load(order: SubredditListingOrder = .normal){
+    func load(order: SubredditListingOrder = .normal, completion: ((_ subreddits: Listing<Subreddit>?) -> Void)? = nil){
              
         if loading {
             return
@@ -82,6 +84,7 @@ class SubrettitListModel: ObservableObject {
                     self?.subreddits = subreddits
                     self?.loading = false
                     self?.uuid = UUID()
+                    completion?(subreddits)
                 }
             }
             catch let error as FetchError  {
@@ -89,14 +92,16 @@ class SubrettitListModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     self?.error = error
                     self?.loading = false
+                    completion?(nil)
                 }
             }
         }
     }
     
-    func loadMore(order: SubredditListingOrder = .normal) {
+    func loadMore(order: SubredditListingOrder = .normal, completion: ((_ newSubreddits: Listing<Subreddit>?) -> Void)? = nil) {
         
         if loadingMore || !subreddits.hasThingsAfter  {
+            completion?(nil)
             return
         }
         
@@ -111,6 +116,7 @@ class SubrettitListModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     self?.subreddits += subreddits
                     self?.loadingMore = false
+                    completion?(subreddits)
                 }
                 
             }
@@ -118,6 +124,7 @@ class SubrettitListModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     self?.errorLoadingMore = error
                     self?.loadingMore = false
+                    completion?(nil)
                 }
             }
             

@@ -7,11 +7,16 @@
 
 import SwiftUI
 
+enum ToastDuration {
+    case permanent
+    case time(_ seconds: Double)
+}
+
 struct Toast<Presenting: View, Content: View>: View {
     
     @ViewBuilder let presenting: () -> Presenting
     @Binding var isPresenting: Bool
-    let autoClose: Bool
+    let duration: ToastDuration
     @ViewBuilder let content: () -> Content
     
     
@@ -31,8 +36,8 @@ struct Toast<Presenting: View, Content: View>: View {
             .opacity(isPresenting ? 1 : 0)
             .animation(.easeInOut, value: isPresenting)
             .onChange(of: isPresenting) { isPresenting in
-                if isPresenting && autoClose {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                if case .time(let seconds) = duration, isPresenting {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
                         self.isPresenting = false
                     }
                 }
@@ -45,9 +50,9 @@ struct Toast<Presenting: View, Content: View>: View {
 
 extension View {
     
-    func toast<Content: View>(isPresenting: Binding<Bool>, autoClose: Bool = true, content: @escaping () -> Content) -> some View {
+    func toast<Content: View>(isPresenting: Binding<Bool>, duration: ToastDuration = .time(2), content: @escaping () -> Content) -> some View {
         
-        Toast(presenting: { self }, isPresenting: isPresenting, autoClose: autoClose, content: content)
+        Toast(presenting: { self }, isPresenting: isPresenting, duration: duration, content: content)
         
     }
     

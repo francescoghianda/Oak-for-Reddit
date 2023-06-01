@@ -33,7 +33,7 @@ class PostListModel: ObservableObject {
     }
     
     
-    func load(order: PostListingOrder) {
+    func load(order: PostListingOrder, completion: ((Listing<Post>?) -> Void)? = nil) {
         
         if loading || loadingMore {
             return
@@ -50,12 +50,14 @@ class PostListModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     self?.posts = posts
                     self?.loading = false
+                    completion?(posts)
                 }
             }
             catch let error as FetchError {
                 Task { @MainActor [weak self] in
                     self?.error = error
                     self?.loading = false
+                    completion?(nil)
                 }
             }
             
@@ -63,7 +65,7 @@ class PostListModel: ObservableObject {
         
     }
     
-    func loadMore(order: PostListingOrder) {
+    func loadMore(order: PostListingOrder, completion: ((Listing<Post>?) -> Void)? = nil) {
         
         if loading || loadingMore {
             return
@@ -82,12 +84,14 @@ class PostListModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     self?.posts += newPosts
                     self?.loadingMore = false
+                    completion?(newPosts)
                 }
             }
             catch let error as FetchError {
                 Task { @MainActor [weak self] in
                     self?.loadingMoreError = error
                     self?.loadingMore = false
+                    completion?(nil)
                 }
             }
             

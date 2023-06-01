@@ -299,7 +299,7 @@ struct PostListView: View, Equatable {
             }
             
         }
-        .toast(isPresenting: $loadingToastIsPresenting, autoClose: false) {
+        .toast(isPresenting: $loadingToastIsPresenting, duration: .permanent) {
             ProgressView()
         }
         .onFirstAppear {

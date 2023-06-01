@@ -6,11 +6,12 @@
 //
 
 import Foundation
+import SwiftUI
 
-protocol Votable {
-    var ups: Int { get }
-    var downs: Int { get }
-    var likes: Bool? { get }
+protocol Votable: AnyObject {
+    var ups: Int { get set }
+    var downs: Int { get set }
+    var likes: Bool? { get set }
 }
 
 extension Votable {

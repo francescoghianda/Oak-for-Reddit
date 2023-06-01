@@ -142,7 +142,7 @@ struct SubredditListView: View {
             .onChange(of: model.loading){ loading in
                 loadingToastPresenting = loading
             }
-            .toast(isPresenting: $loadingToastPresenting, autoClose: false) {
+            .toast(isPresenting: $loadingToastPresenting, duration: .permanent) {
                 ProgressView()
             }
             .navigationTitle("Subreddits")

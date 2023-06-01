@@ -20,8 +20,8 @@ enum Tag: Equatable {
     case custom(text: String, color: Color?)
 }
 
-class Post: Thing, Votable, Created {
-
+class Post: Thing, Votable, Created, VotableServiceProvider {
+    
     var ups: Int
     var downs: Int
     @Published var likes: Bool?
@@ -54,6 +54,11 @@ class Post: Thing, Votable, Created {
     let pollData: PollData?
     
     private(set) var tags: [Tag] = []
+    
+    var service: PostService = NetworkPostService()
+    var votableService: VotableService {
+        return service
+    }
     
     required init(id: String, name: String, kind: String, data: [String : Any]) {
         
@@ -135,58 +140,6 @@ class Post: Thing, Votable, Created {
         }
                         
         super.init(id: id, name: name, kind: kind, data: data)
-        
-    }
-    
-}
-
-extension Post {
-    
-    func vote(dir: VoteDirection) {
-        
-        let direction: VoteDirection = {
-            
-            guard let likes = likes
-            else {
-                return dir
-            }
-            
-            if (dir == .upvote && likes) || (dir == .downvote && !likes) {
-                return .unvote
-            }
-            
-            return dir
-        }()
-        
-        Task {
-            
-            do {
-                let json = try await ApiFetcher.shared.fetchJsonObject(.vote(thingName: name, dir: direction))
-                
-                if json.isEmpty {
-                    
-                    let generator = UINotificationFeedbackGenerator()
-                                        
-                    DispatchQueue.main.async {
-                        switch direction {
-                        case .upvote:
-                            self.likes = true
-                            generator.notificationOccurred(.success)
-                        case .unvote:
-                            self.likes = nil
-                        case .downvote:
-                            self.likes = false
-                            generator.notificationOccurred(.success)
-                        }
-                    }
-                }
-                
-            }
-            catch {
-                print(error)
-            }
-            
-        }
         
     }
     

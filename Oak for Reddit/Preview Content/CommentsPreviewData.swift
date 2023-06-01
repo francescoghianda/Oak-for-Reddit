@@ -44,4 +44,14 @@ struct CommentsPreviewData {
         return Listing.build(from: data[1])
     }()
     
+    
+    static var moreCommentsData: Data = {
+        
+        guard let asset = NSDataAsset(name: "MoreComments") else {
+            fatalError("Missing data asset: MoreComments")
+        }
+        
+        return asset.data
+        
+    }()
 }

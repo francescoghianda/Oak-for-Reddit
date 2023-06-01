@@ -78,7 +78,7 @@ struct PostView: View {
                 HStack{
                     
                     Button {
-                        post.vote(dir: .upvote)
+                        post.vote(direction: .upvote)
                     } label: {
                         Image("arrowshape.up.fill")
                             .foregroundColor(post.upvoted ? .blue : .gray)
@@ -88,7 +88,7 @@ struct PostView: View {
                         .font(.system(size: 12))
                     
                     Button {
-                        post.vote(dir: .downvote)
+                        post.vote(direction: .downvote)
                     } label: {
                         Image("arrowshape.up.fill")
                             .rotationEffect(.degrees(180))

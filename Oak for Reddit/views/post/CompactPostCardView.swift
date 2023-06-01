@@ -93,7 +93,7 @@ fileprivate struct MediaSheetView: View {
         .toast(isPresenting: $imageSavedToastPresenting) {
             Text("Image saved")
         }
-        .toast(isPresenting: $imageLoader.isLoading, autoClose: false) {
+        .toast(isPresenting: $imageLoader.isLoading, duration: .permanent) {
             VStack{
                 Text("Download")
                 let progress = Int(imageLoader.progress * 100)
@@ -279,7 +279,7 @@ struct CompactPostCardView: View {
                     
                     Group {
                         Button {
-                            post.vote(dir: .upvote)
+                            post.vote(direction: .upvote)
                         } label: {
                             Image("arrowshape.up.fill")
                                 .foregroundColor(post.upvoted ? .blue : .gray)
@@ -290,7 +290,7 @@ struct CompactPostCardView: View {
                             .foregroundColor(.gray)
                         
                         Button {
-                            post.vote(dir: .downvote)
+                            post.vote(direction: .downvote)
                         } label: {
                             Image("arrowshape.up.fill")
                                 .rotationEffect(.degrees(180))

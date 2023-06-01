@@ -8,10 +8,6 @@
 import Foundation
 import CoreData
 
-
-
-
-
 protocol ThingFactory{
     associatedtype T
     func build<T: Thing>(from: [String : Any]) -> T
@@ -21,7 +17,11 @@ enum ThingKind: String {
     case comment = "t1", account = "t2", link = "t3", message = "t4", subreddit = "t5", award = "t6" // t1, t2, t3, t4, t5, t6
 }
 
-class Thing: Identifiable, Equatable, ObservableObject {
+protocol Named {
+    var name: String { get }
+}
+
+class Thing: Identifiable, Equatable, ObservableObject, Named {
     
     
     /// Return the name of the Thing (eg. "t3_15bfi0")

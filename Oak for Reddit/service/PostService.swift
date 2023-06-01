@@ -7,10 +7,11 @@
 
 import Foundation
 
-protocol PostService {
+protocol PostService: VotableService {
     
     func fetch(order: PostListingOrder, subredditName: String) async throws -> Listing<Post>
     func fetchMore(order: PostListingOrder, subredditName: String, after: String, count: Int) async throws -> Listing<Post>
+    func vote(name: String, direction: VoteDirection) async throws -> Bool
     
 }
 
@@ -26,6 +27,11 @@ class NetworkPostService: PostService {
         try await api.fetchListing(.postListing(order: order, subredditName: subredditName, after: after, count: count))
     }
     
+    func vote(name: String, direction: VoteDirection) async throws -> Bool {
+        let responseJson = try await ApiFetcher.shared.fetchJsonObject(.vote(thingName: name, dir: direction))
+        return responseJson.isEmpty
+    }
+    
 }
 
 class MockPostService: PostService {
@@ -37,6 +43,10 @@ class MockPostService: PostService {
     
     func fetchMore(order: PostListingOrder, subredditName: String, after: String, count: Int) async throws -> Listing<Post> {
         Listing.empty()
+    }
+    
+    func vote(name: String, direction: VoteDirection) async throws -> Bool {
+        return true
     }
     
 }
