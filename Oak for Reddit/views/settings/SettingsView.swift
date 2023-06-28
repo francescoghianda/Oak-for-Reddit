@@ -25,12 +25,6 @@ struct SettingsView: View {
                 Label("Interface", systemImage: "paintbrush.pointed.fill")
             }
             
-            NavigationLink {
-                
-            } label: {
-                Label("Notifications", systemImage: "music.note")
-            }
-            
         }
         .navigationTitle("Settings")
         

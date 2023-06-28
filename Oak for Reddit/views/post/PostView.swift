@@ -181,7 +181,9 @@ struct PostView: View {
         .navigationBarTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItemGroup(placement: .navigationBarTrailing){
+            
+            //TODO:
+            /*ToolbarItemGroup(placement: .navigationBarTrailing){
                 
                 Button {
                     
@@ -189,7 +191,7 @@ struct PostView: View {
                     Label("Share", systemImage: "square.and.arrow.up")
                 }
 
-            }
+            }*/
             
         }
         .onFirstAppear {

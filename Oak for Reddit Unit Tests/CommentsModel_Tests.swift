@@ -48,7 +48,32 @@ class CommentsModel_Tests: XCTestCase {
         
     }
     
+    private var model:  CommentsModel!
+    private var service: TestCommentService!
     
+    override func setUp() {
+        service = TestCommentService()
+        model = CommentsModel(service: service, postId: "", subredditName: nil)
+        service.model = model
+    }
+    
+    func test_CommentsModel_load() {
+        
+        let serviceExpectation = expectation(description: "Service Expectation: <loading> should be set to 'true' and <error> should be set to 'nil'")
+        service.expectation = serviceExpectation
+        
+        let completionExpectation = expectation(description: "Loading completed")
+        
+        model.load(sort: .new) { _ in
+            completionExpectation.fulfill()
+        }
+        
+        wait(for: [serviceExpectation, completionExpectation], timeout: 3.0)
+        
+        XCTAssertFalse(model.loading)
+        XCTAssertNil(model.error)
+        
+    }
     
 
 }

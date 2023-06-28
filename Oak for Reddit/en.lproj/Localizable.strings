@@ -1,0 +1,66 @@
+/* 
+  Localizable.strings
+  Oak for Reddit
+
+  Created by Francesco Ghianda on 24/04/23.
+  
+*/
+
+"Search" = "Search";
+"Settings" = "Settings";
+"Posts" = "Posts";
+"Subreddits" = "Subreddits";
+"Favorites" = "Favorites";
+"There are no favorites :(" = "There are no favorites :(";
+"There is nothing here :(" = "There is nothing here :(";
+"Show more" = "Show more";
+"Hide" = "Hide";
+"Account" = "Account";
+"Interface" = "Interface";
+"Notifications" = "Notifications";
+"Subreddits preferred order" = "Subreddits preferred order";
+"Posts preferred order" = "Posts preferred order";
+"Post view mode" = "Post view mode";
+"Load new posts automatically" = "Load new posts automatically";
+"Images load quality" = "Images load quality";
+"Comments preferred order" = "Comments preferred order";
+"Comments view mode" = "Comments view mode";
+"Default" = "Default";
+"Popular" = "Popular";
+"New" = "New";
+"Best" = "Best";
+"Hot" = "Hot";
+"Rising" = "Rising";
+"Top" = "Top";
+"Controversial" = "Controversial";
+"Hour" = "Hour";
+"Day" = "Day";
+"Week" = "Week";
+"Month" = "Month";
+"Year" = "Year";
+"All" = "All";
+"Old" = "Old";
+"Interview" = "Interview";
+"Low" = "Low";
+"Medium" = "Medium";
+"Good" = "Good";
+"Original" = "Original";
+"Classic" = "Classic";
+"Light" = "Light";
+"Karma" = "Karma";
+"Cake day" = "Cake day";
+"Sign in with Reddit" = "Sign in with Reddit";
+"Logout" = "Logout";
+"You are not allowed to view this content" = "You are not allowed to view this content";
+"Connection error" = "Connection error";
+"Load more" = "Load more";
+"You have reached the end" = "You have reached the end";
+"Posted by" = "Posted by";
+"Comments" = "Comments";
+"Show replies" = "Show replies";
+"Hide replies" = "Hide replies";
+"Share" = "Share";
+"Compact" = "Compact";
+"Large" = "Large";
+"Image saved" = "Image saved";
+

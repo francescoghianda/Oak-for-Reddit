@@ -115,7 +115,7 @@ class CommentsModel: ObservableObject {
     }
     
     
-    func load(sort: CommentsOrder) {
+    func load(sort: CommentsOrder, completion: ((_ comments: Listing<Comment>?) -> Void)? = nil) {
         
         if loading {
             return
@@ -131,11 +131,13 @@ class CommentsModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     self?.comments = comments
                     self?.loading = false
+                    completion?(comments)
                 }
             }
             catch{
                 Task { @MainActor [weak self] in
                     self?.error = error
+                    completion?(nil)
                 }
             }
             
