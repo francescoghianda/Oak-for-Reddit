@@ -79,6 +79,7 @@ struct NewCommentForm: View {
                     VStack {
                         TextEditor(text: $text)
                             .frame(height: 200)
+                            .accessibilityIdentifier("CommentTextEditor")
                         
                         Text("\(text.count) · \(maxLength)")
                             .font(.caption)

@@ -116,6 +116,7 @@
 		13EFE7E429C3F8F400C6C13D /* OAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EFE7E329C3F8F400C6C13D /* OAuthManager.swift */; };
 		13EFE7EC29C49C9500C6C13D /* SubredditListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EFE7EB29C49C9500C6C13D /* SubredditListView.swift */; };
 		13EFE7EF29C4ADF100C6C13D /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13EFE7EE29C4ADF100C6C13D /* LoginView.swift */; };
+		13F8D28D2A538B140028E2AD /* Listing_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13F8D28C2A538B140028E2AD /* Listing_Tests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -250,6 +251,7 @@
 		13EFE7E329C3F8F400C6C13D /* OAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OAuthManager.swift; sourceTree = "<group>"; };
 		13EFE7EB29C49C9500C6C13D /* SubredditListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubredditListView.swift; sourceTree = "<group>"; };
 		13EFE7EE29C4ADF100C6C13D /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		13F8D28C2A538B140028E2AD /* Listing_Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listing_Tests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -680,6 +682,7 @@
 				13941B4C2A0D46430017A30F /* VotableServiceProvider_Tests.swift */,
 				13941B4E2A0EA0E50017A30F /* SubredditListModel_Tests.swift */,
 				13941B502A10E4410017A30F /* CommentsModel_Tests.swift */,
+				13F8D28C2A538B140028E2AD /* Listing_Tests.swift */,
 			);
 			path = "Oak for Reddit Unit Tests";
 			sourceTree = "<group>";
@@ -945,6 +948,7 @@
 				13D79CEF2A0A8376009DADC7 /* DictionaryExtensions_Tests.swift in Sources */,
 				13D79CE72A096B91009DADC7 /* CollectionExtensions_Tests.swift in Sources */,
 				13D79CDC2A09687B009DADC7 /* Oak_for_Reddit_Unit_Tests.swift in Sources */,
+				13F8D28D2A538B140028E2AD /* Listing_Tests.swift in Sources */,
 				13941B512A10E4410017A30F /* CommentsModel_Tests.swift in Sources */,
 				13D79CE32A0968B0009DADC7 /* URLExtensions_Tests.swift in Sources */,
 				13941B492A0D0EF40017A30F /* PostListModel_Tests.swift in Sources */,

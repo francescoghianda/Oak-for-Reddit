@@ -92,8 +92,7 @@ struct PostImageView: View {
                     } label: {
                         Label {
                             VStack{
-                                Text("Save image")
-                                Text("(Original resolution)")
+                                Text("Save image HD")
                                     .font(.caption)
                             }
                         } icon: {
